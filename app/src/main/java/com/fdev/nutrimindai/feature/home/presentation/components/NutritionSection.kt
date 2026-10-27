@@ -110,7 +110,7 @@ private fun NutritionItem(
                 Column {
                     Text(text = data.label, style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold))
                     Text(
-                        text = "${data.current} / ${data.target} ${data.unit}",
+                        text = stringResource(R.string.home_nutrition_item_format, data.current, data.target, data.unit),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

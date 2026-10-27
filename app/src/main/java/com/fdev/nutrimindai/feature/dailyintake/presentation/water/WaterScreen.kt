@@ -171,7 +171,7 @@ fun WaterProgressCard(totalMl: Int, goalMl: Int = 2500) {
                     color = Color(0xFF0288D1)
                 )
                 Text(
-                    text = " L / ${goalMl / 1000f} L",
+                    text = " " + stringResource(R.string.water_progress_format, goalMl / 1000f),
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 6.dp)
@@ -333,7 +333,7 @@ fun WaterHistoryCard(
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "${water.amountMl} ml",
+                    text = stringResource(R.string.water_amount_ml_format, water.amountMl),
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface

@@ -147,17 +147,17 @@ class AuthRepositoryImpl @Inject constructor(
 
     private fun mapAuthError(exception: Exception): String {
         return when (exception) {
-            is FirebaseAuthInvalidUserException -> "Akun dengan email tersebut tidak ditemukan."
-            is FirebaseAuthInvalidCredentialsException -> "Email atau password salah. Silakan coba lagi."
-            is FirebaseAuthUserCollisionException -> "Email sudah terdaftar. Silakan gunakan email lain atau login."
-            is FirebaseAuthWeakPasswordException -> "Password terlalu lemah. Gunakan minimal 6 karakter."
+            is FirebaseAuthInvalidUserException -> "No account found with this email."
+            is FirebaseAuthInvalidCredentialsException -> "Incorrect email or password. Please try again."
+            is FirebaseAuthUserCollisionException -> "This email is already registered. Please log in or use a different email."
+            is FirebaseAuthWeakPasswordException -> "Password is too weak. Please use at least 6 characters."
             else -> {
                 val msg = exception.message ?: ""
                 when {
-                    msg.contains("network", ignoreCase = true) -> "Gagal terhubung ke server. Periksa koneksi internet Anda."
-                    msg.contains("badly formatted", ignoreCase = true) -> "Format email tidak valid."
-                    msg.contains("blocked", ignoreCase = true) -> "Terlalu banyak percobaan gagal. Silakan coba lagi nanti."
-                    else -> "Terjadi kesalahan autentikasi: ${exception.localizedMessage ?: "Silakan coba lagi."}"
+                    msg.contains("network", ignoreCase = true) -> "Failed to connect to server. Please check your internet connection."
+                    msg.contains("badly formatted", ignoreCase = true) -> "Invalid email format."
+                    msg.contains("blocked", ignoreCase = true) -> "Too many failed attempts. Please try again later."
+                    else -> "Authentication error: ${exception.localizedMessage ?: "Please try again."}"
                 }
             }
         }

@@ -85,6 +85,7 @@
     <string name="unit_grams">g</string>
     <string name="unit_minutes">m</string>
     <string name="unit_ml">ml</string>
+    <string name="unit_liters">L</string>
 
     <string name="ai_badge_title">NUTRIMIND AI</string>
     <string name="ai_recommendation_text">This plan is your starting point. As NutriMind learns your habits, your daily coaching will become increasingly personalized.</string>
@@ -700,4 +701,24 @@
     <!-- Daily Review Additional -->
     <string name="daily_review_share_title">Share Daily Review</string>
     <string name="daily_review_default_ai_summary">Daily nutrition AI evaluation completed with high accuracy.</string>
+
+    <!-- Extracted UI Common & Formats -->
+    <string name="score_out_of_100">/100</string>
+    <string name="progress_filter_today">TODAY</string>
+    <string name="progress_filter_last_3_days">LAST 3 DAYS</string>
+    <string name="progress_filter_last_30_days">LAST 30 DAYS</string>
+    <string name="progress_filter_period_summary">PERIOD SUMMARY</string>
+    <string name="progress_ai_insight_empty">Keep logging daily meals to generate personalized AI Insights!</string>
+    <string name="progress_unit_days">days</string>
+    <string name="progress_unit_kcal_per_day">kcal/day</string>
+    <string name="progress_dialog_weight_error">Please enter a valid weight (e.g. 70.5)</string>
+    <string name="trend_unit_per_day">%1$s/day</string>
+    <string name="chart_point_tooltip">%1$s: %2$d %3$s</string>
+    <string name="water_progress_format">L / %1$.1f L</string>
+    <string name="water_amount_ml_format">%1$d ml</string>
+    <string name="meal_serving_format">%1$s %2$s</string>
+    <string name="meal_food_item_desc">%1$s %2$s • %3$d kcal</string>
+    <string name="macro_val_g">%1$sg</string>
+    <string name="scan_macro_distribution_format">P: %1$d%% • C: %2$d%% • F: %3$d%%</string>
+    <string name="food_search_item_summary_format">%1$d kcal • P: %2$dg  C: %3$dg  F: %4$dg</string>
 </resources>

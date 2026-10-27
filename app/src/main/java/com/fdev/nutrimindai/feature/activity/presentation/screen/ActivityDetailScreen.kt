@@ -21,7 +21,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fdev.nutrimindai.R
 import com.fdev.nutrimindai.core.designsystem.*
@@ -393,7 +393,7 @@ fun DailyScoreCard(score: Int) {
                 Text(text = stringResource(R.string.label_daily_score), style = MaterialTheme.typography.labelSmall)
                 Row(verticalAlignment = Alignment.Bottom) {
                     Text(text = "$score", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold, color = LightSuccess)
-                    Text(text = "/100", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(text = stringResource(R.string.score_out_of_100), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
 

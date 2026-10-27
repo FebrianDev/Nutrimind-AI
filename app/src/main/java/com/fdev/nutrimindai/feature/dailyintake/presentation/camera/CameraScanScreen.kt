@@ -171,7 +171,7 @@ fun CameraScanScreen(
                             color = Color.White
                         )
                         Text(
-                            text = stringResource(R.string.scan_meal_subtitle, mealType.lowercase().capitalize()),
+                            text = stringResource(R.string.scan_meal_subtitle, mealType.lowercase().capitalized()),
                             style = MaterialTheme.typography.bodySmall,
                             color = Color.White.copy(alpha = 0.8f)
                         )
@@ -514,7 +514,7 @@ fun RecognizedFoodScreen(
                         shape = RoundedCornerShape(14.dp),
                         enabled = foodName.isNotBlank() && calories.isNotBlank()
                     ) {
-                        Text(stringResource(R.string.scan_btn_add_to_meal, mealType.lowercase().capitalize()), fontWeight = FontWeight.Bold)
+                        Text(stringResource(R.string.scan_btn_add_to_meal, mealType.lowercase().capitalized()), fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -651,7 +651,12 @@ fun RecognizedFoodScreen(
                         val total = p + c + f
                         if (total > 0.0) {
                             Text(
-                                text = "P: ${(p / total * 100).toInt()}% • C: ${(c / total * 100).toInt()}% • F: ${(f / total * 100).toInt()}%",
+                                text = stringResource(
+                                    R.string.scan_macro_distribution_format,
+                                    (p / total * 100).toInt(),
+                                    (c / total * 100).toInt(),
+                                    (f / total * 100).toInt()
+                                ),
                                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -788,4 +793,4 @@ private fun rotateBitmap(bitmap: Bitmap, degrees: Int): Bitmap {
     return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
 }
 
-private fun String.capitalize(): String = replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+private fun String.capitalized(): String = replaceFirstChar { if (it.isLowerCase()) it.titlecase(java.util.Locale.getDefault()) else it.toString() }

@@ -66,7 +66,7 @@ fun ProgressTrendChart(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "$selectedLabel: ${selectedVal.toInt()} $unit",
+                    text = stringResource(R.string.chart_point_tooltip, selectedLabel, selectedVal.toInt(), unit),
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     color = lineColor

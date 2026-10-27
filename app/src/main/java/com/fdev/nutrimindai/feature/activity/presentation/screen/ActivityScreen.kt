@@ -376,14 +376,14 @@ fun ActivityScreen(
                                     "%,d",
                                     daySummary.totalCalories
                                 ),
-                                protein = "${daySummary.totalProtein.toInt()}g",
+                                protein = stringResource(R.string.macro_val_g, daySummary.totalProtein.toInt()),
                                 water = "${
                                     String.format(
                                         Locale.getDefault(),
                                         "%.1f",
                                         daySummary.totalWaterMl / 1000.0
                                     )
-                                }L",
+                                }" + stringResource(R.string.unit_liters),
                                 exercise = daySummary.exerciseCalories.toString(),
                                 entriesCount = daySummary.entriesCount,
                                 isEditable = daySummary.isEditable,

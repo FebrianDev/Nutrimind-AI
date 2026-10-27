@@ -224,17 +224,17 @@ fun FoodItemDetailDialog(
                             Text(stringResource(R.string.meal_detail_total_energy), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                             Text(stringResource(R.string.home_intake_kcal_val, intake.calories), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                         }
-                        Text("${intake.servingSize} ${intake.servingUnit}", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
+                        Text(stringResource(R.string.meal_serving_format, intake.servingSize, intake.servingUnit), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
                     }
                 }
 
                 Text(stringResource(R.string.meal_detail_nutritional_breakdown), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
 
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    MacroBadge(label = stringResource(R.string.label_protein), value = "${intake.protein}g", color = Color(0xFF4CAF50), modifier = Modifier.weight(1f))
-                    MacroBadge(label = stringResource(R.string.label_carbs), value = "${intake.carbs}g", color = Color(0xFFFF9800), modifier = Modifier.weight(1f))
-                    MacroBadge(label = stringResource(R.string.label_fats), value = "${intake.fat}g", color = Color(0xFFF44336), modifier = Modifier.weight(1f))
-                    MacroBadge(label = stringResource(R.string.label_fiber), value = "${intake.fiber}g", color = Color(0xFF9C27B0), modifier = Modifier.weight(1f))
+                    MacroBadge(label = stringResource(R.string.label_protein), value = stringResource(R.string.macro_val_g, intake.protein), color = Color(0xFF4CAF50), modifier = Modifier.weight(1f))
+                    MacroBadge(label = stringResource(R.string.label_carbs), value = stringResource(R.string.macro_val_g, intake.carbs), color = Color(0xFFFF9800), modifier = Modifier.weight(1f))
+                    MacroBadge(label = stringResource(R.string.label_fats), value = stringResource(R.string.macro_val_g, intake.fat), color = Color(0xFFF44336), modifier = Modifier.weight(1f))
+                    MacroBadge(label = stringResource(R.string.label_fiber), value = stringResource(R.string.macro_val_g, intake.fiber), color = Color(0xFF9C27B0), modifier = Modifier.weight(1f))
                 }
             }
         },
@@ -465,7 +465,7 @@ fun FoodItemCard(
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    text = "${intake.servingSize} ${intake.servingUnit} • ${intake.calories} kcal",
+                    text = stringResource(R.string.meal_food_item_desc, intake.servingSize, intake.servingUnit, intake.calories),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

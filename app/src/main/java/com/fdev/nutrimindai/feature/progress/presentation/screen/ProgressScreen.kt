@@ -387,11 +387,11 @@ fun GoalProgressCard(
 @Composable
 fun WeeklySummarySection(data: ProgressData) {
     val sectionTitle = when (data.selectedFilter) {
-        is DateRangeFilter.Last1Day -> "TODAY"
-        is DateRangeFilter.Last3Days -> "LAST 3 DAYS"
+        is DateRangeFilter.Last1Day -> stringResource(R.string.progress_filter_today)
+        is DateRangeFilter.Last3Days -> stringResource(R.string.progress_filter_last_3_days)
         is DateRangeFilter.Last7Days -> stringResource(R.string.label_this_week)
-        is DateRangeFilter.Last30Days -> "LAST 30 DAYS"
-        is DateRangeFilter.Custom -> "PERIOD SUMMARY"
+        is DateRangeFilter.Last30Days -> stringResource(R.string.progress_filter_last_30_days)
+        is DateRangeFilter.Custom -> stringResource(R.string.progress_filter_period_summary)
     }
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -424,7 +424,7 @@ fun WeeklySummarySection(data: ProgressData) {
                     iconColor = MaterialTheme.colorScheme.primary,
                     label = stringResource(R.string.label_completed),
                     value = "${data.completedDays} / ${data.totalDays}",
-                    description = "days"
+                    description = stringResource(R.string.progress_unit_days)
                 )
                 StatisticCard(
                     modifier = Modifier.weight(1f),
@@ -432,7 +432,7 @@ fun WeeklySummarySection(data: ProgressData) {
                     iconColor = NutritionCalories,
                     label = stringResource(R.string.label_avg_calories),
                     value = String.format(Locale.US, "%,d", data.avgCalories),
-                    description = "kcal/day"
+                    description = stringResource(R.string.progress_unit_kcal_per_day)
                 )
             }
             Row(
@@ -604,7 +604,7 @@ fun TrendSection(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "$unit/day",
+                            text = stringResource(R.string.trend_unit_per_day, unit),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -728,7 +728,7 @@ fun AIInsightCard(insightText: String) {
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = insightText.ifEmpty { "Keep logging daily meals to generate personalized AI Insights!" },
+                    text = insightText.ifEmpty { stringResource(R.string.progress_ai_insight_empty) },
                     style = MaterialTheme.typography.bodySmall,
                     fontWeight = FontWeight.Medium
                 )
@@ -1046,6 +1046,7 @@ fun LogWeightDialog(
     var weightText by remember { mutableStateOf(String.format(Locale.US, "%.1f", initialWeight)) }
     var noteText by remember { mutableStateOf("") }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    val invalidWeightError = stringResource(R.string.progress_dialog_weight_error)
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -1113,7 +1114,7 @@ fun LogWeightDialog(
                 onClick = {
                     val weight = weightText.toFloatOrNull()
                     if (weight == null || weight <= 20f || weight >= 400f) {
-                        errorMessage = "Please enter a valid weight (e.g. 70.5)"
+                        errorMessage = invalidWeightError
                     } else {
                         onConfirm(weight, noteText)
                     }

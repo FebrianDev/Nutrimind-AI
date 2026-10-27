@@ -53,19 +53,19 @@ class RegisterViewModel @Inject constructor(
         val currentConfirm = _confirmPassword.value
 
         if (currentName.isBlank()) {
-            _uiState.value = RegisterUiState.Error("Silakan masukkan nama lengkap Anda.")
+            _uiState.value = RegisterUiState.Error("Please enter your full name.")
             return
         }
         if (currentEmail.isBlank()) {
-            _uiState.value = RegisterUiState.Error("Silakan masukkan email Anda.")
+            _uiState.value = RegisterUiState.Error("Please enter your email.")
             return
         }
         if (currentPassword.length < 6) {
-            _uiState.value = RegisterUiState.Error("Password minimal harus 6 karakter.")
+            _uiState.value = RegisterUiState.Error("Password must be at least 6 characters.")
             return
         }
         if (currentPassword != currentConfirm) {
-            _uiState.value = RegisterUiState.Error("Konfirmasi password tidak cocok.")
+            _uiState.value = RegisterUiState.Error("Passwords do not match.")
             return
         }
 
@@ -78,7 +78,7 @@ class RegisterViewModel @Inject constructor(
                     onNavigateToOnboarding()
                 },
                 onFailure = { error ->
-                    _uiState.value = RegisterUiState.Error(error.message ?: "Registrasi gagal. Silakan coba lagi.")
+                    _uiState.value = RegisterUiState.Error(error.message ?: "Registration failed. Please try again.")
                 }
             )
         }
@@ -94,7 +94,7 @@ class RegisterViewModel @Inject constructor(
                     onNavigateToOnboarding()
                 },
                 onFailure = { error ->
-                    _uiState.value = RegisterUiState.Error(error.message ?: "Login tamu gagal.")
+                    _uiState.value = RegisterUiState.Error(error.message ?: "Guest login failed.")
                 }
             )
         }

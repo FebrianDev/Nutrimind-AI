@@ -296,7 +296,13 @@ fun SearchFoodScreen(
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
-                                    text = "${food.calories} kcal • P: ${food.protein.toInt()}g  C: ${food.carbs.toInt()}g  F: ${food.fat.toInt()}g",
+                                    text = stringResource(
+                                        R.string.food_search_item_summary_format,
+                                        food.calories,
+                                        food.protein.toInt(),
+                                        food.carbs.toInt(),
+                                        food.fat.toInt()
+                                    ),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )

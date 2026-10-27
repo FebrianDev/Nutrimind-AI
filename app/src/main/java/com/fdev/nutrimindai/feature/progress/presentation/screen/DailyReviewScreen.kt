@@ -195,7 +195,7 @@ fun DateAndScoreHeader(date: String, score: Int, status: String) {
                     color = statusColor
                 )
                 Text(
-                    text = "/100",
+                    text = stringResource(R.string.score_out_of_100),
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
