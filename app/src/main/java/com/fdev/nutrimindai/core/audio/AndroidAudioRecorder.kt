@@ -12,6 +12,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -158,8 +159,6 @@ class AndroidAudioRecorder @Inject constructor(
         if (!_isRecording.value) return null
 
         _isRecording.value = false
-        recordingJob?.cancel()
-        timerJob?.cancel()
 
         try {
             audioRecord?.apply {
@@ -173,6 +172,18 @@ class AndroidAudioRecorder @Inject constructor(
         } finally {
             audioRecord = null
         }
+
+        // Wait for recordingJob to finish writing and flush the PCM file
+        kotlinx.coroutines.runBlocking {
+            try {
+                kotlinx.coroutines.withTimeout(1500L) {
+                    recordingJob?.cancelAndJoin()
+                }
+            } catch (e: Exception) {
+                Timber.w(e, "Timeout or error waiting for audio recording job")
+            }
+        }
+        timerJob?.cancel()
 
         val pcm = tempPcmFile
         val wav = targetWavFile

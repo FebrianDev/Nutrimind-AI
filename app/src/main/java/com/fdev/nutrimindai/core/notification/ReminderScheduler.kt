@@ -44,15 +44,19 @@ class ReminderScheduler @Inject constructor(
         const val REQ_CODE_QUICK_LOG_WATER = 401
     }
 
+    suspend fun rescheduleAllActiveRemindersSuspend() {
+        try {
+            val settings = preferenceManager.reminderSettings.first()
+            applyReminderSettings(settings)
+            Timber.d("All active reminders successfully rescheduled.")
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to reschedule all reminders")
+        }
+    }
+
     fun rescheduleAllActiveReminders() {
         CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val settings = preferenceManager.reminderSettings.first()
-                applyReminderSettings(settings)
-                Timber.d("All active reminders successfully rescheduled.")
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to reschedule all reminders")
-            }
+            rescheduleAllActiveRemindersSuspend()
         }
     }
 
@@ -166,18 +170,7 @@ class ReminderScheduler @Inject constructor(
         }
 
         val pendingIntent = createAlarmPendingIntent(REQ_CODE_WATER, intent)
-
-        try {
-            AlarmManagerCompat.setExactAndAllowWhileIdle(
-                alarmManager,
-                AlarmManager.RTC_WAKEUP,
-                triggerCal.timeInMillis,
-                pendingIntent
-            )
-            Timber.d("Water reminder scheduled for: ${triggerCal.time}")
-        } catch (e: SecurityException) {
-            Timber.w("SecurityException scheduling exact water alarm: ${e.message}")
-        }
+        setAlarmSafely(triggerCal.timeInMillis, pendingIntent, "water")
     }
 
     fun scheduleDailyAlarm(
@@ -207,17 +200,51 @@ class ReminderScheduler @Inject constructor(
         }
 
         val pendingIntent = createAlarmPendingIntent(requestCode, intent)
+        setAlarmSafely(calendar.timeInMillis, pendingIntent, "$action:$requestCode")
+    }
 
+    private fun setAlarmSafely(triggerMillis: Long, pendingIntent: PendingIntent, tag: String) {
+        val manager = alarmManager ?: return
         try {
-            AlarmManagerCompat.setExactAndAllowWhileIdle(
-                alarmManager,
-                AlarmManager.RTC_WAKEUP,
-                calendar.timeInMillis,
-                pendingIntent
-            )
-            Timber.d("Scheduled alarm [$action, req: $requestCode] for: ${calendar.time}")
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (manager.canScheduleExactAlarms()) {
+                    AlarmManagerCompat.setExactAndAllowWhileIdle(
+                        manager,
+                        AlarmManager.RTC_WAKEUP,
+                        triggerMillis,
+                        pendingIntent
+                    )
+                    Timber.d("Exact alarm scheduled ($tag) for trigger: $triggerMillis")
+                } else {
+                    manager.setAndAllowWhileIdle(
+                        AlarmManager.RTC_WAKEUP,
+                        triggerMillis,
+                        pendingIntent
+                    )
+                    Timber.d("Inexact alarm scheduled ($tag) because exact alarm permission is not granted")
+                }
+            } else {
+                AlarmManagerCompat.setExactAndAllowWhileIdle(
+                    manager,
+                    AlarmManager.RTC_WAKEUP,
+                    triggerMillis,
+                    pendingIntent
+                )
+                Timber.d("Exact alarm scheduled ($tag) for trigger: $triggerMillis")
+            }
         } catch (e: SecurityException) {
-            Timber.w("SecurityException scheduling exact alarm: ${e.message}")
+            Timber.w("SecurityException scheduling exact alarm ($tag), falling back to inexact alarm: ${e.message}")
+            try {
+                manager.setAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    triggerMillis,
+                    pendingIntent
+                )
+            } catch (fallbackEx: Exception) {
+                Timber.e(fallbackEx, "Failed to schedule fallback inexact alarm ($tag)")
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Error scheduling alarm ($tag)")
         }
     }
 

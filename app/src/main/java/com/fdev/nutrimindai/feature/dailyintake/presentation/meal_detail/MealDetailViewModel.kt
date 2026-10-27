@@ -13,10 +13,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
+import timber.log.Timber
 
 sealed interface MealDetailUiState {
     data object Loading : MealDetailUiState
@@ -89,6 +91,17 @@ class MealDetailViewModel @Inject constructor(
             viewModelScope.launch {
                 try {
                     intakeRepository.deleteIntake(intake)
+                    intake.imagePath?.let { path ->
+                        try {
+                            val file = File(path)
+                            if (file.exists()) {
+                                val deleted = file.delete()
+                                Timber.d("Deleted orphan food image file ($path): $deleted")
+                            }
+                        } catch (e: Exception) {
+                            Timber.e(e, "Failed to delete orphan food image file")
+                        }
+                    }
                 } catch (e: Exception) {
                     _uiState.value = MealDetailUiState.Error(e.message ?: "Failed to delete food.")
                 }

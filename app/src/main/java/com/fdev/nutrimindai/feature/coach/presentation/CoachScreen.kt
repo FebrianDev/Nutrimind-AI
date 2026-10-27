@@ -110,6 +110,13 @@ fun CoachScreen(
         }
     }
 
+    // Cancel and clean up microphone hardware when screen is navigated away or disposed
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModel.cancelVoiceRecording()
+        }
+    }
+
     if (showClearDialog) {
         AlertDialog(
             onDismissRequest = { showClearDialog = false },

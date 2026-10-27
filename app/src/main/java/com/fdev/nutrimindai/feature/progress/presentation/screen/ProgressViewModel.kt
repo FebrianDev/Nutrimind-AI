@@ -277,7 +277,7 @@ class ProgressViewModel @Inject constructor(
     ): ProgressData {
         val totalDays = dayRecords.size
         val latestWeightLog = weightLogs.lastOrNull()
-        val goalData = buildGoalData(profile, latestWeightLog)
+        val goalData = buildGoalData(profile, weightLogs)
         val trendPoints = mutableListOf<DailyTrendPoint>()
         val reviews = mutableListOf<DailyReviewData>()
 
@@ -411,7 +411,7 @@ class ProgressViewModel @Inject constructor(
         )
     }
 
-    private fun buildGoalData(profile: ProfileEntity?, latestWeightLog: WeightLogEntity?): ProgressGoalData {
+    private fun buildGoalData(profile: ProfileEntity?, weightLogs: List<WeightLogEntity>): ProgressGoalData {
         if (profile == null) return ProgressGoalData()
 
         val goalTitle = when (profile.goal) {
@@ -420,20 +420,51 @@ class ProgressViewModel @Inject constructor(
             Goal.GainWeight -> "Weight Gain Goal"
         }
 
-        val startWeight = profile.currentWeight
-        val currentWeight = latestWeightLog?.weightKg ?: profile.currentWeight
+        // The initial starting weight is the earliest recorded weight log,
+        // or profile.currentWeight if no prior logs exist.
+        val startWeight = weightLogs.firstOrNull()?.weightKg ?: profile.currentWeight
+        val currentWeight = weightLogs.lastOrNull()?.weightKg ?: profile.currentWeight
         val targetWeight = profile.targetWeight
 
-        val totalDiff = abs(startWeight - targetWeight)
-        val achievedDiff = abs(startWeight - currentWeight)
-        val progressPercent = if (totalDiff > 0f) (achievedDiff / totalDiff).coerceIn(0.05f, 1.0f) else 1.0f
+        val progressPercent = when (profile.goal) {
+            Goal.LoseWeight -> {
+                val totalLossNeeded = startWeight - targetWeight
+                if (totalLossNeeded > 0f) {
+                    val actualLoss = startWeight - currentWeight
+                    (actualLoss / totalLossNeeded).coerceIn(0.0f, 1.0f)
+                } else {
+                    1.0f
+                }
+            }
+            Goal.GainWeight -> {
+                val totalGainNeeded = targetWeight - startWeight
+                if (totalGainNeeded > 0f) {
+                    val actualGain = currentWeight - startWeight
+                    (actualGain / totalGainNeeded).coerceIn(0.0f, 1.0f)
+                } else {
+                    1.0f
+                }
+            }
+            Goal.MaintainWeight -> {
+                val diff = abs(currentWeight - targetWeight)
+                if (diff <= 0.5f) 1.0f else (1.0f - (diff / 5.0f)).coerceIn(0.0f, 1.0f)
+            }
+        }
+
+        // Estimate remaining days based on remaining weight to lose/gain (~0.5kg per week = ~0.07kg per day)
+        val remainingKg = abs(currentWeight - targetWeight)
+        val remainingDays = if (profile.goal == Goal.MaintainWeight || remainingKg <= 0.2f) {
+            0
+        } else {
+            ((remainingKg / 0.5f) * 7).toInt().coerceIn(1, 180)
+        }
 
         return ProgressGoalData(
             goalTitle = goalTitle,
             progressPercent = progressPercent,
             currentWeightKg = currentWeight,
             targetWeightKg = targetWeight,
-            remainingDays = 30
+            remainingDays = remainingDays
         )
     }
 

@@ -122,7 +122,7 @@ fun CameraScanScreen(
         }
     }
 
-    var cameraSelector by remember { mutableStateOf(CameraSelector.DEFAULT_BACK_CAMERA) }
+    val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
     var camera by remember { mutableStateOf<Camera?>(null) }
     val imageCapture = remember { ImageCapture.Builder().build() }
 
@@ -319,23 +319,17 @@ fun CameraScanScreen(
                         }
                     }
 
-                    // Flip camera button
+                    // Gallery shortcut button
                     IconButton(
-                        onClick = {
-                            cameraSelector = if (cameraSelector == CameraSelector.DEFAULT_BACK_CAMERA) {
-                                CameraSelector.DEFAULT_FRONT_CAMERA
-                            } else {
-                                CameraSelector.DEFAULT_BACK_CAMERA
-                            }
-                        },
+                        onClick = { galleryLauncher.launch("image/*") },
                         modifier = Modifier
                             .size(48.dp)
                             .clip(CircleShape)
                             .background(Color.Black.copy(alpha = 0.5f))
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Cameraswitch,
-                            contentDescription = stringResource(R.string.scan_flip_camera_desc),
+                            imageVector = Icons.Default.PhotoLibrary,
+                            contentDescription = stringResource(R.string.scan_btn_gallery),
                             tint = Color.White
                         )
                     }

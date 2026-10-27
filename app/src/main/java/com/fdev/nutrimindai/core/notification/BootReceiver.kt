@@ -7,6 +7,10 @@ import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import javax.inject.Inject
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+
 @AndroidEntryPoint
 class BootReceiver : BroadcastReceiver() {
 
@@ -17,7 +21,16 @@ class BootReceiver : BroadcastReceiver() {
         val action = intent.action
         Timber.d("BootReceiver: Device boot or package replaced ($action). Rescheduling all active reminders...")
         if (action == Intent.ACTION_BOOT_COMPLETED || action == Intent.ACTION_MY_PACKAGE_REPLACED) {
-            reminderScheduler.rescheduleAllActiveReminders()
+            val pendingResult = goAsync()
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    reminderScheduler.rescheduleAllActiveRemindersSuspend()
+                } catch (e: Exception) {
+                    Timber.e(e, "Error rescheduling reminders in BootReceiver")
+                } finally {
+                    pendingResult.finish()
+                }
+            }
         }
     }
 }

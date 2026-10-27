@@ -299,10 +299,10 @@ class ProfileViewModel @Inject constructor(
                 withContext(Dispatchers.IO) {
                     database.runInTransaction {
                         val db = database.openHelper.writableDatabase
-                        db.execSQL("DELETE FROM daily_log_table")
-                        db.execSQL("DELETE FROM intake_table")
-                        db.execSQL("DELETE FROM water_table")
-                        db.execSQL("DELETE FROM exercise_table")
+                        db.execSQL("DELETE FROM intake")
+                        db.execSQL("DELETE FROM water")
+                        db.execSQL("DELETE FROM exercise")
+                        db.execSQL("DELETE FROM daily_log")
                         db.execSQL("DELETE FROM food_table")
                         db.execSQL("DELETE FROM chat_message_table")
                     }
