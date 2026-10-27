@@ -60,7 +60,8 @@ class ActivityViewModel @Inject constructor(
     private val _selectedDate = MutableStateFlow<String?>(null)
     val selectedDate: StateFlow<String?> = _selectedDate.asStateFlow()
 
-    private val currentDate: String = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+    private val currentDate: String
+        get() = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
     private val displayDateFormat = SimpleDateFormat("MMMM dd, yyyy", Locale.getDefault())
     private val parseDateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 

@@ -36,7 +36,8 @@ class WaterViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<WaterUiState>(WaterUiState.Loading)
     val uiState: StateFlow<WaterUiState> = _uiState.asStateFlow()
 
-    private val currentDate: String = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+    private val currentDate: String
+        get() = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
 
     init {
         loadWater()

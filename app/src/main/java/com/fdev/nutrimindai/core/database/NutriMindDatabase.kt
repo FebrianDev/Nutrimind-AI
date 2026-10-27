@@ -36,7 +36,7 @@ import com.fdev.nutrimindai.feature.progress.data.local.entity.WeightLogEntity
         WeightLogEntity::class,
         ChatMessageEntity::class
     ],
-    version = 10,
+    version = 11,
     exportSchema = true
 )
 @TypeConverters(Converters::class)

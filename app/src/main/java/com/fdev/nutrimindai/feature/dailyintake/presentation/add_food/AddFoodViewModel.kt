@@ -60,7 +60,8 @@ class AddFoodViewModel @Inject constructor(
             initialValue = emptyList()
         )
 
-    private val currentDate: String = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+    private val currentDate: String
+        get() = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
 
     fun onSearchQueryChange(query: String) {
         _searchQuery.value = query

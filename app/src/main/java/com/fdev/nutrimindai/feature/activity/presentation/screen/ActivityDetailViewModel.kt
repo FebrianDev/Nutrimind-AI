@@ -69,7 +69,8 @@ class ActivityDetailViewModel @Inject constructor(
 
     private val isoDateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
     private val displayDateFormat = SimpleDateFormat("MMMM dd, yyyy", Locale.getDefault())
-    private val currentDate: String = isoDateFormat.format(Date())
+    private val currentDate: String
+        get() = isoDateFormat.format(Date())
 
     val targetDate: String
 

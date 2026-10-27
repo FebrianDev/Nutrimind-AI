@@ -45,7 +45,8 @@ class CameraScanViewModel @Inject constructor(
 
     private var currentBitmap: Bitmap? = null
 
-    private val currentDate: String = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+    private val currentDate: String
+        get() = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
 
     fun toggleTorch() {
         _torchEnabled.value = !_torchEnabled.value

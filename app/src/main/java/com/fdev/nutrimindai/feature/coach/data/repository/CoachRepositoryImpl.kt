@@ -1,25 +1,28 @@
 package com.fdev.nutrimindai.feature.coach.data.repository
 
+import com.fdev.nutrimindai.core.ai.AiProvider
 import com.fdev.nutrimindai.core.ai.AiRepository
 import com.fdev.nutrimindai.feature.coach.data.local.dao.ChatMessageDao
 import com.fdev.nutrimindai.feature.coach.data.local.entity.ChatMessageEntity
+import com.fdev.nutrimindai.feature.coach.domain.CoachActionExecutor
+import com.fdev.nutrimindai.feature.coach.domain.CoachActionParser
 import com.fdev.nutrimindai.feature.coach.domain.NutriCoachContextBuilder
 import com.fdev.nutrimindai.feature.coach.domain.model.ChatMessage
 import com.fdev.nutrimindai.feature.coach.domain.model.ChatRole
 import com.fdev.nutrimindai.feature.coach.domain.repository.CoachRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
-
-import com.fdev.nutrimindai.core.ai.AiProvider
-import kotlinx.coroutines.flow.StateFlow
 
 @Singleton
 class CoachRepositoryImpl @Inject constructor(
     private val chatMessageDao: ChatMessageDao,
     private val aiRepository: AiRepository,
-    private val contextBuilder: NutriCoachContextBuilder
+    private val contextBuilder: NutriCoachContextBuilder,
+    private val actionParser: CoachActionParser,
+    private val actionExecutor: CoachActionExecutor
 ) : CoachRepository {
 
     override val activeProviderFlow: StateFlow<AiProvider> = aiRepository.activeProviderFlow
@@ -37,7 +40,8 @@ class CoachRepositoryImpl @Inject constructor(
                     id = entity.id,
                     role = if (entity.role.equals("user", ignoreCase = true)) ChatRole.USER else ChatRole.ASSISTANT,
                     content = entity.content,
-                    timestamp = entity.timestamp
+                    timestamp = entity.timestamp,
+                    actionSummary = entity.actionSummary
                 )
             }
         }
@@ -78,15 +82,21 @@ class CoachRepositoryImpl @Inject constructor(
             systemPrompt = systemPrompt
         )
 
-        // 5. If successful, persist AI assistant response to Room DB
+        // 5. If successful, parse agentic actions, execute them against Room DB, and persist response
         return result.mapCatching { responseText ->
+            val (cleanText, actions) = actionParser.parse(responseText)
+            val actionSummary = if (actions.isNotEmpty()) {
+                actionExecutor.executeActions(actions)
+            } else null
+
             val assistantEntity = ChatMessageEntity(
                 role = "assistant",
-                content = responseText,
-                timestamp = System.currentTimeMillis()
+                content = cleanText,
+                timestamp = System.currentTimeMillis(),
+                actionSummary = actionSummary
             )
             chatMessageDao.insertMessage(assistantEntity)
-            responseText
+            cleanText
         }
     }
 

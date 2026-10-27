@@ -59,7 +59,8 @@ class HomeViewModel @Inject constructor(
 
     private var hasInitiatedTipGeneration = false
 
-    private val currentDate: String = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+    private val currentDate: String
+        get() = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
 
     init {
         viewModelScope.launch {

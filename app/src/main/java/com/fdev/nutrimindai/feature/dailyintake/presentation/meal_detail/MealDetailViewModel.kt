@@ -45,7 +45,8 @@ class MealDetailViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<MealDetailUiState>(MealDetailUiState.Loading)
     val uiState: StateFlow<MealDetailUiState> = _uiState.asStateFlow()
 
-    private val currentDate: String = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+    private val currentDate: String
+        get() = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
 
     init {
         loadMealDetails()

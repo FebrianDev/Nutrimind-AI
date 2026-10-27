@@ -121,7 +121,8 @@ class ProgressViewModel @Inject constructor(
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
     private val dayLabelFormat = SimpleDateFormat("EEE", Locale.getDefault())
     private val dateDisplayFormat = SimpleDateFormat("MMM dd", Locale.getDefault())
-    private val currentDate: String = dateFormat.format(Date())
+    private val currentDate: String
+        get() = dateFormat.format(Date())
 
     init {
         loadProgress()

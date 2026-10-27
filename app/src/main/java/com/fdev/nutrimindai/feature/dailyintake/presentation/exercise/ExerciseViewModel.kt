@@ -48,7 +48,8 @@ class ExerciseViewModel @Inject constructor(
     private val _addExerciseUiState = MutableStateFlow<AddExerciseUiState>(AddExerciseUiState.Idle)
     val addExerciseUiState: StateFlow<AddExerciseUiState> = _addExerciseUiState.asStateFlow()
 
-    private val currentDate: String = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+    private val currentDate: String
+        get() = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
 
     init {
         loadExercises()

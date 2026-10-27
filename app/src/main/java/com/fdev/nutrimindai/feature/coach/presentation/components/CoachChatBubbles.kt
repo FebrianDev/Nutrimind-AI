@@ -1,16 +1,19 @@
 package com.fdev.nutrimindai.feature.coach.presentation.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AutoAwesome
+import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,6 +36,33 @@ fun CoachChatBubble(
 ) {
     val isUser = message.role == ChatRole.USER
     val timeFormatted = rememberTime(message.timestamp)
+
+    // Smooth typewriter animation for freshly generated assistant responses (< 3.5s)
+    val isBrandNew = !isUser && (System.currentTimeMillis() - message.timestamp < 3500L)
+    var displayedLength by remember(message.id) {
+        mutableIntStateOf(if (isBrandNew) 0 else message.content.length)
+    }
+
+    LaunchedEffect(message.id, message.content) {
+        val total = message.content.length
+        if (displayedLength < total) {
+            while (displayedLength < total) {
+                val step = when {
+                    total - displayedLength > 300 -> 8
+                    total - displayedLength > 100 -> 4
+                    else -> 2
+                }
+                displayedLength = minOf(total, displayedLength + step)
+                delay(12L)
+            }
+        }
+    }
+
+    val renderedContent = remember(displayedLength, message.content) {
+        if (displayedLength >= message.content.length) message.content
+        else message.content.substring(0, displayedLength)
+    }
+    val isAnimationComplete = displayedLength >= message.content.length
 
     Row(
         modifier = modifier
@@ -122,9 +152,40 @@ fun CoachChatBubble(
                         )
                     } else {
                         MarkdownChatContent(
-                            content = message.content,
+                            content = renderedContent,
                             textColor = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                        if (isAnimationComplete && !message.actionSummary.isNullOrBlank()) {
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Surface(
+                                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+                                shape = RoundedCornerShape(8.dp),
+                                border = BorderStroke(
+                                    1.dp,
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+                                )
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.CheckCircle,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(15.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = message.actionSummary,
+                                        style = MaterialTheme.typography.labelSmall.copy(
+                                            fontWeight = FontWeight.SemiBold
+                                        ),
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+                                }
+                            }
+                        }
                     }
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
