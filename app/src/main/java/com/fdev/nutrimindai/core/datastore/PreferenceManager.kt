@@ -38,7 +38,9 @@ data class ReminderSettings(
     val waterStartTime: String = "08:00",
     val waterEndTime: String = "21:00",
     val dailyReviewEnabled: Boolean = true,
-    val dailyReviewTime: String = "21:30"
+    val dailyReviewTime: String = "21:30",
+    val smartSkipIfLogged: Boolean = true,
+    val quickLogWaterAmountMl: Int = 250
 )
 
 @Singleton
@@ -67,6 +69,9 @@ class PreferenceManager @Inject constructor(
 
         val DAILY_REVIEW_ENABLED = booleanPreferencesKey("reminder_daily_review_enabled")
         val DAILY_REVIEW_TIME = stringPreferencesKey("reminder_daily_review_time")
+
+        val SMART_SKIP_IF_LOGGED = booleanPreferencesKey("reminder_smart_skip_if_logged")
+        val QUICK_LOG_WATER_AMOUNT = intPreferencesKey("reminder_quick_log_water_amount")
 
         val ACTIVE_AI_PROVIDER = stringPreferencesKey("active_ai_provider")
     }
@@ -131,7 +136,9 @@ class PreferenceManager @Inject constructor(
                 waterStartTime = preferences[PreferencesKeys.WATER_START_TIME] ?: "08:00",
                 waterEndTime = preferences[PreferencesKeys.WATER_END_TIME] ?: "21:00",
                 dailyReviewEnabled = preferences[PreferencesKeys.DAILY_REVIEW_ENABLED] ?: true,
-                dailyReviewTime = preferences[PreferencesKeys.DAILY_REVIEW_TIME] ?: "21:30"
+                dailyReviewTime = preferences[PreferencesKeys.DAILY_REVIEW_TIME] ?: "21:30",
+                smartSkipIfLogged = preferences[PreferencesKeys.SMART_SKIP_IF_LOGGED] ?: true,
+                quickLogWaterAmountMl = preferences[PreferencesKeys.QUICK_LOG_WATER_AMOUNT] ?: 250
             )
         }
 
@@ -169,6 +176,18 @@ class PreferenceManager @Inject constructor(
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.DAILY_REVIEW_ENABLED] = enabled
             preferences[PreferencesKeys.DAILY_REVIEW_TIME] = time
+        }
+    }
+
+    suspend fun updateSmartSkip(enabled: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.SMART_SKIP_IF_LOGGED] = enabled
+        }
+    }
+
+    suspend fun updateQuickLogWaterAmount(amountMl: Int) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.QUICK_LOG_WATER_AMOUNT] = amountMl
         }
     }
 

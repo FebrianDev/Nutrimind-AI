@@ -207,9 +207,15 @@
     <string name="reminder_daily_review_subtitle">Check your health score &amp; AI feedback</string>
 
     <string name="reminder_test_title">Test Notifications</string>
-    <string name="reminder_test_subtitle">Send a test alert to your device now</string>
+    <string name="reminder_test_subtitle">Send interactive test alerts to your device</string>
     <string name="reminder_btn_test_now">Test Now</string>
+    <string name="reminder_btn_test_water">Test Water (+250ml Action)</string>
+    <string name="reminder_btn_test_meal">Test Meal Alert</string>
     <string name="reminder_test_sent_snackbar">Sample notification sent to your status bar!</string>
+
+    <string name="reminder_smart_skip_title">Smart Context Reminders</string>
+    <string name="reminder_smart_skip_subtitle">Adapts alerts to your diary: avoids nagging if already logged and shows remaining calorie budget</string>
+    <string name="reminder_water_quick_log_label">Default Quick-Log Serving</string>
 
     <string name="reminder_dialog_set_breakfast_time">Set Breakfast Time</string>
     <string name="reminder_dialog_set_lunch_time">Set Lunch Time</string>
@@ -231,22 +237,46 @@
     <string name="notif_channel_daily_review_name">Daily Nutrition Review</string>
     <string name="notif_channel_daily_review_desc">Evening reminder to complete and review today\'s nutrition score</string>
 
+    <!-- Notification Action Labels -->
+    <string name="notif_action_snap_meal">📸 Snap Meal</string>
+    <string name="notif_action_log_meal">🍽️ Log Food</string>
+    <string name="notif_action_view_meal">👀 View Meal</string>
+    <string name="notif_action_ask_coach">🤖 NutriCoach</string>
+    <string name="notif_action_open_tracker">💧 Hydration</string>
+    <string name="notif_action_view_score">📊 View Score</string>
+
+    <!-- Notification Content & Smart Context -->
     <string name="notif_breakfast_title">🍳 Breakfast Reminder</string>
     <string name="notif_breakfast_message">Start your morning strong! Don\'t forget to fuel your day and log your breakfast.</string>
+    <string name="notif_breakfast_logged_title">🍳 Breakfast Recorded</string>
+    <string name="notif_breakfast_logged_message">You logged: %1$s (%2$d kcal). Great start to your day!</string>
+
     <string name="notif_lunch_title">🥗 Lunch Time Fuel</string>
     <string name="notif_lunch_message">Time for a nutritious lunch break! Log your meal to stay on track with your macros.</string>
+    <string name="notif_lunch_logged_title">🥗 Lunch Recorded</string>
+    <string name="notif_lunch_logged_message">You logged: %1$s (%2$d kcal). Sustained energy for the afternoon!</string>
+
     <string name="notif_dinner_title">🍲 Dinner Reminder</string>
     <string name="notif_dinner_message">Wrap up your daily nutrition goals with a balanced dinner. Log what you eat!</string>
+    <string name="notif_dinner_logged_title">🍲 Dinner Recorded</string>
+    <string name="notif_dinner_logged_message">You logged: %1$s (%2$d kcal). Daily nutrition goals wrapped up!</string>
+
     <string name="notif_meal_default_title">🍽️ Meal Reminder</string>
     <string name="notif_meal_default_message">Keep your nutrition logs updated! Tap to add your food.</string>
+    <string name="notif_meal_smart_prompt">%1$s Remaining: %2$d kcal left for today. Tap to snap or log your meal!</string>
 
     <string name="notif_water_title">💧 Time to Drink Water</string>
     <string name="notif_water_msg_1">💧 Hydration Check: Drink a glass of fresh water to keep your metabolism energized!</string>
     <string name="notif_water_msg_2">🚰 Time for a sip! Consistent hydration boosts focus and supports digestion.</string>
     <string name="notif_water_msg_3">🌊 Stay hydrated! Log your water intake to reach your daily goal.</string>
+    <string name="notif_water_quick_logged_title">✅ Added +%1$d ml Water</string>
+    <string name="notif_water_quick_logged_message">Hydration progress: %1$d / %2$d ml (%3$d%%). Keep it up!</string>
+    <string name="notif_water_goal_reached_title">🎉 Daily Hydration Goal Reached!</string>
+    <string name="notif_water_goal_reached_message">You\'ve logged %1$d / %2$d ml today. Great job keeping your body hydrated!</string>
 
     <string name="notif_daily_review_title">📊 Daily Nutrition Score Ready</string>
     <string name="notif_daily_review_message">Check out your AI evaluation and daily health score for today. Tap to view your review!</string>
+    <string name="notif_daily_review_smart_message">Today\'s overview: %1$d kcal consumed, %2$d ml water logged. Tap to see Meta AI\'s score evaluation!</string>
 
     <string name="notif_test_title">🌟 NutriMind AI Notification Test</string>
     <string name="notif_test_short_message">Notifications are working perfectly! You\'ll receive your meal, water, and review alerts on time.</string>

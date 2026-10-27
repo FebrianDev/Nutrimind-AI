@@ -79,6 +79,10 @@ class MainActivity : ComponentActivity() {
                                         val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
                                         navController.navigate(NavigationDestination.DailyReview(todayStr))
                                     }
+                                    NotificationHelper.NAV_DEST_CAMERA_BREAKFAST -> navController.navigate(NavigationDestination.CameraScan("Breakfast"))
+                                    NotificationHelper.NAV_DEST_CAMERA_LUNCH -> navController.navigate(NavigationDestination.CameraScan("Lunch"))
+                                    NotificationHelper.NAV_DEST_CAMERA_DINNER -> navController.navigate(NavigationDestination.CameraScan("Dinner"))
+                                    NotificationHelper.NAV_DEST_COACH -> navController.navigate(NavigationDestination.Coach())
                                 }
                                 viewModel.clearPendingDeepLink()
                             }

@@ -71,7 +71,30 @@ class ReminderSettingsViewModel @Inject constructor(
         }
     }
 
+    fun updateSmartSkip(enabled: Boolean) {
+        viewModelScope.launch {
+            preferenceManager.updateSmartSkip(enabled)
+            val current = reminderSettings.value.copy(smartSkipIfLogged = enabled)
+            reminderScheduler.applyReminderSettings(current)
+        }
+    }
+
+    fun updateQuickLogAmount(amountMl: Int) {
+        viewModelScope.launch {
+            preferenceManager.updateQuickLogWaterAmount(amountMl)
+        }
+    }
+
     fun sendTestNotification() {
         reminderScheduler.sendTestNotification()
+    }
+
+    fun sendTestWaterNotification() {
+        val amount = reminderSettings.value.quickLogWaterAmountMl
+        reminderScheduler.sendTestWaterNotification(amount)
+    }
+
+    fun sendTestMealNotification(mealType: String = "lunch") {
+        reminderScheduler.sendTestMealNotification(mealType)
     }
 }

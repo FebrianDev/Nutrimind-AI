@@ -31,14 +31,17 @@ class ReminderScheduler @Inject constructor(
         const val ACTION_MEAL_REMINDER = "com.fdev.nutrimindai.ACTION_MEAL_REMINDER"
         const val ACTION_WATER_REMINDER = "com.fdev.nutrimindai.ACTION_WATER_REMINDER"
         const val ACTION_DAILY_REVIEW_REMINDER = "com.fdev.nutrimindai.ACTION_DAILY_REVIEW_REMINDER"
+        const val ACTION_QUICK_LOG_WATER = "com.fdev.nutrimindai.ACTION_QUICK_LOG_WATER"
 
         const val EXTRA_MEAL_TYPE = "extra_meal_type"
+        const val EXTRA_AMOUNT_ML = "extra_amount_ml"
 
         const val REQ_CODE_BREAKFAST = 101
         const val REQ_CODE_LUNCH = 102
         const val REQ_CODE_DINNER = 103
         const val REQ_CODE_WATER = 201
         const val REQ_CODE_DAILY_REVIEW = 301
+        const val REQ_CODE_QUICK_LOG_WATER = 401
     }
 
     fun rescheduleAllActiveReminders() {
@@ -240,6 +243,26 @@ class ReminderScheduler @Inject constructor(
 
     fun sendTestNotification() {
         notificationHelper.showTestNotification()
+    }
+
+    fun sendTestWaterNotification(quickLogAmount: Int = 250) {
+        notificationHelper.showWaterReminder(
+            title = context.getString(com.fdev.nutrimindai.R.string.notif_water_title),
+            message = context.getString(com.fdev.nutrimindai.R.string.notif_water_msg_1),
+            currentMl = 750,
+            targetMl = 2500,
+            quickLogAmount = quickLogAmount
+        )
+    }
+
+    fun sendTestMealNotification(mealType: String) {
+        notificationHelper.showMealReminder(
+            mealType = mealType,
+            title = context.getString(com.fdev.nutrimindai.R.string.notif_lunch_title),
+            message = context.getString(com.fdev.nutrimindai.R.string.notif_meal_smart_prompt, mealType, 1350),
+            notificationId = NotificationHelper.NOTIFICATION_ID_LUNCH,
+            isAlreadyLogged = false
+        )
     }
 
     private fun parseTime(timeStr: String, fallbackHour: Int, fallbackMin: Int): Pair<Int, Int> {
