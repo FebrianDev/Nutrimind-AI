@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fdev.nutrimindai.core.ai.AiProvider
 import com.fdev.nutrimindai.feature.coach.domain.repository.CoachRepository
+import com.fdev.nutrimindai.feature.coach.domain.ContextualQuickPromptGenerator
+import com.fdev.nutrimindai.feature.coach.domain.model.ContextualPrompt
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -15,26 +17,46 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CoachViewModel @Inject constructor(
-    private val coachRepository: CoachRepository
+    private val coachRepository: CoachRepository,
+    private val promptGenerator: ContextualQuickPromptGenerator
 ) : ViewModel() {
 
     private val _isGenerating = MutableStateFlow(false)
     private val _errorMessage = MutableStateFlow<String?>(null)
     private val _inputText = MutableStateFlow("")
+    private val _contextualPrompts = MutableStateFlow<List<ContextualPrompt>>(emptyList())
+
+    init {
+        refreshContextualPrompts()
+    }
+
+    fun refreshContextualPrompts() {
+        viewModelScope.launch {
+            _contextualPrompts.value = promptGenerator.getContextualPrompts()
+        }
+    }
+
+    private val _chatState = combine(
+        _isGenerating,
+        _errorMessage,
+        _inputText
+    ) { isGenerating, errorMessage, inputText ->
+        Triple(isGenerating, errorMessage, inputText)
+    }
 
     val uiState: StateFlow<CoachUiState> = combine(
         coachRepository.getAllMessages(),
-        _isGenerating,
-        _errorMessage,
-        _inputText,
-        coachRepository.activeProviderFlow
-    ) { messages, isGenerating, errorMessage, inputText, activeProvider ->
+        _chatState,
+        coachRepository.activeProviderFlow,
+        _contextualPrompts
+    ) { messages, (isGenerating, errorMessage, inputText), activeProvider, contextualPrompts ->
         CoachUiState(
             messages = messages,
             isGenerating = isGenerating,
             errorMessage = errorMessage,
             inputText = inputText,
-            activeProvider = activeProvider
+            activeProvider = activeProvider,
+            contextualPrompts = contextualPrompts
         )
     }.stateIn(
         scope = viewModelScope,

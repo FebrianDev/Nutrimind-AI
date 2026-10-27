@@ -26,12 +26,14 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fdev.nutrimindai.R
 import com.fdev.nutrimindai.core.ai.AiProvider
+import com.fdev.nutrimindai.feature.coach.domain.model.ContextualPrompt
 import com.fdev.nutrimindai.feature.coach.presentation.components.CoachChatBubble
 import com.fdev.nutrimindai.feature.coach.presentation.components.CoachQuickChips
 import com.fdev.nutrimindai.feature.coach.presentation.components.CoachTypingIndicator
@@ -171,7 +173,7 @@ fun CoachScreen(
             if (uiState.messages.isEmpty() && !uiState.isGenerating) {
                 CoachWelcomeHero(
                     activeProvider = uiState.activeProvider,
-                    quickPrompts = uiState.quickPromptResIds,
+                    quickPrompts = uiState.contextualPrompts,
                     onPromptClick = { prompt -> viewModel.sendMessage(prompt) }
                 )
             } else {
@@ -226,7 +228,7 @@ fun CoachScreen(
         // Quick suggestion chips above input if input text is empty AND there are messages
         if (uiState.messages.isNotEmpty() && uiState.inputText.isBlank() && !uiState.isGenerating) {
             CoachQuickChips(
-                prompts = uiState.quickPromptResIds,
+                prompts = uiState.contextualPrompts,
                 onPromptSelected = { prompt -> viewModel.sendMessage(prompt) }
             )
         }
@@ -291,7 +293,7 @@ fun CoachScreen(
 @Composable
 private fun CoachWelcomeHero(
     activeProvider: AiProvider,
-    quickPrompts: List<Int>,
+    quickPrompts: List<ContextualPrompt>,
     onPromptClick: (String) -> Unit
 ) {
     Column(
@@ -364,59 +366,65 @@ private fun CoachWelcomeHero(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        Text(
-            text = stringResource(R.string.coach_quick_questions_header),
-            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-            color = MaterialTheme.colorScheme.primary
-        )
+        if (quickPrompts.isNotEmpty()) {
+            Text(
+                text = stringResource(R.string.coach_quick_questions_header),
+                style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
+                color = MaterialTheme.colorScheme.primary
+            )
 
-        Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
-        quickPrompts.take(3).forEach { promptRes ->
-            val promptText = stringResource(promptRes)
-            Surface(
-                shape = RoundedCornerShape(16.dp),
-                color = MaterialTheme.colorScheme.background,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 4.dp),
-                onClick = { onPromptClick(promptText) }
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically
+            quickPrompts.take(3).forEach { prompt ->
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = MaterialTheme.colorScheme.background,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    onClick = { onPromptClick(prompt.promptText) }
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(28.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
-                        contentAlignment = Alignment.Center
+                    Row(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
+                        Box(
+                            modifier = Modifier
+                                .size(34.dp)
+                                .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(text = prompt.emoji, fontSize = 16.sp)
+                        }
+
+                        Spacer(modifier = Modifier.width(12.dp))
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = prompt.title,
+                                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = prompt.promptText,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
                         Icon(
-                            imageVector = Icons.Rounded.AutoAwesome,
+                            imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(15.dp)
+                            tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+                            modifier = Modifier.size(16.dp)
                         )
                     }
-
-                    Spacer(modifier = Modifier.width(12.dp))
-
-                    Text(
-                        text = promptText,
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
-                        modifier = Modifier.size(16.dp)
-                    )
                 }
             }
         }
