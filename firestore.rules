@@ -1,0 +1,17 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Aturan untuk data per pengguna berdasarkan UID autentikasi Firebase
+    match /users/{userId}/{document=**} {
+      // Mengizinkan read & write jika pengguna telah login/terautentikasi (termasuk Anonymous Auth)
+      // dan UID request cocok dengan ID dokumen pengguna
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Opsi alternatif untuk development / testing lokal (uncomment jika perlu tanpa auth):
+    // match /{document=**} {
+    //   allow read, write: if true;
+    // }
+  }
+}

@@ -1,0 +1,703 @@
+<resources>
+    <string name="app_name">NutriMind AI</string>
+
+    <!-- General / Navigation -->
+    <string name="btn_continue">Continue</string>
+    <string name="btn_start_journey">Start My Journey</string>
+    <string name="btn_back">Back</string>
+    <string name="step_indicator">Step %1$d of %2$d</string>
+
+    <!-- Step 1: Personal Information -->
+    <string name="step1_title">Tell us about yourself</string>
+    <string name="step1_subtitle">We\'ll personalize your nutrition journey based on your profile.</string>
+    <string name="label_name">Full Name</string>
+    <string name="placeholder_name">Enter your name</string>
+    <string name="label_age">Age</string>
+    <string name="placeholder_age">e.g. 28</string>
+    <string name="label_gender">Gender</string>
+    <string name="gender_female">Female</string>
+    <string name="gender_male">Male</string>
+    <string name="gender_prefer_not_to_say">Prefer Not To Say</string>
+    <string name="label_height">Height (cm)</string>
+    <string name="placeholder_height">e.g. 175</string>
+    <string name="label_weight">Current Weight (kg)</string>
+    <string name="placeholder_weight">e.g. 70.0</string>
+
+    <!-- Validation Errors -->
+    <string name="error_name_empty">Name cannot be empty</string>
+    <string name="error_age_invalid">Please enter a valid age (1-120)</string>
+    <string name="error_height_invalid">Please enter a valid height in cm (50-250)</string>
+    <string name="error_weight_invalid">Please enter a valid weight in kg (20-300)</string>
+    <string name="error_target_weight_invalid">Please enter a valid target weight</string>
+    <string name="error_target_weight_lose">Target weight should be lower than current weight</string>
+    <string name="error_target_weight_gain">Target weight should be higher than current weight</string>
+
+    <!-- Step 2: Activity Level -->
+    <string name="step2_title">How active are you?</string>
+    <string name="step2_subtitle">We\'ll use this to estimate your daily energy needs.</string>
+    <string name="activity_sedentary_title">Sedentary</string>
+    <string name="activity_sedentary_desc">Little or no exercise, desk job.</string>
+    <string name="activity_lightly_title">Lightly Active</string>
+    <string name="activity_lightly_desc">Light exercise 1-3 days/week.</string>
+    <string name="activity_moderately_title">Moderately Active</string>
+    <string name="activity_moderately_desc">Moderate exercise 3-5 days/week.</string>
+    <string name="activity_very_title">Very Active</string>
+    <string name="activity_very_desc">Hard exercise 6-7 days/week.</string>
+
+    <!-- Step 3: Goal -->
+    <string name="step3_title">What\'s your goal?</string>
+    <string name="step3_subtitle">Your goal helps AI personalize your coaching.</string>
+    <string name="goal_lose_title">Lose Weight</string>
+    <string name="goal_lose_desc">Focus on fat loss while preserving muscle mass through guided nutrition.</string>
+    <string name="goal_maintain_title">Maintain Weight</string>
+    <string name="goal_maintain_desc">Optimize daily habits and nutrition for sustained energy and health.</string>
+    <string name="goal_gain_title">Gain Weight</string>
+    <string name="goal_gain_desc">Build muscle mass safely with surplus caloric tracking and protein focus.</string>
+
+    <!-- Step 4: Target Weight -->
+    <string name="step4_title">Set your target weight</string>
+    <string name="step4_subtitle">Choose your target weight to calculate your estimated timeframe.</string>
+    <string name="label_current_weight">CURRENT WEIGHT</string>
+    <string name="label_target_weight">TARGET WEIGHT</string>
+    <string name="unit_kg">kg</string>
+    <string name="label_estimated_time">Estimated Time</string>
+    <string name="estimated_time_disclaimer">This is an estimation based on healthy weight loss and gain guidelines.</string>
+    <string name="estimated_time_maintain">Maintain current weight</string>
+    <string name="estimated_time_format">Around %1$s</string>
+
+    <!-- Step 5: Plan Summary -->
+    <string name="step5_loading_1">Analyzing profile...</string>
+    <string name="step5_loading_2">Calculating nutrition target...</string>
+    <string name="step5_loading_3">Preparing your personalized plan...</string>
+    <string name="step5_loading_4">Building Nutrition Memory...</string>
+
+    <string name="step5_title">Your Daily Plan</string>
+    <string name="step5_subtitle">Your personalized protocol is ready. Here\'s your optimized daily target.</string>
+    <string name="label_energy_target">ENERGY TARGET</string>
+    <string name="unit_kcal">kcal</string>
+    <string name="label_protein">Protein</string>
+    <string name="label_carbs">Carbs</string>
+    <string name="label_fats">Fats</string>
+    <string name="label_fat">Fat</string>
+    <string name="label_fiber">Fiber</string>
+    <string name="label_water">Water</string>
+    <string name="label_activity">Activity</string>
+    <string name="unit_grams">g</string>
+    <string name="unit_minutes">m</string>
+    <string name="unit_ml">ml</string>
+
+    <string name="ai_badge_title">NUTRIMIND AI</string>
+    <string name="ai_recommendation_text">This plan is your starting point. As NutriMind learns your habits, your daily coaching will become increasingly personalized.</string>
+
+    <!-- Progress Screen -->
+    <string name="progress_title">Progress</string>
+    <string name="progress_subtitle">Track your journey and reach your goal</string>
+    <string name="label_goal_progress">GOAL PROGRESS</string>
+    <string name="btn_edit_goal">Edit Goal</string>
+    <string name="label_current">Current</string>
+    <string name="label_goal">Goal</string>
+    <string name="est_remaining_days">Est. %1$d days remaining</string>
+    <string name="label_this_week">THIS WEEK</string>
+    <string name="label_completed">Completed</string>
+    <string name="label_avg_calories">Avg. Calories</string>
+    <string name="label_water_goal">Water Goal</string>
+    <string name="label_mission">Mission</string>
+    <string name="label_trend">TREND</string>
+    <string name="avg_this_week">Average this week</string>
+    <string name="vs_last_week">vs last week</string>
+    <string name="label_ai_insight">AI INSIGHT</string>
+    <string name="label_daily_reviews">DAILY REVIEWS</string>
+    <string name="btn_view_all">View All</string>
+
+    <!-- Daily Review Screen -->
+    <string name="daily_review_title">Daily Review</string>
+    <string name="label_nutrition_score">NUTRITION SCORE</string>
+    <string name="label_ai_summary">AI SUMMARY</string>
+    <string name="label_tomorrow_mission">TOMORROW MISSION</string>
+    <string name="label_notes">NOTES</string>
+
+    <!-- Trend Detail Screen -->
+    <string name="tab_week">Week</string>
+    <string name="tab_month">Month</string>
+    <string name="tab_3months">3 Months</string>
+    <string name="label_highest">Highest</string>
+    <string name="label_lowest">Lowest</string>
+
+    <!-- Activity Screen -->
+    <string name="activity_title">Activity</string>
+    <string name="activity_subtitle">Your daily nutrition history</string>
+    <string name="status_draft">Draft</string>
+    <string name="status_completed">Completed</string>
+    <string name="status_missed">Missed</string>
+    <string name="label_can_still_edit">Can still edit</string>
+    <string name="label_read_only">Read only</string>
+    <string name="label_kcal_burned">kcal burned</string>
+    <string name="label_entries_logged">%1$d entries logged</string>
+    <string name="btn_complete_today">Complete Today</string>
+    <string name="complete_today_desc">Review your intake and get AI daily score</string>
+    <string name="label_daily_score">Daily Score</string>
+    <string name="btn_view_daily_report">View Daily Report</string>
+    <string name="ai_daily_score_hint">Complete today to get your AI daily score</string>
+    
+    <!-- Extracted UI Strings -->
+    <string name="dialog_log_weight_title">Log Today\'s Weight</string>
+    <string name="dialog_cancel">Cancel</string>
+    <string name="dialog_select">Select</string>
+    <string name="label_weight_kg">Weight (kg)</string>
+    <string name="label_optional_note">Optional Note</string>
+    <string name="placeholder_weight_note">e.g. Morning weigh-in after workout</string>
+    <string name="btn_save_weight">Save Weight</string>
+    <string name="btn_log_out">Log Out</string>
+    <string name="label_about_app">About NutriMind AI</string>
+    <string name="btn_close">Close</string>
+    <string name="label_email_address">Email Address</string>
+    <string name="placeholder_email">name@example.com</string>
+    <string name="label_password_min">Password (min. 6 chars)</string>
+    <string name="label_confirm_password">Confirm Password</string>
+    <string name="btn_linking">Linking...</string>
+    <string name="btn_link_account">Link Account</string>
+    <string name="title_edit_profile">Edit Personal Profile</string>
+    <string name="btn_save_changes">Save Changes</string>
+    <string name="btn_apply_changes">Apply Changes</string>
+    <string name="label_water_amount">Amount (ml)</string>
+    <string name="dialog_custom_water_title">Custom Water Intake</string>
+    <string name="dialog_custom_water_desc">Enter water amount in milliliters (ml):</string>
+    <string name="btn_save">Save</string>
+    <string name="placeholder_your_name">Your Name</string>
+    <string name="label_password">Password (min. 6 characters)</string>
+    <string name="label_add_food_btn">Add Food</string>
+    <string name="title_water_intake">Water Intake</string>
+    <string name="label_custom">Custom</string>
+    <string name="error_invalid_number">Please enter a valid positive number</string>
+
+    <!-- Reminders & Notifications -->
+    <string name="reminder_title">Notifications &amp; Reminders</string>
+    <string name="reminder_subtitle">Meal times, water alerts &amp; daily reviews</string>
+    
+    <string name="reminder_permission_needed_title">Notification Permission Needed</string>
+    <string name="reminder_permission_needed_desc">To receive timely reminders for your meals, hydration, and daily review, please grant notification access.</string>
+    <string name="reminder_enable_notifications">Enable Notifications</string>
+    <string name="reminder_permission_granted">Notification permissions granted! Reminders are now active.</string>
+
+    <string name="reminder_section_meals_title">MEAL REMINDERS</string>
+    <string name="reminder_section_meals_subtitle">Timely prompts to log your food intake</string>
+    <string name="reminder_breakfast_title">Breakfast Reminder</string>
+    <string name="reminder_breakfast_subtitle">Start your day with energy</string>
+    <string name="reminder_lunch_title">Lunch Reminder</string>
+    <string name="reminder_lunch_subtitle">Refuel during midday</string>
+    <string name="reminder_dinner_title">Dinner Reminder</string>
+    <string name="reminder_dinner_subtitle">Complete your daily calories &amp; macros</string>
+
+    <string name="reminder_section_hydration_title">HYDRATION REMINDERS</string>
+    <string name="reminder_section_hydration_subtitle">Stay energized with periodic water alerts</string>
+    <string name="reminder_water_title">Drink Water Alerts</string>
+    <string name="reminder_water_subtitle">Periodic notifications during the day</string>
+    <string name="reminder_water_interval_label">Remind Me Every</string>
+    <string name="reminder_water_interval_1h">1 hr</string>
+    <string name="reminder_water_interval_1_5h">1.5 hrs</string>
+    <string name="reminder_water_interval_2h">2 hrs</string>
+    <string name="reminder_water_interval_3h">3 hrs</string>
+    <string name="reminder_water_window_title">Active Hours Window</string>
+    <string name="reminder_water_window_edit_desc">Edit Window</string>
+
+    <string name="reminder_section_daily_review_title">DAILY REVIEW</string>
+    <string name="reminder_section_daily_review_subtitle">Evening evaluation of your nutrition score</string>
+    <string name="reminder_daily_review_title">Daily Nutrition Review</string>
+    <string name="reminder_daily_review_subtitle">Check your health score &amp; AI feedback</string>
+
+    <string name="reminder_test_title">Test Notifications</string>
+    <string name="reminder_test_subtitle">Send a test alert to your device now</string>
+    <string name="reminder_btn_test_now">Test Now</string>
+    <string name="reminder_test_sent_snackbar">Sample notification sent to your status bar!</string>
+
+    <string name="reminder_dialog_set_breakfast_time">Set Breakfast Time</string>
+    <string name="reminder_dialog_set_lunch_time">Set Lunch Time</string>
+    <string name="reminder_dialog_set_dinner_time">Set Dinner Time</string>
+    <string name="reminder_dialog_set_daily_review_time">Set Daily Review Time</string>
+    <string name="reminder_dialog_save_time">Save Time</string>
+
+    <string name="reminder_dialog_water_window_title">Active Hydration Window</string>
+    <string name="reminder_dialog_water_window_desc">Specify the daily hours during which you want to receive periodic water reminders:</string>
+    <string name="reminder_dialog_water_start_time">Start Time (e.g. 07:00)</string>
+    <string name="reminder_dialog_water_end_time">End Time (e.g. 21:00)</string>
+    <string name="reminder_dialog_save_window">Save Window</string>
+
+    <!-- Notification Channel & Push Strings -->
+    <string name="notif_channel_meals_name">Meal Reminders</string>
+    <string name="notif_channel_meals_desc">Reminders for breakfast, lunch, and dinner</string>
+    <string name="notif_channel_water_name">Hydration Reminders</string>
+    <string name="notif_channel_water_desc">Periodic reminders to drink water and stay hydrated</string>
+    <string name="notif_channel_daily_review_name">Daily Nutrition Review</string>
+    <string name="notif_channel_daily_review_desc">Evening reminder to complete and review today\'s nutrition score</string>
+
+    <string name="notif_breakfast_title">🍳 Breakfast Reminder</string>
+    <string name="notif_breakfast_message">Start your morning strong! Don\'t forget to fuel your day and log your breakfast.</string>
+    <string name="notif_lunch_title">🥗 Lunch Time Fuel</string>
+    <string name="notif_lunch_message">Time for a nutritious lunch break! Log your meal to stay on track with your macros.</string>
+    <string name="notif_dinner_title">🍲 Dinner Reminder</string>
+    <string name="notif_dinner_message">Wrap up your daily nutrition goals with a balanced dinner. Log what you eat!</string>
+    <string name="notif_meal_default_title">🍽️ Meal Reminder</string>
+    <string name="notif_meal_default_message">Keep your nutrition logs updated! Tap to add your food.</string>
+
+    <string name="notif_water_title">💧 Time to Drink Water</string>
+    <string name="notif_water_msg_1">💧 Hydration Check: Drink a glass of fresh water to keep your metabolism energized!</string>
+    <string name="notif_water_msg_2">🚰 Time for a sip! Consistent hydration boosts focus and supports digestion.</string>
+    <string name="notif_water_msg_3">🌊 Stay hydrated! Log your water intake to reach your daily goal.</string>
+
+    <string name="notif_daily_review_title">📊 Daily Nutrition Score Ready</string>
+    <string name="notif_daily_review_message">Check out your AI evaluation and daily health score for today. Tap to view your review!</string>
+
+    <string name="notif_test_title">🌟 NutriMind AI Notification Test</string>
+    <string name="notif_test_short_message">Notifications are working perfectly! You\'ll receive your meal, water, and review alerts on time.</string>
+    <string name="notif_test_long_message">Notifications are working perfectly! You will receive your meal reminders, water hydration alerts, and daily AI score evaluations right on schedule.</string>
+
+    <!-- Food & Intake Logging -->
+    <string name="food_add_food_title">Add Food</string>
+    <string name="food_take_photo_title">Take Photo</string>
+    <string name="food_take_photo_subtitle">Scan food instantly with AI camera</string>
+    <string name="food_choose_gallery_title">Choose from Gallery</string>
+    <string name="food_choose_gallery_subtitle">Analyze existing food photo from gallery</string>
+    <string name="food_search_food_title">Search Food</string>
+    <string name="food_search_food_subtitle">Find food in our database</string>
+    <string name="food_manual_entry_title">Manual Entry</string>
+    <string name="food_manual_entry_subtitle">Enter food information manually</string>
+    <string name="food_dialog_ok">OK</string>
+    <string name="food_serving_label">Serving: %1$s %2$s</string>
+    <string name="food_calories_label">Calories: %1$d kcal</string>
+    <string name="food_macros_label">Protein: %1$sg | Carbs: %2$sg | Fat: %3$sg</string>
+    <string name="food_search_placeholder">Search food...</string>
+    <string name="food_select_action_desc">Select food</string>
+    <string name="food_manual_title">Manual Food Entry</string>
+    <string name="food_btn_save">Save Food</string>
+    <string name="food_label_name">Food Name *</string>
+    <string name="food_label_serving_size">Serving Size</string>
+    <string name="food_label_serving_unit">Serving Unit</string>
+    <string name="food_label_calories">Calories (kcal) *</string>
+    <string name="food_label_protein">Protein (g)</string>
+    <string name="food_label_carbs">Carbs (g)</string>
+    <string name="food_label_fat">Fat (g)</string>
+    <string name="food_label_fiber">Fiber (g)</string>
+
+    <!-- Camera AI Scan -->
+    <string name="scan_food_title">Scan Food</string>
+    <string name="scan_meal_subtitle">Meal: %1$s</string>
+    <string name="scan_btn_back">Back</string>
+    <string name="scan_btn_gallery">Gallery</string>
+    <string name="scan_pro_unlimited_badge">👑 PRO • Unlimited Scans</string>
+    <string name="scan_free_scans_badge">Free AI Scans: %1$d/3 Today</string>
+    <string name="scan_frame_meal_hint">Frame your meal</string>
+    <string name="scan_flash_toggle_desc">Flash Toggle</string>
+    <string name="scan_capture_desc">Capture</string>
+    <string name="scan_flip_camera_desc">Flip Camera</string>
+    <string name="scan_analyzing_food">NutriMind AI is analyzing your food...</string>
+    <string name="scan_estimating_nutrition">Estimating calories and nutritional breakdown</string>
+    <string name="scan_scanned_food_desc">Scanned food</string>
+    <string name="scan_quota_exceeded_title">Daily AI Scan Limit Reached</string>
+    <string name="scan_quota_exceeded_desc">You\'ve used all 3 free AI food scans for today. Upgrade to NutriMind Pro for unlimited AI scanning and advanced analytics!</string>
+    <string name="scan_btn_upgrade_pro">Upgrade to Pro</string>
+    <string name="scan_btn_maybe_later">Maybe Later</string>
+    <string name="scan_recognition_failed_title">Recognition Failed</string>
+    <string name="scan_btn_try_again">Try Again</string>
+    <string name="scan_btn_use_gallery">Use Gallery</string>
+    <string name="scan_perm_camera_title">Camera Access Required</string>
+    <string name="scan_perm_camera_desc">NutriMind AI needs camera access to scan food and auto-detect nutritional content.</string>
+    <string name="scan_btn_grant_camera">Grant Camera Permission</string>
+    <string name="scan_btn_choose_gallery_instead">Choose Photo from Gallery Instead</string>
+    <string name="scan_analysis_title">Nutritional Analysis</string>
+    <string name="scan_btn_scan_again">Scan Again</string>
+    <string name="scan_btn_add_to_meal">Add to %1$s</string>
+    <string name="scan_details_card_title">Food Details</string>
+    <string name="scan_detected_food_name">Detected Food Name</string>
+    <string name="scan_unit_label">Unit</string>
+    <string name="scan_nutrition_card_title">Nutritional Value</string>
+    <string name="scan_total_calories_label">Total Calories (kcal)</string>
+
+    <!-- Exercise Tracker -->
+    <string name="exercise_title">Exercise Tracker</string>
+    <string name="exercise_todays_title">Today\'s Exercises</string>
+    <string name="exercise_empty_hint">No exercise logged today.</string>
+    <string name="exercise_calories_burned_title">Calories Burned</string>
+    <string name="exercise_total_duration">Total Duration</string>
+    <string name="exercise_duration_unit">%1$d min</string>
+    <string name="exercise_calories_unit">%1$d kcal</string>
+    <string name="exercise_btn_add">Add Exercise</string>
+    <string name="exercise_btn_save">Save Exercise</string>
+    <string name="exercise_type_label">Exercise Type *</string>
+    <string name="exercise_duration_label">Duration (minutes) *</string>
+    <string name="exercise_calories_burned_label">Calories Burned (optional, kcal)</string>
+    <string name="exercise_notes_label">Notes (optional)</string>
+    <string name="exercise_type_running">Running</string>
+    <string name="exercise_type_walking">Walking</string>
+    <string name="exercise_type_cycling">Cycling</string>
+    <string name="exercise_type_gym">Gym</string>
+    <string name="exercise_type_other">Other</string>
+    <string name="exercise_delete_desc">Delete exercise</string>
+
+    <!-- Meal Detail -->
+    <string name="meal_detail_total_energy">Total Energy</string>
+    <string name="meal_detail_nutritional_breakdown">Nutritional Breakdown</string>
+    <string name="meal_detail_btn_close">Close</string>
+    <string name="meal_detail_btn_delete_item">Delete Item</string>
+    <string name="meal_detail_logged_foods">Logged Foods</string>
+    <string name="meal_detail_empty_title">No food logged yet</string>
+    <string name="meal_detail_empty_subtitle">Tap Add Food to start logging today\'s meal.</string>
+    <string name="meal_detail_total_nutrition">Total Nutrition</string>
+    <string name="meal_detail_delete_food_desc">Delete food item</string>
+
+    <!-- Authentication -->
+    <string name="auth_logo_desc">NutriMind AI Logo</string>
+    <string name="auth_tagline">Smart Nutrition &amp; Health Coach</string>
+    <string name="auth_register_subtitle">Start your personalized health &amp; AI nutrition journey</string>
+    <string name="auth_personal_details_title">Personal Details</string>
+    <string name="auth_sign_in_title">Sign In</string>
+    <string name="auth_email_label">Email Address</string>
+    <string name="auth_email_placeholder">user@example.com</string>
+    <string name="auth_password_label">Password</string>
+    <string name="auth_password_placeholder">••••••••</string>
+    <string name="auth_forgot_password">Forgot Password?</string>
+    <string name="auth_hide_password_desc">Hide password</string>
+    <string name="auth_show_password_desc">Show password</string>
+    <string name="auth_or_divider">&#160;&#160;OR&#160;&#160;</string>
+    <string name="auth_continue_guest">Continue as Guest</string>
+    <string name="auth_no_account_prompt">Don\'t have an account? </string>
+    <string name="auth_already_have_account_prompt">Already have an account? </string>
+    <string name="auth_create_account_action">Create Account</string>
+    <string name="auth_reset_password_title">Reset Password</string>
+    <string name="auth_reset_password_desc">Enter your registered email address and we\'ll send you a password reset link.</string>
+    <string name="auth_email_field_label">Email</string>
+    <string name="auth_btn_send_link">Send Link</string>
+
+    <!-- Activity &amp; Progress -->
+    <string name="activity_date_chip">Date: %1$s</string>
+    <string name="activity_search_chip">Search: \"%1$s\"</string>
+    <string name="activity_clear_date_filter_desc">Clear Date Filter</string>
+    <string name="activity_clear_search_desc">Clear Search</string>
+    <string name="activity_clear_all">Clear All</string>
+    <string name="activity_empty_filtered_title">No activity found matching your filter</string>
+    <string name="activity_empty_title">No activity logged yet</string>
+    <string name="activity_empty_filtered_desc">Try clearing search or picking another date</string>
+    <string name="activity_empty_desc">Start logging your daily food &amp; exercise!</string>
+    <string name="activity_reset_filters">Reset All Filters</string>
+    <string name="activity_close_search_desc">Close Search</string>
+    <string name="activity_search_placeholder">Search food and exercise...</string>
+    <string name="activity_clear_text_desc">Clear text</string>
+    <string name="activity_toggle_search_desc">Toggle Search</string>
+    <string name="activity_calendar_picker_desc">Calendar Picker</string>
+    <string name="activity_prev_week_desc">Previous Week</string>
+    <string name="activity_next_week_desc">Next Week</string>
+    <string name="activity_open_date_picker_desc">Open Date Picker</string>
+    <string name="progress_unlock_pro_review">Unlock In-Depth AI Review (Pro)</string>
+    <string name="progress_pro_review_placeholder">In-depth AI Evaluation: Daily targets logged. For comprehensive micronutrient analysis, dietary balance insights, and personalized nutrition feedback...</string>
+    <string name="progress_no_notes">No notes recorded for this date.</string>
+
+    <!-- Paywall / Subscription -->
+    <string name="paywall_success_snackbar">Congratulations! Your account is now NutriMind Pro.</string>
+    <string name="paywall_restore_success_snackbar">Purchases restored successfully! Pro access is active.</string>
+    <string name="paywall_close_desc">Close</string>
+    <string name="paywall_btn_restore">Restore</string>
+    <string name="paywall_btn_restoring">Restoring...</string>
+    <string name="paywall_badge">NUTRIMIND PRO</string>
+    <string name="paywall_title">Unlock Unlimited Smart Nutrition</string>
+    <string name="paywall_subtitle">Get deep nutritional insights, long-term trends, and unlimited AI food logging.</string>
+    <string name="paywall_feat_scanner_title">Unlimited AI Food Scanner</string>
+    <string name="paywall_feat_scanner_desc">Snap camera or gallery photos anytime with no daily scan limits.</string>
+    <string name="paywall_feat_analytics_title">Full Trend Analytics (30 &amp; 90 Days)</string>
+    <string name="paywall_feat_analytics_desc">Uncover long-term nutritional patterns and weight trajectory graphs.</string>
+    <string name="paywall_feat_eval_title">In-Depth Daily AI Evaluation</string>
+    <string name="paywall_feat_eval_desc">Comprehensive feedback on daily nutrition, micronutrients, and balance.</string>
+    <string name="paywall_feat_priority_title">Priority Meta AI Processing</string>
+    <string name="paywall_feat_priority_desc">Faster response times with higher recognition accuracy priority.</string>
+    <string name="paywall_choose_plan">Choose Your Plan</string>
+    <string name="paywall_btn_trial_cta">Start Free Trial &amp; Unlock Pro</string>
+    <string name="paywall_btn_unlock_cta">Unlock NutriMind Pro Now</string>
+    <string name="paywall_footer_disclaimer">Payment will be charged to your Google Play account. Subscriptions automatically renew unless canceled in Google Play Settings.</string>
+    <string name="paywall_plan_annual">Annual Plan</string>
+    <string name="paywall_plan_monthly">Monthly Plan</string>
+    <string name="paywall_plan_weekly">Weekly Plan</string>
+    <string name="paywall_plan_lifetime">Lifetime Access</string>
+
+    <!-- Profile Screen -->
+    <string name="profile_title">Profile</string>
+    <string name="profile_subtitle">Manage your profile and health targets</string>
+    <string name="profile_account_linked_success">Account successfully linked to %1$s! All your health data is permanently saved.</string>
+    <string name="profile_email_fallback">email</string>
+    <string name="profile_logout_confirm_msg">Are you sure you want to log out of your account?</string>
+    <string name="profile_about_desc">NutriMind AI is your intelligent personal nutrition &amp; health coach powered by Meta Llama AI.</string>
+    <string name="profile_about_version">Version: 1.0.0 (Production)</string>
+    <string name="profile_about_storage_note">All nutrition data is stored securely on your local device.</string>
+    <string name="profile_user_stats">%1$d yrs • %2$d cm • %3$s kg</string>
+    <string name="profile_edit_personal_info">Edit Personal Info</string>
+    <string name="profile_pro_active">NutriMind Pro Active</string>
+    <string name="profile_pro_active_sub">Unlimited AI food scans &amp; 90-day trend analytics</string>
+    <string name="profile_upgrade_title">Upgrade to NutriMind Pro</string>
+    <string name="profile_upgrade_sub">Unlimited AI scans, 90-day trends &amp; deep AI review</string>
+    <string name="profile_pro_tag">PRO</string>
+    <string name="profile_account_label">Account: %1$s</string>
+    <string name="profile_secured_account">Secured Account</string>
+    <string name="profile_section_settings_data">SETTINGS &amp; DATA</string>
+    <string name="profile_link_account">Link Account</string>
+    <string name="profile_link_account_sub">Link to Email or Google account</string>
+    <string name="profile_sync_data_title">Sync Data Now</string>
+    <string name="profile_sync_status_syncing">Syncing data to cloud...</string>
+    <string name="profile_sync_status_pending">%1$d items pending • Tap to sync</string>
+    <string name="profile_sync_status_synced">All data synced • Tap to sync manually</string>
+    <string name="profile_health_goal_title">Health Goal &amp; Macro Targets</string>
+    <string name="profile_health_goal_sub">Adjust calorie and macronutrient targets</string>
+    <string name="profile_edit_physical_title">Edit Physical Profile</string>
+    <string name="profile_edit_physical_sub">Update age, height, and body weight</string>
+    <string name="profile_restore_purchases_title">Restore Purchases</string>
+    <string name="profile_restore_purchases_sub">Restore active subscription from Google Play</string>
+    <string name="profile_about_sub">App information and version</string>
+    <string name="profile_link_dialog_desc">Convert your guest session to a permanent account with email &amp; password so your health data is safely backed up in the cloud.</string>
+    <string name="profile_hide_password">Hide password</string>
+    <string name="profile_show_password">Show password</string>
+    <string name="profile_err_invalid_email">Please enter a valid email address.</string>
+    <string name="profile_err_short_password">Password must be at least 6 characters.</string>
+    <string name="profile_err_passwords_not_match">Passwords do not match.</string>
+    <string name="profile_empty_title">Profile Not Set</string>
+    <string name="profile_empty_desc">Setup your profile and target goals to get personalized nutrition advice.</string>
+    <string name="profile_btn_create_profile">Create Profile</string>
+
+    <!-- NutriCoach AI Screen -->
+    <string name="coach_title">NutriCoach AI</string>
+    <string name="coach_name">NutriCoach</string>
+    <string name="coach_engine_format">Engine: %1$s ▾</string>
+    <string name="coach_model_format">Model: %1$s (%2$s) ▾</string>
+    <string name="coach_cd_select_ai_model">Select AI Model</string>
+    <string name="coach_cd_clear_history">Clear History</string>
+    <string name="coach_cd_send">Send</string>
+    <string name="coach_cd_avatar">Coach Avatar</string>
+    <string name="coach_dialog_clear_title">Clear Chat History?</string>
+    <string name="coach_dialog_clear_desc">All conversation history with NutriCoach will be deleted from this device.</string>
+    <string name="coach_btn_clear">Clear</string>
+    <string name="coach_dialog_select_engine_title">Select AI Engine</string>
+    <string name="coach_btn_dismiss">Dismiss</string>
+    <string name="coach_input_placeholder">Ask NutriCoach about calories, meals, fitness...</string>
+    <string name="coach_welcome_desc">Your intelligent personal nutrition &amp; wellness coach connected directly to today\'s food diary, hydration, and workouts. Ask anything!</string>
+    <string name="coach_quick_questions_header">Get started with quick questions:</string>
+    <string name="coach_thinking_status">NutriCoach is thinking</string>
+    <string name="coach_error_default">Failed to connect to AI. Please try again.</string>
+    <string name="coach_prompt_dinner">🥗 Healthy dinner recommendation</string>
+    <string name="coach_prompt_macros">📊 Analyze today\'s macro intake</string>
+    <string name="coach_prompt_hydration">💧 Evaluate my hydration status</string>
+    <string name="coach_prompt_workout">🏋️ Calorie-burning workout tips</string>
+    <string name="coach_prompt_goal">🎯 Am I on track with my daily goal?</string>
+
+    <!-- Home Screen -->
+    <string name="home_greeting_morning">Good Morning</string>
+    <string name="home_greeting_afternoon">Good Afternoon</string>
+    <string name="home_greeting_evening">Good Evening</string>
+
+    <string name="home_coach_insight_title">Daily Coach Insight</string>
+    <string name="home_coach_insight_powered_by">Powered by %1$s</string>
+    <string name="home_coach_insight_analyzing">Analyzing your nutrition goals and today\'s intake...</string>
+    <string name="home_coach_insight_cd_sparkle">Coach AI Sparkle</string>
+    <string name="home_coach_insight_cd_refresh">Refresh Insight</string>
+
+    <string name="home_mission_fat_loss_protocol">🎯 Fat Loss Protocol</string>
+    <string name="home_mission_hypertrophy_protocol">💪 Hypertrophy Protocol</string>
+    <string name="home_mission_balance_protocol">⚖️ Balance Protocol</string>
+    <string name="home_mission_title">Daily Missions</string>
+    <string name="home_mission_progress_format">%1$d of %2$d missions completed (%3$d%%)</string>
+    <string name="home_mission_all_accomplished_title">All Daily Missions Accomplished!</string>
+    <string name="home_mission_all_accomplished_desc">Outstanding consistency toward your goal! Keep it up!</string>
+    <string name="home_mission_status_done">Done</string>
+    <string name="home_mission_status_in_progress">In progress</string>
+
+    <!-- Missions Titles &amp; Descriptions -->
+    <string name="mission_calorie_deficit_title">Stay in Calorie Deficit</string>
+    <string name="mission_calorie_deficit_desc">Target: max %1$d kcal</string>
+    <string name="mission_calorie_deficit_progress">%1$d / %2$d kcal</string>
+    <string name="mission_water_hydration_title">Optimal Hydration</string>
+    <string name="mission_water_hydration_desc">Target: %1$sL water</string>
+    <string name="mission_water_hydration_progress">%1$sL / %2$sL</string>
+    <string name="mission_protein_preservation_title">Preserve Lean Muscle</string>
+    <string name="mission_protein_preservation_desc">Target: %1$dg protein</string>
+    <string name="mission_protein_preservation_progress">%1$dg / %2$dg</string>
+    <string name="mission_exercise_burn_title">Active Fat Burn (30 min)</string>
+    <string name="mission_exercise_burn_desc">Cardio, walk, or workout</string>
+    <string name="mission_exercise_burn_progress">%1$d / 30 min</string>
+    <string name="mission_exercise_burn_progress_zero">0 / 30 min</string>
+    <string name="mission_vegetables_fiber_title">Eat Fiber &amp; Vegetables</string>
+    <string name="mission_vegetables_fiber_desc">Satiety &amp; gut health in main meals</string>
+    <string name="mission_vegetables_fiber_logged">Logged in meals</string>
+    <string name="mission_vegetables_fiber_add">Add greens / fiber</string>
+
+    <string name="mission_calorie_surplus_title">Reach Caloric Surplus</string>
+    <string name="mission_calorie_surplus_desc">Target: %1$d kcal</string>
+    <string name="mission_protein_hypertrophy_title">High Protein Hypertrophy</string>
+    <string name="mission_main_meals_title">Log 3 Main Meals</string>
+    <string name="mission_main_meals_desc">Breakfast, lunch, &amp; dinner</string>
+    <string name="mission_main_meals_progress">%1$d / 3 main meals</string>
+    <string name="mission_exercise_strength_title">Strength &amp; Muscle Training</string>
+    <string name="mission_exercise_strength_desc">Resistance training / gym 30 min</string>
+    <string name="mission_water_recovery_title">Muscle Hydration &amp; Recovery</string>
+
+    <string name="mission_calorie_balance_title">Maintain Energy Balance</string>
+    <string name="mission_calorie_balance_desc">Target: ~%1$d kcal</string>
+    <string name="mission_water_vitality_title">Daily Vitality Hydration</string>
+    <string name="mission_protein_daily_title">Reach Protein Target</string>
+    <string name="mission_exercise_daily_title">Daily Active Movement</string>
+    <string name="mission_exercise_daily_desc">Stay active for 30 minutes</string>
+    <string name="mission_vegetables_greens_title">Eat Fresh Greens &amp; Fiber</string>
+    <string name="mission_vegetables_greens_desc">Essential vitamins &amp; antioxidants</string>
+
+    <!-- Nutrition Section -->
+    <string name="home_todays_nutrition">Today\'s Nutrition</string>
+    <string name="home_label_calories">Calories</string>
+    <string name="home_nutrition_target_kcal">/%1$d kcal</string>
+    <string name="home_nutrition_item_format">%1$d / %2$d %3$s</string>
+
+    <!-- Intake Section -->
+    <string name="home_todays_intake">Today\'s Intake</string>
+    <string name="home_intake_breakfast">Breakfast</string>
+    <string name="home_intake_lunch">Lunch</string>
+    <string name="home_intake_dinner">Dinner</string>
+    <string name="home_intake_others">Others</string>
+    <string name="home_intake_water">Water</string>
+    <string name="home_intake_exercise">Exercise</string>
+    <string name="home_intake_not_logged">Not Logged</string>
+    <string name="home_intake_kcal_val">%1$d kcal</string>
+    <string name="home_intake_water_format">%1$sL / %2$sL</string>
+    <string name="home_intake_exercise_format">%1$d min</string>
+
+    <!-- Completed &amp; Reopen Cards &amp; Dialogs -->
+    <string name="home_completed_title">Journal Completed</string>
+    <string name="home_btn_ai_review">AI Review</string>
+    <string name="home_btn_reopen">Reopen</string>
+    <string name="home_btn_reopen_journal">Reopen Today\'s Journal</string>
+    <string name="home_complete_dialog_title">Complete Today?</string>
+    <string name="home_complete_dialog_desc">You\'re about to finish today\'s nutrition journal.\n\nAfter completing:\n• Today\'s meals become read-only.\n• Water entries become read-only.\n• Exercise entries become read-only.\n• Today\'s nutrition progress is finalized.\n\nIf you need to make changes later, you can reopen today\'s journal.</string>
+    <string name="home_reopen_dialog_title">Reopen Today\'s Journal?</string>
+    <string name="home_reopen_dialog_desc">Today\'s journal will become editable again.\n\nYour nutrition summary and progress will automatically update after completing today again.</string>
+
+    <!-- Navigation & Bottom Bar -->
+    <string name="nav_home">Home</string>
+    <string name="nav_progress">Progress</string>
+    <string name="nav_coach">Coach</string>
+    <string name="nav_activity">Activity</string>
+    <string name="nav_profile">Profile</string>
+
+    <!-- User Avatar -->
+    <string name="avatar_cd_profile_picture">Profile Picture</string>
+    <string name="avatar_cd_change_profile_picture">Change Profile Picture</string>
+
+    <!-- Activity Detail -->
+    <string name="activity_detail_today">Today</string>
+    <string name="activity_detail_journal_entry">Journal Entry</string>
+    <string name="activity_detail_completed_msg">Great job! You completed your daily log.</string>
+    <string name="activity_detail_empty_entries">No log entries recorded for this day.</string>
+    <string name="activity_detail_score_excellent">Excellent balance!</string>
+    <string name="activity_detail_score_great">Great progress!</string>
+    <string name="activity_detail_score_fair">Fair day!</string>
+    <string name="activity_detail_score_keep_improving">Keep improving!</string>
+    <string name="activity_detail_sub_excellent">High protein intake and optimal hydration.</string>
+    <string name="activity_detail_sub_great">On track with daily nutrition targets.</string>
+    <string name="activity_detail_sub_fair">Focus on logging water and staying active.</string>
+    <string name="activity_detail_sub_keep_improving">Log all your meals and activity for higher score.</string>
+
+    <!-- Camera & Scan Screen -->
+    <string name="scan_ai_vision_verified">AI Vision Verified</string>
+    <string name="scan_ai_nutrition_insights">AI Nutrition Insights</string>
+
+    <!-- Water Screen -->
+    <string name="water_history_title">Water History</string>
+    <string name="water_empty_hint">No water logged today yet.</string>
+    <string name="water_todays_intake_title">Today\'s Water Intake</string>
+    <string name="water_quick_add_title">Quick Add</string>
+    <string name="water_delete_record_desc">Delete water record</string>
+
+    <!-- Number Picker Content Descriptions -->
+    <string name="cd_decrease_target_weight">Decrease target weight</string>
+    <string name="cd_increase_target_weight">Increase target weight</string>
+    <string name="cd_selected">Selected</string>
+
+    <!-- Profile Photo Options -->
+    <string name="profile_change_photo_title">Change Profile Photo</string>
+    <string name="profile_take_photo">Take from Camera</string>
+    <string name="profile_choose_gallery">Choose from Gallery</string>
+
+    <!-- Goal Settings Screen -->
+    <string name="goal_settings_title">Health Goal &amp; Targets</string>
+    <string name="goal_settings_section_your_goal">YOUR GOAL</string>
+    <string name="goal_settings_progress_to_goal">Progress to Goal</string>
+    <string name="goal_settings_nutrition_target">NUTRITION TARGET (DAILY)</string>
+    <string name="goal_settings_macro_distribution">Macronutrient Distribution</string>
+    <string name="goal_settings_about_goal">ABOUT YOUR GOAL</string>
+    <string name="goal_settings_why_goal">Why this goal?</string>
+    <string name="goal_settings_est_target_date">Estimated Target Date</string>
+    <string name="goal_settings_activity_level">Activity Level</string>
+    <string name="goal_settings_adjust_targets">Adjust Targets &amp; Body Metrics</string>
+    <string name="goal_settings_adjust_desc">Update goal, age, height, weight, and activity level</string>
+    <string name="goal_settings_ai_coach">AI Personalized Coach</string>
+    <string name="goal_settings_saving">Saving Changes...</string>
+    <string name="goal_settings_configure_title">Configure Goal &amp; Targets</string>
+    <string name="goal_settings_primary_goal">PRIMARY GOAL</string>
+    <string name="goal_settings_body_stats">BODY STATS</string>
+    <string name="goal_settings_weight_targets">WEIGHT TARGETS (KG)</string>
+    <string name="goal_settings_activity_level_header">ACTIVITY LEVEL</string>
+    <string name="goal_settings_daily_calorie_target">Daily Calorie Target</string>
+    <string name="goal_settings_why_lose">Gradual calorie deficit to reduce body fat sustainably while preserving lean muscle.</string>
+    <string name="goal_settings_why_maintain">Balanced energy expenditure to keep current weight and support vitality.</string>
+    <string name="goal_settings_why_gain">Controlled calorie surplus and protein-rich nutrition to build muscle mass.</string>
+    <string name="goal_settings_tip_lose">NutriMind AI will personalize your daily calorie deficit and macro targets to maximize fat loss while keeping your energy high.</string>
+    <string name="goal_settings_tip_maintain">NutriMind AI will optimize your micronutrients and energy balance to sustain peak performance and well-being.</string>
+    <string name="goal_settings_tip_gain">NutriMind AI will calculate optimal protein timing and surplus calories to support clean muscle hypertrophy.</string>
+    <string name="goal_settings_motivational_maintain">Consistency is key! Great job keeping your body in balance ⚖️</string>
+    <string name="goal_settings_motivational_reached">Target reached! Outstanding achievement! 🎉</string>
+    <string name="goal_settings_motivational_almost">Almost there! You\'re in the final stretch! 🚀</string>
+    <string name="goal_settings_motivational_momentum">Great momentum! You\'re making solid progress 💪</string>
+    <string name="goal_settings_motivational_start">Every step counts! Consistency is your superpower 🌱</string>
+
+    <!-- Progress Screen Additional -->
+    <string name="progress_empty_data">No progress data yet</string>
+    <string name="progress_cd_calendar_filter">Calendar Filter</string>
+    <string name="progress_on_track_msg">You\'re on the right track! 💪</string>
+    <string name="progress_no_reviews">No daily reviews available</string>
+    <string name="progress_select_date_range">Select Date Range</string>
+    <string name="progress_range_1day">Last 1 Day</string>
+    <string name="progress_range_3days">Last 3 Days</string>
+    <string name="progress_range_7days">Last 7 Days (Default)</string>
+    <string name="progress_range_30days">Last 30 Days (1 Month)</string>
+    <string name="progress_custom_date_range">Custom Date Range...</string>
+    <string name="progress_weigh_in_desc">Track your daily weigh-in. Your current profile weight and daily nutrition targets will automatically update to stay in sync with your progress.</string>
+
+    <!-- Daily Review & General Actions -->
+    <string name="btn_share">Share</string>
+    <string name="daily_review_summary_title">Daily Summary</string>
+
+    <!-- Trend Detail Screen & Chart -->
+    <string name="trend_about_metric">About %1$s</string>
+    <string name="trend_desc_calories">Calories are the energy you get from food and drinks. Staying within your caloric goal helps you reach your target weight.</string>
+    <string name="trend_desc_protein">Protein helps build and repair body tissue. It also supports muscle growth and maintenance.</string>
+    <string name="trend_desc_water">Water keeps your body functioning properly and helps maintain energy and focus.</string>
+    <string name="trend_desc_weight">Tracking your weight helps you see your progress toward your goal and adjust your plan as needed.</string>
+    <string name="trend_desc_exercise">Regular exercise improves your health, strength, and overall well-being.</string>
+    <string name="chart_no_trend_data">No trend data available</string>
+
+    <!-- Goal Settings Additional -->
+    <string name="goal_settings_edit_goal">Edit Goal</string>
+    <string name="goal_settings_current">Current</string>
+    <string name="goal_settings_target">Target</string>
+    <string name="goal_settings_est_time">Est. Time</string>
+    <string name="goal_settings_water_target">Water Target</string>
+    <string name="goal_settings_dietary_fiber">Dietary Fiber</string>
+    <string name="goal_settings_daily_exercise">Daily Exercise</string>
+    <string name="goal_settings_badge_energy">Energy</string>
+    <string name="goal_settings_badge_hydration">Hydration</string>
+    <string name="goal_settings_badge_digestion">Digestion</string>
+    <string name="goal_settings_badge_activity">Activity</string>
+    <string name="goal_settings_save_btn">Save Goal Settings</string>
+    <string name="gender_other">Other</string>
+    <string name="goal_settings_desc_lose">Focus on creating a healthy calorie deficit and building sustainable habits.</string>
+    <string name="goal_settings_desc_maintain">Maintain your current weight with balanced energy and nutrient intake.</string>
+    <string name="goal_settings_desc_gain">Build lean muscle mass with high protein and clean calorie surplus.</string>
+    <string name="goal_settings_activity_sedentary_desc">Little to no exercise (Desk job)</string>
+    <string name="goal_settings_activity_lightly_desc">Light exercise 1-3 days/week</string>
+    <string name="goal_settings_activity_moderately_desc">Moderate exercise 3-5 days/week</string>
+    <string name="goal_settings_activity_very_desc">Intense exercise 6-7 days/week</string>
+
+    <!-- Daily Review Additional -->
+    <string name="daily_review_share_title">Share Daily Review</string>
+    <string name="daily_review_default_ai_summary">Daily nutrition AI evaluation completed with high accuracy.</string>
+</resources>
