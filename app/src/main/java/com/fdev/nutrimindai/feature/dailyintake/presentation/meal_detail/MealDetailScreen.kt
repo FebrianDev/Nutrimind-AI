@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -38,7 +39,8 @@ import java.io.File
 fun MealDetailScreen(
     viewModel: MealDetailViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit,
-    onNavigateToAddFood: (String) -> Unit
+    onNavigateToAddFood: (String) -> Unit,
+    onNavigateToCoachIdeas: ((String) -> Unit)? = null
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var selectedIntakeForDetail by remember { mutableStateOf<Intake?>(null) }
@@ -68,6 +70,21 @@ fun MealDetailScreen(
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.scan_btn_back))
+                    }
+                },
+                actions = {
+                    if (onNavigateToCoachIdeas != null) {
+                        IconButton(
+                            onClick = {
+                                onNavigateToCoachIdeas("Can you suggest 3 healthy, balanced ${viewModel.mealType} meal ideas tailored to my daily nutrition targets?")
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.AutoAwesome,
+                                contentDescription = stringResource(R.string.food_meal_ideas_btn),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
                 }
             )
@@ -117,7 +134,12 @@ fun MealDetailScreen(
                     if (state.intakes.isEmpty()) {
                         MealDetailEmptyState(
                             isDraft = state.status == DailyLogStatus.DRAFT,
-                            onAddFoodClick = { onNavigateToAddFood(viewModel.mealType) }
+                            onAddFoodClick = { onNavigateToAddFood(viewModel.mealType) },
+                            onMealIdeasClick = if (onNavigateToCoachIdeas != null) {
+                                {
+                                    onNavigateToCoachIdeas("Can you suggest 3 healthy, balanced ${viewModel.mealType} meal ideas tailored to my daily nutrition targets?")
+                                }
+                            } else null
                         )
                     } else {
                         LazyColumn(
@@ -282,7 +304,8 @@ fun MacroBadge(
 @Composable
 fun MealDetailEmptyState(
     isDraft: Boolean,
-    onAddFoodClick: () -> Unit
+    onAddFoodClick: () -> Unit,
+    onMealIdeasClick: (() -> Unit)? = null
 ) {
     Column(
         modifier = Modifier
@@ -331,6 +354,30 @@ fun MealDetailEmptyState(
                 Icon(Icons.Default.Add, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(text = stringResource(R.string.label_add_food_btn), fontWeight = FontWeight.Bold)
+            }
+
+            if (onMealIdeasClick != null) {
+                Spacer(modifier = Modifier.height(12.dp))
+                OutlinedButton(
+                    onClick = onMealIdeasClick,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.AutoAwesome,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(R.string.food_meal_ideas_btn),
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
         }
     }

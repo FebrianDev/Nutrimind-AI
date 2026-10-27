@@ -103,4 +103,8 @@ class CoachRepositoryImpl @Inject constructor(
     override suspend fun clearHistory() {
         chatMessageDao.clearAllMessages()
     }
+
+    override suspend fun transcribeVoice(audioFile: java.io.File): Result<String> {
+        return aiRepository.transcribeAudio(audioFile)
+    }
 }

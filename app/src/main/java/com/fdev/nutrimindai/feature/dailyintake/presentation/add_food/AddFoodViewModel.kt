@@ -10,6 +10,8 @@ import com.fdev.nutrimindai.feature.dailyintake.domain.model.MealType
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.DailyLogRepository
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.FoodRepository
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.IntakeRepository
+import com.fdev.nutrimindai.core.ai.AiRepository
+import com.fdev.nutrimindai.core.ai.FoodRecognitionResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,11 +39,18 @@ sealed interface AddFoodUiState {
 class AddFoodViewModel @Inject constructor(
     private val intakeRepository: IntakeRepository,
     private val dailyLogRepository: DailyLogRepository,
-    private val foodRepository: FoodRepository
+    private val foodRepository: FoodRepository,
+    private val aiRepository: AiRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<AddFoodUiState>(AddFoodUiState.Idle)
     val uiState: StateFlow<AddFoodUiState> = _uiState.asStateFlow()
+
+    private val _isEstimating = MutableStateFlow(false)
+    val isEstimating: StateFlow<Boolean> = _isEstimating.asStateFlow()
+
+    private val _estimatedFood = MutableStateFlow<FoodRecognitionResult?>(null)
+    val estimatedFood: StateFlow<FoodRecognitionResult?> = _estimatedFood.asStateFlow()
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
@@ -69,6 +78,35 @@ class AddFoodViewModel @Inject constructor(
 
     fun resetState() {
         _uiState.value = AddFoodUiState.Idle
+        _estimatedFood.value = null
+    }
+
+    fun clearEstimatedFood() {
+        _estimatedFood.value = null
+    }
+
+    fun estimateNutrition(
+        foodDescription: String,
+        onSuccess: (FoodRecognitionResult) -> Unit = {}
+    ) {
+        val trimmed = foodDescription.trim()
+        if (trimmed.isBlank() || _isEstimating.value) return
+
+        viewModelScope.launch {
+            _isEstimating.value = true
+            _uiState.value = AddFoodUiState.Loading
+            val result = aiRepository.estimateFoodNutrition(trimmed)
+            _isEstimating.value = false
+            result.onSuccess { recognized ->
+                _uiState.value = AddFoodUiState.Idle
+                _estimatedFood.value = recognized
+                onSuccess(recognized)
+            }.onFailure { error ->
+                _uiState.value = AddFoodUiState.Error(
+                    error.message ?: "Failed to estimate nutrition with Meta AI."
+                )
+            }
+        }
     }
 
     fun saveFood(

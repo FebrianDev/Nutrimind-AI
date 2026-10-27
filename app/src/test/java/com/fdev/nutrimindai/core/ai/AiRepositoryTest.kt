@@ -105,4 +105,29 @@ class AiRepositoryTest {
 
         assertEquals(expectedTip, result)
     }
+
+    @Test
+    fun `estimateFoodNutrition delegates to metaAiService`() = runBlocking {
+        val expected = FoodRecognitionResult(
+            name = "Nasi Goreng",
+            calories = 380,
+            protein = 12.0,
+            carbs = 48.0,
+            fat = 14.0,
+            fiber = 2.0
+        )
+        `when`(metaAiService.estimateFoodNutrition("Nasi Goreng")).thenReturn(Result.success(expected))
+
+        val result = repository.estimateFoodNutrition("Nasi Goreng")
+        assertEquals(Result.success(expected), result)
+    }
+
+    @Test
+    fun `transcribeAudio delegates to metaAiService`() = runBlocking {
+        val mockFile = java.io.File("test.wav")
+        `when`(metaAiService.transcribeAudio(mockFile)).thenReturn(Result.success("Healthy salad with chicken"))
+
+        val result = repository.transcribeAudio(mockFile)
+        assertEquals(Result.success("Healthy salad with chicken"), result)
+    }
 }

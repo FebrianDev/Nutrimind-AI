@@ -27,6 +27,24 @@ sealed interface CoachAction {
     data class LogWater(
         val amountMl: Int
     ) : CoachAction
+
+    /**
+     * Action to automatically log workout/physical exercise into the user's daily diary.
+     */
+    data class LogExercise(
+        val exerciseType: String,
+        val durationMinute: Int,
+        val caloriesBurned: Int,
+        val note: String? = null
+    ) : CoachAction
+
+    /**
+     * Action to automatically log a new body weight measurement.
+     */
+    data class LogWeight(
+        val weightKg: Float,
+        val note: String? = null
+    ) : CoachAction
 }
 
 /**

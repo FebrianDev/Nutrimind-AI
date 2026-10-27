@@ -35,8 +35,12 @@ interface AiRepository {
 
     suspend fun analyzeFoodImage(bitmap: Bitmap): Result<FoodRecognitionResult>
 
+    suspend fun estimateFoodNutrition(foodDescription: String): Result<FoodRecognitionResult>
+
     suspend fun chatWithCoach(
         history: List<Pair<String, String>>,
         systemPrompt: String? = null
     ): Result<String>
+
+    suspend fun transcribeAudio(audioFile: java.io.File): Result<String>
 }

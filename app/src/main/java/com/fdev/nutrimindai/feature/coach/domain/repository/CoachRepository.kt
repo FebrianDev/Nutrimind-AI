@@ -12,4 +12,5 @@ interface CoachRepository {
     fun getActiveProvider(): AiProvider
     fun setActiveProvider(provider: AiProvider)
     val activeProviderFlow: StateFlow<AiProvider>
+    suspend fun transcribeVoice(audioFile: java.io.File): Result<String>
 }

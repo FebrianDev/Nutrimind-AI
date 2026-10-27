@@ -97,10 +97,18 @@ class AiRepositoryImpl @Inject constructor(
         return metaAiService.analyzeFoodImage(bitmap)
     }
 
+    override suspend fun estimateFoodNutrition(foodDescription: String): Result<FoodRecognitionResult> {
+        return metaAiService.estimateFoodNutrition(foodDescription)
+    }
+
     override suspend fun chatWithCoach(
         history: List<Pair<String, String>>,
         systemPrompt: String?
     ): Result<String> {
         return metaAiService.chat(conversation = history, systemPrompt = systemPrompt)
+    }
+
+    override suspend fun transcribeAudio(audioFile: java.io.File): Result<String> {
+        return metaAiService.transcribeAudio(audioFile)
     }
 }

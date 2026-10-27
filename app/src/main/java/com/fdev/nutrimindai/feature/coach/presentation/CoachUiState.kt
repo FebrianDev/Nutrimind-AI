@@ -10,5 +10,9 @@ data class CoachUiState(
     val errorMessage: String? = null,
     val inputText: String = "",
     val activeProvider: AiProvider = AiProvider.META_LLAMA,
-    val contextualPrompts: List<ContextualPrompt> = emptyList()
+    val contextualPrompts: List<ContextualPrompt> = emptyList(),
+    val isRecordingVoice: Boolean = false,
+    val isTranscribingVoice: Boolean = false,
+    val voiceDurationSeconds: Int = 0,
+    val voiceAmplitude: Float = 0f
 )

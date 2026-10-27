@@ -1,5 +1,17 @@
 package com.fdev.nutrimindai.feature.coach.presentation
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -15,7 +27,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.ArrowForward
 import androidx.compose.material.icons.automirrored.rounded.Send
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.rounded.AutoAwesome
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -23,12 +38,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fdev.nutrimindai.R
@@ -37,6 +54,8 @@ import com.fdev.nutrimindai.feature.coach.domain.model.ContextualPrompt
 import com.fdev.nutrimindai.feature.coach.presentation.components.CoachChatBubble
 import com.fdev.nutrimindai.feature.coach.presentation.components.CoachQuickChips
 import com.fdev.nutrimindai.feature.coach.presentation.components.CoachTypingIndicator
+import timber.log.Timber
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,6 +68,32 @@ fun CoachScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showClearDialog by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
+    val context = LocalContext.current
+
+    val micPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            viewModel.startVoiceRecording(context.cacheDir)
+        }
+    }
+
+    fun handleMicClick() {
+        if (uiState.isRecordingVoice) {
+            viewModel.stopVoiceRecordingAndTranscribe()
+            return
+        }
+        val hasPermission = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.RECORD_AUDIO
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (hasPermission) {
+            viewModel.startVoiceRecording(context.cacheDir)
+        } else {
+            micPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+        }
+    }
 
     // Handle initial prompt from deep navigation if provided
     LaunchedEffect(initialPrompt) {
@@ -243,51 +288,207 @@ fun CoachScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                // Transcription status banner
+                AnimatedVisibility(
+                    visible = uiState.isTranscribingVoice,
+                    enter = fadeIn(),
+                    exit = fadeOut()
                 ) {
-                    OutlinedTextField(
-                        value = uiState.inputText,
-                        onValueChange = { viewModel.onInputTextChanged(it) },
-                        placeholder = {
-                            Text(
-                                text = stringResource(R.string.coach_input_placeholder),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                            )
-                        },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(24.dp),
-                        maxLines = 4,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
-                        )
-                    )
-
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    val canSend = uiState.inputText.isNotBlank() && !uiState.isGenerating
-                    IconButton(
-                        onClick = { viewModel.sendMessage() },
-                        enabled = canSend,
+                    Row(
                         modifier = Modifier
-                            .size(42.dp)
-                            .clip(CircleShape)
-                            .background(
-                                if (canSend) MaterialTheme.colorScheme.primary
-                                else MaterialTheme.colorScheme.surfaceVariant
-                            )
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 6.dp)
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f))
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
                     ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Rounded.Send,
-                            contentDescription = stringResource(R.string.coach_cd_send),
-                            tint = if (canSend) MaterialTheme.colorScheme.onPrimary
-                            else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.primary
                         )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(R.string.coach_voice_transcribing),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+
+                if (uiState.isRecordingVoice) {
+                    // In-App Meta MMS / Muse Voice Recording Bar
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // Cancel button
+                        IconButton(
+                            onClick = { viewModel.cancelVoiceRecording() },
+                            modifier = Modifier
+                                .size(42.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.7f))
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Close,
+                                contentDescription = stringResource(R.string.coach_voice_cancel),
+                                tint = MaterialTheme.colorScheme.onErrorContainer
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        // Waveform and Duration Pill
+                        Row(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(46.dp)
+                                .clip(RoundedCornerShape(24.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f))
+                                .padding(horizontal = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+                            val alphaPulse by infiniteTransition.animateFloat(
+                                initialValue = 0.3f,
+                                targetValue = 1f,
+                                animationSpec = infiniteRepeatable(
+                                    animation = tween(500),
+                                    repeatMode = RepeatMode.Reverse
+                                ),
+                                label = "alphaPulse"
+                            )
+
+                            // Pulsing red recording dot
+                            Box(
+                                modifier = Modifier
+                                    .size(10.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.error.copy(alpha = alphaPulse))
+                            )
+
+                            Spacer(modifier = Modifier.width(8.dp))
+
+                            val minutes = uiState.voiceDurationSeconds / 60
+                            val seconds = uiState.voiceDurationSeconds % 60
+                            Text(
+                                text = String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds),
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+
+                            Spacer(modifier = Modifier.width(12.dp))
+
+                            // Dynamic sound wave bars based on amplitude
+                            Row(
+                                modifier = Modifier.weight(1f),
+                                horizontalArrangement = Arrangement.spacedBy(3.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                val amp = uiState.voiceAmplitude.coerceIn(0f, 1f)
+                                val barFactors = listOf(0.4f, 0.7f, 1.0f, 0.85f, 0.6f, 0.95f, 0.5f, 0.75f)
+                                barFactors.forEach { factor ->
+                                    val barHeight = (6 + (amp * 26 * factor)).dp
+                                    Box(
+                                        modifier = Modifier
+                                            .width(3.dp)
+                                            .height(barHeight)
+                                            .clip(RoundedCornerShape(2.dp))
+                                            .background(MaterialTheme.colorScheme.primary)
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        // Done / Stop button
+                        IconButton(
+                            onClick = { viewModel.stopVoiceRecordingAndTranscribe() },
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Check,
+                                contentDescription = stringResource(R.string.coach_voice_done),
+                                tint = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
+                    }
+                } else {
+                    // Regular Text Input Row
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        OutlinedTextField(
+                            value = uiState.inputText,
+                            onValueChange = { viewModel.onInputTextChanged(it) },
+                            placeholder = {
+                                Text(
+                                    text = stringResource(R.string.coach_input_placeholder),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                                )
+                            },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(24.dp),
+                            maxLines = 4,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant
+                            )
+                        )
+
+                        Spacer(modifier = Modifier.width(6.dp))
+
+                        IconButton(
+                            onClick = { handleMicClick() },
+                            enabled = !uiState.isGenerating && !uiState.isTranscribingVoice,
+                            modifier = Modifier
+                                .size(42.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f))
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Mic,
+                                contentDescription = stringResource(R.string.coach_voice_input_desc),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(6.dp))
+
+                        val canSend = uiState.inputText.isNotBlank() && !uiState.isGenerating && !uiState.isTranscribingVoice
+                        IconButton(
+                            onClick = { viewModel.sendMessage() },
+                            enabled = canSend,
+                            modifier = Modifier
+                                .size(42.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    if (canSend) MaterialTheme.colorScheme.primary
+                                    else MaterialTheme.colorScheme.surfaceVariant
+                                )
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Rounded.Send,
+                                contentDescription = stringResource(R.string.coach_cd_send),
+                                tint = if (canSend) MaterialTheme.colorScheme.onPrimary
+                                else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                            )
+                        }
                     }
                 }
 

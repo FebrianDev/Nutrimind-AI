@@ -44,7 +44,10 @@ fun NavGraphBuilder.dailyIntakeGraph(navController: NavController) {
 
         MealDetailScreen(
             onNavigateBack = { navController.popBackStack() },
-            onNavigateToAddFood = { showAddFoodBottomSheet = true }
+            onNavigateToAddFood = { showAddFoodBottomSheet = true },
+            onNavigateToCoachIdeas = { prompt ->
+                navController.navigate(NavigationDestination.Coach(prompt))
+            }
         )
     }
 

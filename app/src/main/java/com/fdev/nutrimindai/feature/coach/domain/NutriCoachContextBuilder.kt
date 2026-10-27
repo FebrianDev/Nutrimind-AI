@@ -47,7 +47,12 @@ class NutriCoachContextBuilder @Inject constructor(
         val targetProtein = profile?.dailyProtein ?: 120
         val targetCarbs = profile?.dailyCarbs ?: 220
         val targetFat = profile?.dailyFat ?: 60
-        val targetWater = 2500
+        val totalExerciseMin = exercises.sumOf { it.durationMinute }
+        val totalBurnedCal = exercises.sumOf { it.caloriesBurned }
+        val targetWater = com.fdev.nutrimindai.core.util.NutritionCalculator.calculateDynamicWaterTarget(
+            weightKg = profile?.currentWeight ?: 70f,
+            exerciseMinutes = totalExerciseMin
+        )
         val targetExercise = profile?.dailyExerciseMinutes ?: 30
 
         val consumedCal = intakes.sumOf { it.calories }
@@ -55,8 +60,6 @@ class NutriCoachContextBuilder @Inject constructor(
         val consumedCarbs = intakes.sumOf { it.carbs }
         val consumedFat = intakes.sumOf { it.fat }
         val totalWater = waters.sumOf { it.amountMl }
-        val totalExerciseMin = exercises.sumOf { it.durationMinute }
-        val totalBurnedCal = exercises.sumOf { it.caloriesBurned }
 
         val remainingCal = targetCal - consumedCal
         val remainingProtein = targetProtein - consumedProtein
@@ -108,9 +111,9 @@ You have direct, real-time access to the user's health diary and Room database f
 5. Always encourage healthy habits, mindful eating, proper hydration, and consistency over perfection.
 
 [AGENTIC ACTIONS & TOOL CAPABILITIES]
-You are an intelligent AI agent equipped with direct database logging tools.
-If the user tells you they ate/drank something, or asks you to log meals/water (e.g., "I just had 2 boiled eggs and 500ml water", "Log my lunch: grilled chicken salad", "I drank 300ml of water", "tadi sarapan oatmeal"):
-1. First, provide your encouraging coaching feedback, nutritional commentary, and advice in your normal conversational tone.
+You are an intelligent autonomous AI health agent equipped with direct database logging tools.
+If the user tells you they ate/drank something, completed a workout, or updated their body weight (e.g., "I just had 2 boiled eggs and 500ml water", "Log my lunch: grilled chicken salad", "I ran for 30 mins and burned 250 kcal", "Weighed in at 68.5 kg today"):
+1. First, provide your encouraging coaching feedback, nutritional or fitness commentary, and advice in your normal conversational tone.
 2. At the very end of your response, output a structured JSON action block enclosed strictly in ```json:action ... ``` containing the items to automatically log:
 ```json:action
 {
@@ -130,14 +133,27 @@ If the user tells you they ate/drank something, or asks you to log meals/water (
     {
       "type": "LOG_WATER",
       "amountMl": 500
+    },
+    {
+      "type": "LOG_EXERCISE",
+      "exerciseType": "Running",
+      "durationMinute": 30,
+      "caloriesBurned": 250,
+      "note": "Morning outdoor run"
+    },
+    {
+      "type": "LOG_WEIGHT",
+      "weightKg": 68.5,
+      "note": "Morning weight check"
     }
   ]
 }
 ```
 Rules for agentic actions:
-- If the user did NOT mention having consumed food or water, DO NOT include any ```json:action``` block.
-- Estimate realistic calories, protein, carbs, fat, and fiber for any mentioned food items based on standard nutritional data.
-- Choose the appropriate mealType (BREAKFAST, LUNCH, DINNER, or OTHERS) based on the context.
+- If the user did NOT mention having consumed food/water, worked out, or weighed themselves, DO NOT include any ```json:action``` block.
+- For food, estimate realistic calories, protein, carbs, fat, and fiber based on standard nutritional data. Choose the appropriate mealType (BREAKFAST, LUNCH, DINNER, or OTHERS).
+- For exercise, set exerciseType (e.g. Running, Walking, Cycling, Gym, Yoga, Swimming, etc.), duration in minutes, and estimated calories burned.
+- For weight, set weightKg as a float value (e.g. 70.5).
 - Support diverse global and local cuisines (e.g. Indonesian dishes such as Nasi Goreng, Gado-Gado, Sate, Rendang, Tempe, Tahu, Soto, as well as Asian, Mediterranean, and Western foods).
 """.trimIndent()
     }

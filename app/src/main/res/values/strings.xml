@@ -279,6 +279,22 @@
     <string name="food_label_fat">Fat (g)</string>
     <string name="food_label_fiber">Fiber (g)</string>
 
+    <!-- AI Nutrition Estimator -->
+    <string name="food_estimate_with_ai">Estimate with Meta AI</string>
+    <string name="food_estimating_ai">Analyzing with Meta AI...</string>
+    <string name="food_auto_fill_ai">Auto-Fill with Meta AI</string>
+    <string name="food_ai_no_match_title">No local match for \"%1$s\"</string>
+    <string name="food_ai_no_match_subtitle">Let Meta AI estimate the calories, serving size, and macronutrients for this meal.</string>
+    <string name="food_estimated_by_meta_ai">✨ Estimated by Meta AI</string>
+    <string name="food_ai_cannot_find_hint">Can\'t find it? Estimate \"%1$s\" with Meta AI</string>
+    <string name="food_meal_ideas_btn">AI Meal Ideas</string>
+    <string name="coach_voice_input_desc">Talk with Meta AI Voice</string>
+    <string name="coach_voice_listening">Listening with Meta MMS...</string>
+    <string name="coach_voice_transcribing">Transcribing with Meta AI...</string>
+    <string name="coach_voice_cancel">Cancel recording</string>
+    <string name="coach_voice_done">Done recording</string>
+    <string name="coach_voice_permission_needed">Microphone permission is required for voice input.</string>
+
     <!-- Camera AI Scan -->
     <string name="scan_food_title">Scan Food</string>
     <string name="scan_meal_subtitle">Meal: %1$s</string>
@@ -333,6 +349,9 @@
     <string name="exercise_type_gym">Gym</string>
     <string name="exercise_type_other">Other</string>
     <string name="exercise_delete_desc">Delete exercise</string>
+    <string name="exercise_met_estimate_chip">⚡ MET Auto-Estimate: %1$d kcal</string>
+    <string name="exercise_met_helper">Scientifically calculated via MET formula (%1$.0f kg weight)</string>
+    <string name="water_dynamic_goal_note">⚡ Dynamic Hydration: includes +%1$d ml for today\'s workout</string>
 
     <!-- Meal Detail -->
     <string name="meal_detail_total_energy">Total Energy</string>

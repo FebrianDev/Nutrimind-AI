@@ -48,7 +48,12 @@ class CoachActionParser @Inject constructor() {
         val fiber: Double? = null,
         val servingSize: Double? = null,
         val servingUnit: String? = null,
-        val amountMl: Int? = null
+        val amountMl: Int? = null,
+        val exerciseType: String? = null,
+        val durationMinute: Int? = null,
+        val caloriesBurned: Int? = null,
+        val weightKg: Float? = null,
+        val note: String? = null
     )
 
     /**
@@ -130,6 +135,25 @@ class CoachActionParser @Inject constructor() {
                 if (amount <= 0) return null
                 CoachAction.LogWater(amountMl = amount)
             }
+            "LOG_EXERCISE" -> {
+                val type = raw.exerciseType?.trim()?.ifBlank { "Workout" } ?: "Workout"
+                val duration = (raw.durationMinute ?: 0).coerceAtLeast(1)
+                val burned = (raw.caloriesBurned ?: 0).coerceAtLeast(0)
+                CoachAction.LogExercise(
+                    exerciseType = type,
+                    durationMinute = duration,
+                    caloriesBurned = burned,
+                    note = raw.note?.trim()
+                )
+            }
+            "LOG_WEIGHT" -> {
+                val weight = raw.weightKg ?: 0f
+                if (weight < 20f || weight > 350f) return null
+                CoachAction.LogWeight(
+                    weightKg = weight,
+                    note = raw.note?.trim()
+                )
+            }
             else -> {
                 Timber.w("CoachActionParser: Unknown action type '${raw.type}'")
                 null
@@ -146,6 +170,8 @@ class CoachActionParser @Inject constructor() {
 
         val foods = actions.filterIsInstance<CoachAction.LogFood>()
         val waters = actions.filterIsInstance<CoachAction.LogWater>()
+        val exercises = actions.filterIsInstance<CoachAction.LogExercise>()
+        val weights = actions.filterIsInstance<CoachAction.LogWeight>()
 
         foods.forEach { food ->
             items.add("${food.foodName} (${food.calories} kcal)")
@@ -154,6 +180,14 @@ class CoachActionParser @Inject constructor() {
         val totalWater = waters.sumOf { it.amountMl }
         if (totalWater > 0) {
             items.add("+$totalWater ml Water")
+        }
+
+        exercises.forEach { ex ->
+            items.add("${ex.exerciseType} ${ex.durationMinute}m (${ex.caloriesBurned} kcal)")
+        }
+
+        weights.forEach { w ->
+            items.add("Weight ${String.format(java.util.Locale.US, "%.1f", w.weightKg)} kg")
         }
 
         return "Logged to Diary: " + items.joinToString(", ")

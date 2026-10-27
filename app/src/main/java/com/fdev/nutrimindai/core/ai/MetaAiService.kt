@@ -17,11 +17,13 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonObject
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import timber.log.Timber
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -301,6 +303,117 @@ class MetaAiService @Inject constructor(
         Result.failure(IllegalStateException(friendlyMessage))
     }
 
+    suspend fun estimateFoodNutrition(foodDescription: String): Result<FoodRecognitionResult> = withContext(Dispatchers.IO) {
+        val trimmed = foodDescription.trim()
+        if (trimmed.isBlank()) {
+            return@withContext Result.failure(IllegalArgumentException("Food description cannot be empty."))
+        }
+
+        if (!isApiKeyConfigured) {
+            return@withContext Result.failure(
+                IllegalStateException("Meta AI API key is not configured. Please set META_AI_API_KEY in local.properties.")
+            )
+        }
+
+        val prompt = """
+            You are an expert nutritionist AI powered by Meta Llama 3.3.
+            The user wants nutritional information for: "$trimmed".
+
+            MULTICULTURAL & MULTI-FOOD ESTIMATION CAPABILITIES:
+            - Accurately estimate typical standard portions, calories, and macronutrients (protein, carbs, fat, fiber) for single items, snacks, beverages, or complex plates.
+            - Expertly identify international and local regional cuisines (e.g., Indonesian dishes like Nasi Goreng, Gado-Gado, Sate, Rendang, Soto, Tempeh, Tahu, Pecel, as well as Asian, Mediterranean, Latin, and Western foods).
+
+            IMPORTANT:
+            If the input text "$trimmed" IS NOT a recognizable food, meal, snack, beverage, or edible ingredient (e.g. random letters, electronic device, furniture, name of a person, vehicle, clothing):
+            Return ONLY this JSON strictly:
+            {
+                "name": "Non-Food Item",
+                "calories": 0,
+                "protein": 0.0,
+                "carbs": 0.0,
+                "fat": 0.0,
+                "fiber": 0.0,
+                "servingSize": 0.0,
+                "servingUnit": "portion",
+                "confidence": 0.0,
+                "description": "No food detected in text"
+            }
+
+            Otherwise, if it IS a valid edible item or meal, return ONLY a valid JSON object matching this schema strictly:
+            {
+                "name": "Proper Food Name in English",
+                "calories": 350,
+                "protein": 22.0,
+                "carbs": 40.0,
+                "fat": 10.0,
+                "fiber": 4.0,
+                "servingSize": 1.0,
+                "servingUnit": "portion",
+                "confidence": 0.95,
+                "description": "Concise breakdown of ingredients and portion estimated by Meta AI"
+            }
+            Do not include markdown codeblocks, notes, or any conversational text outside the JSON.
+        """.trimIndent()
+
+        var lastException: Exception? = null
+
+        for (modelName in candidateTextModels) {
+            try {
+                Timber.d("MetaAiService: estimating food nutrition with model: $modelName")
+                val requestPayload = ChatCompletionRequest(
+                    model = modelName,
+                    messages = listOf(
+                        ChatMessagePayload(
+                            role = "user",
+                            content = JsonPrimitive(prompt)
+                        )
+                    ),
+                    temperature = 0.2,
+                    maxTokens = 1024
+                )
+
+                val responseText = executeChatCompletion(requestPayload)
+                if (responseText.isNotBlank()) {
+                    val cleanJson = cleanJsonText(responseText)
+                    if (cleanJson.isBlank() || !cleanJson.startsWith("{") || !cleanJson.endsWith("}")) {
+                        Timber.w("MetaAiService: Non-JSON response from text model: $responseText")
+                        return@withContext Result.failure(
+                            IllegalArgumentException("Could not estimate nutrition for '$trimmed'. Please try with more specific food terms.")
+                        )
+                    }
+
+                    val parsedResult = json.decodeFromString<FoodRecognitionResult>(cleanJson)
+
+                    // Non-Food guard validation
+                    if (parsedResult.confidence <= 0.0 ||
+                        parsedResult.name.equals("Non-Food Item", ignoreCase = true) ||
+                        (parsedResult.calories == 0 && parsedResult.description.contains("No food", ignoreCase = true))
+                    ) {
+                        return@withContext Result.failure(
+                            IllegalArgumentException("'$trimmed' does not appear to be a recognizable food or beverage.")
+                        )
+                    }
+
+                    return@withContext Result.success(parsedResult)
+                }
+            } catch (e: IllegalArgumentException) {
+                return@withContext Result.failure(e)
+            } catch (e: MetaAiAuthException) {
+                Timber.e("MetaAiService: text auth failure: ${e.message}")
+                return@withContext Result.failure(IllegalStateException(formatErrorMessage(e)))
+            } catch (e: MetaAiRateLimitException) {
+                Timber.w("MetaAiService: text rate limit reached: ${e.message}")
+                return@withContext Result.failure(IllegalStateException(formatErrorMessage(e)))
+            } catch (e: Exception) {
+                Timber.w("MetaAiService: estimation failed with model $modelName: ${e.message}")
+                lastException = e
+            }
+        }
+
+        val friendlyMessage = formatErrorMessage(lastException)
+        Result.failure(IllegalStateException(friendlyMessage))
+    }
+
     private fun executeChatCompletion(requestPayload: ChatCompletionRequest): String {
         val endpointUrl = "${baseUrl}chat/completions"
         val requestJson = json.encodeToString(requestPayload)
@@ -371,6 +484,145 @@ class MetaAiService @Inject constructor(
             }
         }
         return text.trim()
+    }
+
+    suspend fun transcribeAudio(audioFile: File): Result<String> = withContext(Dispatchers.IO) {
+        if (!audioFile.exists() || audioFile.length() == 0L) {
+            return@withContext Result.failure(IllegalArgumentException("Audio recording file is empty or not found"))
+        }
+
+        if (!isApiKeyConfigured) {
+            return@withContext Result.failure(
+                MetaAiAuthException(401, "Meta AI API Key is not configured. Please set META_AI_API_KEY in local.properties.")
+            )
+        }
+
+        val audioBytes = audioFile.readBytes()
+        val audioRequestBody = audioBytes.toRequestBody("audio/wav".toMediaType())
+
+        // 1. Primary: Meta Model API official ASR transcribe endpoint (Muse Voice Transcribe / Meta MMS)
+        // URL: https://api.meta.ai/v1/asr/transcribe
+        val asrUrl = if (baseUrl.contains("api.meta.ai")) {
+            "${baseUrl}asr/transcribe"
+        } else {
+            "${baseUrl}audio/transcriptions"
+        }
+
+        val requestPayload = buildJsonObject {
+            put("model", "muse-voice-transcribe-1.0")
+            put("audioEncoding", "WAV")
+            put("mode", "PUSH_TO_TALK")
+        }.toString()
+
+        val multipartBody = MultipartBody.Builder()
+            .setType(MultipartBody.FORM)
+            .addFormDataPart(
+                "request",
+                null,
+                requestPayload.toRequestBody("application/json; charset=utf-8".toMediaType())
+            )
+            .addFormDataPart(
+                "audio",
+                audioFile.name,
+                audioRequestBody
+            )
+            .build()
+
+        val request = Request.Builder()
+            .url(asrUrl)
+            .header("Authorization", "Bearer $apiKey")
+            .header("Accept", "application/json")
+            .post(multipartBody)
+            .build()
+
+        try {
+            val response = okHttpClient.newCall(request).execute()
+            val responseBody = response.body?.string().orEmpty()
+
+            if (response.isSuccessful && responseBody.isNotBlank()) {
+                val transcript = parseTranscriptionResponse(responseBody)
+                if (transcript.isNotBlank()) {
+                    Timber.d("Meta AI ASR Transcribe success: $transcript")
+                    return@withContext Result.success(transcript)
+                }
+            } else {
+                Timber.w("Primary Meta ASR transcribe endpoint returned ${response.code}: $responseBody")
+            }
+        } catch (e: Exception) {
+            Timber.w(e, "Primary Meta ASR transcribe failed, trying fallback transcription endpoint")
+        }
+
+        // 2. Fallback: Standard Meta / OpenAI / Fireworks audio transcription endpoint
+        // POST ${baseUrl}audio/transcriptions
+        val fallbackUrl = "${baseUrl}audio/transcriptions"
+        val fallbackMultipart = MultipartBody.Builder()
+            .setType(MultipartBody.FORM)
+            .addFormDataPart(
+                "file",
+                audioFile.name,
+                audioRequestBody
+            )
+            .addFormDataPart("model", "muse-voice-transcribe-1.0")
+            .build()
+
+        val fallbackRequest = Request.Builder()
+            .url(fallbackUrl)
+            .header("Authorization", "Bearer $apiKey")
+            .post(fallbackMultipart)
+            .build()
+
+        try {
+            val response = okHttpClient.newCall(fallbackRequest).execute()
+            val responseBody = response.body?.string().orEmpty()
+
+            if (response.isSuccessful && responseBody.isNotBlank()) {
+                val transcript = parseTranscriptionResponse(responseBody)
+                if (transcript.isNotBlank()) {
+                    return@withContext Result.success(transcript)
+                }
+            }
+            Result.failure(IOException("Failed to transcribe voice with Meta AI: $responseBody"))
+        } catch (e: Exception) {
+            Timber.e(e, "Fallback audio transcription failed")
+            Result.failure(e)
+        }
+    }
+
+    private fun parseTranscriptionResponse(responseBody: String): String {
+        val trimmed = responseBody.trim()
+        if (!trimmed.startsWith("{")) {
+            return trimmed
+        }
+        return try {
+            val jsonElement = json.parseToJsonElement(trimmed)
+            if (jsonElement is kotlinx.serialization.json.JsonObject) {
+                val textCandidate = jsonElement["text"]?.let {
+                    if (it is JsonPrimitive) it.content else null
+                } ?: jsonElement["transcription"]?.let {
+                    if (it is JsonPrimitive) it.content else null
+                } ?: jsonElement["transcript"]?.let {
+                    if (it is JsonPrimitive) it.content else null
+                }
+
+                if (!textCandidate.isNullOrBlank()) {
+                    return textCandidate.trim()
+                }
+
+                val results = jsonElement["results"] ?: jsonElement["turns"]
+                if (results != null && results is kotlinx.serialization.json.JsonArray && results.isNotEmpty()) {
+                    val first = results[0]
+                    if (first is kotlinx.serialization.json.JsonObject) {
+                        val turnText = first["transcript"] ?: first["text"] ?: first["content"]
+                        if (turnText is JsonPrimitive) {
+                            return turnText.content.trim()
+                        }
+                    }
+                }
+            }
+            trimmed
+        } catch (e: Exception) {
+            trimmed
+        }
     }
 
     private fun formatErrorMessage(exception: Exception?): String {

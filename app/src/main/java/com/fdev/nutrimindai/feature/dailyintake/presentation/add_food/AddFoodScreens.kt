@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -25,11 +26,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fdev.nutrimindai.R
+import com.fdev.nutrimindai.core.ai.FoodRecognitionResult
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.Food
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.FoodSource
 
@@ -187,7 +190,10 @@ fun SearchFoodScreen(
     val foods by viewModel.foods.collectAsStateWithLifecycle()
     var selectedFoodForConfirmation by remember { mutableStateOf<Food?>(null) }
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val isEstimating by viewModel.isEstimating.collectAsStateWithLifecycle()
+    val estimatedFood by viewModel.estimatedFood.collectAsStateWithLifecycle()
 
+    // 1. Confirmation Dialog for Catalog Food
     if (selectedFoodForConfirmation != null) {
         val food = selectedFoodForConfirmation!!
         AlertDialog(
@@ -232,6 +238,119 @@ fun SearchFoodScreen(
         )
     }
 
+    // 2. Confirmation Dialog for Meta AI Estimated Food
+    if (estimatedFood != null) {
+        val result = estimatedFood!!
+        AlertDialog(
+            onDismissRequest = { viewModel.clearEstimatedFood() },
+            containerColor = MaterialTheme.colorScheme.surface,
+            icon = {
+                Icon(
+                    imageVector = Icons.Rounded.AutoAwesome,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(28.dp)
+                )
+            },
+            title = {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = result.name,
+                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleLarge,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.food_estimated_by_meta_ai),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp)
+                        )
+                    }
+                }
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (result.description.isNotBlank()) {
+                        Text(
+                            text = result.description,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                    }
+                    Text(text = stringResource(R.string.food_serving_label, result.servingSize, result.servingUnit))
+                    Text(
+                        text = stringResource(R.string.food_calories_label, result.calories),
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = stringResource(
+                            R.string.food_macros_label,
+                            result.protein.toInt(),
+                            result.carbs.toInt(),
+                            result.fat.toInt()
+                        )
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        val foodToSave = result
+                        viewModel.clearEstimatedFood()
+                        viewModel.saveFood(
+                            mealTypeString = mealType,
+                            foodName = foodToSave.name,
+                            servingSizeText = foodToSave.servingSize.toString(),
+                            servingUnit = foodToSave.servingUnit,
+                            caloriesText = foodToSave.calories.toString(),
+                            proteinText = foodToSave.protein.toString(),
+                            carbsText = foodToSave.carbs.toString(),
+                            fatText = foodToSave.fat.toString(),
+                            fiberText = foodToSave.fiber.toString(),
+                            foodSource = FoodSource.SEARCH,
+                            onSuccess = onNavigateBack
+                        )
+                    }
+                ) {
+                    Text(stringResource(R.string.food_add_food_title))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.clearEstimatedFood() }) {
+                    Text(stringResource(R.string.dialog_cancel))
+                }
+            }
+        )
+    }
+
+    // 3. Error Alert Dialog
+    if (uiState is AddFoodUiState.Error) {
+        val errorMsg = (uiState as AddFoodUiState.Error).message
+        AlertDialog(
+            onDismissRequest = { viewModel.resetState() },
+            containerColor = MaterialTheme.colorScheme.surface,
+            icon = {
+                Icon(Icons.Default.Info, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+            },
+            title = { Text(text = "Estimation Notice", fontWeight = FontWeight.Bold) },
+            text = { Text(text = errorMsg) },
+            confirmButton = {
+                Button(onClick = { viewModel.resetState() }) {
+                    Text(stringResource(R.string.food_dialog_ok))
+                }
+            }
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -255,16 +374,60 @@ fun SearchFoodScreen(
                 onValueChange = { viewModel.onSearchQueryChange(it) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
                 placeholder = { Text(stringResource(R.string.food_search_placeholder)) },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 shape = RoundedCornerShape(16.dp),
                 singleLine = true
             )
 
-            if (uiState is AddFoodUiState.Loading) {
-                Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+            // Optional shortcut to estimate via Meta AI even if local items exist
+            if (searchQuery.isNotBlank() && foods.isNotEmpty()) {
+                Surface(
+                    onClick = { viewModel.estimateNutrition(searchQuery) },
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 4.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.AutoAwesome,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(R.string.food_ai_cannot_find_hint, searchQuery),
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            }
+
+            if (isEstimating) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(32.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = stringResource(R.string.food_estimating_ai),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
 
@@ -273,6 +436,73 @@ fun SearchFoodScreen(
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                // Empty state card with Meta AI action
+                if (foods.isEmpty() && searchQuery.isNotBlank() && !isEstimating) {
+                    item {
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 12.dp),
+                            shape = RoundedCornerShape(20.dp),
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f))
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(20.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(56.dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.primaryContainer),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.AutoAwesome,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(28.dp)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Text(
+                                    text = stringResource(R.string.food_ai_no_match_title, searchQuery),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    textAlign = TextAlign.Center
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(
+                                    text = stringResource(R.string.food_ai_no_match_subtitle),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    textAlign = TextAlign.Center
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Button(
+                                    onClick = { viewModel.estimateNutrition(searchQuery) },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(48.dp),
+                                    shape = RoundedCornerShape(14.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.AutoAwesome,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = stringResource(R.string.food_estimate_with_ai),
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
                 items(foods, key = { it.id }) { food ->
                     Card(
                         modifier = Modifier
@@ -346,6 +576,7 @@ fun ManualEntryScreen(
     var fiber by remember { mutableStateOf("") }
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val isEstimating by viewModel.isEstimating.collectAsStateWithLifecycle()
 
     LaunchedEffect(Unit) {
         viewModel.resetState()
@@ -388,7 +619,7 @@ fun ManualEntryScreen(
                         .padding(16.dp)
                         .height(52.dp),
                     shape = RoundedCornerShape(16.dp),
-                    enabled = foodName.isNotBlank() && calories.isNotBlank() && uiState !is AddFoodUiState.Loading
+                    enabled = foodName.isNotBlank() && calories.isNotBlank() && uiState !is AddFoodUiState.Loading && !isEstimating
                 ) {
                     if (uiState is AddFoodUiState.Loading) {
                         CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
@@ -420,6 +651,20 @@ fun ManualEntryScreen(
                 }
             }
 
+            if (uiState is AddFoodUiState.Error) {
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = (uiState as AddFoodUiState.Error).message,
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        modifier = Modifier.padding(16.dp),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+
             OutlinedTextField(
                 value = foodName,
                 onValueChange = { foodName = it },
@@ -428,6 +673,52 @@ fun ManualEntryScreen(
                 singleLine = true,
                 shape = RoundedCornerShape(12.dp)
             )
+
+            // One-tap Auto-Fill Nutrition with Meta AI
+            Button(
+                onClick = {
+                    viewModel.estimateNutrition(foodName) { recognized ->
+                        foodName = recognized.name
+                        servingSize = recognized.servingSize.toString()
+                        servingUnit = recognized.servingUnit
+                        calories = recognized.calories.toString()
+                        protein = recognized.protein.toString()
+                        carbs = recognized.carbs.toString()
+                        fat = recognized.fat.toString()
+                        fiber = recognized.fiber.toString()
+                    }
+                },
+                enabled = foodName.isNotBlank() && !isEstimating,
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.primary
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(44.dp)
+            ) {
+                if (isEstimating) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(stringResource(R.string.food_estimating_ai))
+                } else {
+                    Icon(
+                        imageVector = Icons.Rounded.AutoAwesome,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(R.string.food_auto_fill_ai),
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(

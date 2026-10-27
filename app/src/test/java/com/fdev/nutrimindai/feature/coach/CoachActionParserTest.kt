@@ -149,4 +149,49 @@ class CoachActionParserTest {
         assertEquals(MealType.OTHERS, food.mealType)
         assertEquals(120, food.calories)
     }
+
+    @Test
+    fun `parse extracts exercise and weight actions correctly`() {
+        val input = """
+            Awesome workout and great job tracking your body weight today!
+            
+            ```json:action
+            {
+              "actions": [
+                {
+                  "type": "LOG_EXERCISE",
+                  "exerciseType": "Running",
+                  "durationMinute": 35,
+                  "caloriesBurned": 280,
+                  "note": "Morning interval run"
+                },
+                {
+                  "type": "LOG_WEIGHT",
+                  "weightKg": 68.4,
+                  "note": "Fasted morning weight"
+                }
+              ]
+            }
+            ```
+        """.trimIndent()
+
+        val (cleanText, actions) = parser.parse(input)
+        assertEquals("Awesome workout and great job tracking your body weight today!", cleanText)
+        assertEquals(2, actions.size)
+
+        val exercise = actions[0] as CoachAction.LogExercise
+        assertEquals("Running", exercise.exerciseType)
+        assertEquals(35, exercise.durationMinute)
+        assertEquals(280, exercise.caloriesBurned)
+        assertEquals("Morning interval run", exercise.note)
+
+        val weight = actions[1] as CoachAction.LogWeight
+        assertEquals(68.4f, weight.weightKg, 0.01f)
+        assertEquals("Fasted morning weight", weight.note)
+
+        val summary = parser.formatActionSummary(actions)
+        assertNotNull(summary)
+        assertTrue(summary!!.contains("Running 35m (280 kcal)"))
+        assertTrue(summary.contains("Weight 68.4 kg"))
+    }
 }
