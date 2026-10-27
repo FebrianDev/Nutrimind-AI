@@ -2,13 +2,13 @@ package com.fdev.nutrimindai.feature.profile.presentation.screen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.fdev.nutrimindai.feature.onboarding.data.entity.ProfileEntity
-import com.fdev.nutrimindai.feature.onboarding.data.repository.ProfileRepository
-import com.fdev.nutrimindai.feature.onboarding.util.ActivityLevel
-import com.fdev.nutrimindai.feature.onboarding.util.Gender
-import com.fdev.nutrimindai.feature.onboarding.util.Goal
-import com.fdev.nutrimindai.feature.onboarding.util.NutritionCalculator
-import com.fdev.nutrimindai.feature.onboarding.util.NutritionPlanResult
+import com.fdev.nutrimindai.feature.profile.data.local.entity.ProfileEntity
+import com.fdev.nutrimindai.feature.profile.domain.repository.ProfileRepository
+import com.fdev.nutrimindai.core.model.ActivityLevel
+import com.fdev.nutrimindai.core.model.Gender
+import com.fdev.nutrimindai.core.model.Goal
+import com.fdev.nutrimindai.core.util.NutritionCalculator
+import com.fdev.nutrimindai.core.util.NutritionPlanResult
 import com.fdev.nutrimindai.feature.progress.domain.repository.WeightLogRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow

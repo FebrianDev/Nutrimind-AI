@@ -10,7 +10,7 @@ import com.fdev.nutrimindai.feature.dailyintake.domain.repository.DailyLogReposi
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.ExerciseRepository
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.IntakeRepository
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.WaterRepository
-import com.fdev.nutrimindai.feature.onboarding.data.repository.ProfileRepository
+import com.fdev.nutrimindai.feature.profile.domain.repository.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -120,7 +120,7 @@ class ActivityDetailViewModel @Inject constructor(
                     val targetWater = com.fdev.nutrimindai.feature.dailyintake.domain.model.NutritionSummary.DEFAULT_GOAL_WATER
                     val targetExercise = profile?.dailyExerciseMinutes ?: 30
 
-                    val score = com.fdev.nutrimindai.feature.onboarding.util.NutritionCalculator.calculateHealthScore(
+                    val score = com.fdev.nutrimindai.core.util.NutritionCalculator.calculateHealthScore(
                         cals = totalCalories,
                         targetCal = profile?.dailyCalories ?: targetCal,
                         protein = totalProtein,

@@ -15,6 +15,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForwardIos
+import androidx.compose.material.icons.automirrored.filled.DirectionsRun
 import androidx.compose.material.icons.automirrored.filled.TrendingDown
 import androidx.compose.material.icons.automirrored.filled.TrendingFlat
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
@@ -35,9 +36,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fdev.nutrimindai.core.designsystem.*
-import com.fdev.nutrimindai.feature.onboarding.util.ActivityLevel
-import com.fdev.nutrimindai.feature.onboarding.util.Gender
-import com.fdev.nutrimindai.feature.onboarding.util.Goal
+import com.fdev.nutrimindai.core.model.ActivityLevel
+import com.fdev.nutrimindai.core.model.Gender
+import com.fdev.nutrimindai.core.model.Goal
 import kotlinx.coroutines.flow.collectLatest
 import java.util.Locale
 
@@ -240,7 +241,7 @@ fun GoalSettingsScreen(
                                         icon = Icons.Default.TrackChanges,
                                         iconTint = MaterialTheme.colorScheme.primary,
                                         label = stringResource(R.string.goal_settings_target),
-                                        value = "${uiState.targetWeightText} kg"
+                                        value = "${uiState.targetWeightText} " + stringResource(R.string.unit_kg)
                                     )
                                     VerticalDivider(modifier = Modifier.height(32.dp), color = MaterialTheme.colorScheme.outlineVariant)
                                     RowMetric(
@@ -473,7 +474,7 @@ fun GoalSettingsScreen(
                                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
 
                                 AboutRow(
-                                    icon = Icons.Default.DirectionsRun,
+                                    icon = Icons.AutoMirrored.Filled.DirectionsRun,
                                     title = stringResource(R.string.goal_settings_activity_level),
                                     subtitle = "${getActivityLevelTitle(uiState.activityLevel)} • ${getActivityLevelDescription(uiState.activityLevel)}"
                                 )
@@ -915,7 +916,7 @@ fun GoalSettingsScreen(
                                         style = MaterialTheme.typography.labelSmall.copy(color = MaterialTheme.colorScheme.onPrimaryContainer)
                                     )
                                     Text(
-                                        text = "${previewPlan.dailyCalories} kcal",
+                                        text = stringResource(R.string.home_intake_kcal_val, previewPlan.dailyCalories),
                                         style = MaterialTheme.typography.titleMedium.copy(
                                             fontWeight = FontWeight.Bold,
                                             color = MaterialTheme.colorScheme.primary

@@ -32,8 +32,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fdev.nutrimindai.core.designsystem.component.UserAvatar
-import com.fdev.nutrimindai.feature.onboarding.data.entity.ProfileEntity
-import com.fdev.nutrimindai.feature.onboarding.util.Goal
+import com.fdev.nutrimindai.feature.profile.data.local.entity.ProfileEntity
+import com.fdev.nutrimindai.core.model.Goal
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest

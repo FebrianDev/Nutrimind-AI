@@ -3,9 +3,8 @@ package com.fdev.nutrimindai.core.database
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import com.fdev.nutrimindai.feature.onboarding.data.dao.ProfileDao
-import com.fdev.nutrimindai.feature.onboarding.data.entity.ProfileEntity
-import com.fdev.nutrimindai.feature.onboarding.data.util.Converters
+import com.fdev.nutrimindai.feature.profile.data.local.dao.ProfileDao
+import com.fdev.nutrimindai.feature.profile.data.local.entity.ProfileEntity
 
 import com.fdev.nutrimindai.feature.dailyintake.data.local.dao.DailyLogDao
 import com.fdev.nutrimindai.feature.dailyintake.data.local.dao.ExerciseDao

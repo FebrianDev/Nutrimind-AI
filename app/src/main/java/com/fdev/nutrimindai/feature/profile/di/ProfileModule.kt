@@ -1,9 +1,9 @@
-package com.fdev.nutrimindai.feature.onboarding.di
+package com.fdev.nutrimindai.feature.profile.di
 
 import com.fdev.nutrimindai.core.database.NutriMindDatabase
-import com.fdev.nutrimindai.feature.onboarding.data.dao.ProfileDao
-import com.fdev.nutrimindai.feature.onboarding.data.repository.ProfileRepository
-import com.fdev.nutrimindai.feature.onboarding.data.repository.ProfileRepositoryImpl
+import com.fdev.nutrimindai.feature.profile.data.local.dao.ProfileDao
+import com.fdev.nutrimindai.feature.profile.data.repository.ProfileRepositoryImpl
+import com.fdev.nutrimindai.feature.profile.domain.repository.ProfileRepository
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -12,11 +12,11 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
 /**
- * Hilt Dependency Injection module for Onboarding data layer dependencies.
+ * Hilt Dependency Injection module for Profile feature dependencies.
  */
 @Module
 @InstallIn(SingletonComponent::class)
-abstract class OnboardingDataModule {
+abstract class ProfileModule {
 
     @Binds
     @Singleton

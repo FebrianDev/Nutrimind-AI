@@ -1,8 +1,8 @@
 package com.fdev.nutrimindai.feature.onboarding.presentation.state
 
-import com.fdev.nutrimindai.feature.onboarding.util.ActivityLevel
-import com.fdev.nutrimindai.feature.onboarding.util.Gender
-import com.fdev.nutrimindai.feature.onboarding.util.Goal
+import com.fdev.nutrimindai.core.model.ActivityLevel
+import com.fdev.nutrimindai.core.model.Gender
+import com.fdev.nutrimindai.core.model.Goal
 
 /**
  * Immutable UI State representing the complete state of the onboarding wizard flow.

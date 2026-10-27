@@ -7,8 +7,8 @@ import com.fdev.nutrimindai.feature.dailyintake.domain.repository.DailyLogReposi
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.ExerciseRepository
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.IntakeRepository
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.WaterRepository
-import com.fdev.nutrimindai.feature.onboarding.data.repository.ProfileRepository
-import com.fdev.nutrimindai.feature.onboarding.util.Goal
+import com.fdev.nutrimindai.feature.profile.domain.repository.ProfileRepository
+import com.fdev.nutrimindai.core.model.Goal
 import com.fdev.nutrimindai.feature.progress.domain.repository.WeightLogRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

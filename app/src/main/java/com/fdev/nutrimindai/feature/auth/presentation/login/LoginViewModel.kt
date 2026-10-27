@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fdev.nutrimindai.core.datastore.PreferenceManager
 import com.fdev.nutrimindai.feature.auth.domain.repository.AuthRepository
-import com.fdev.nutrimindai.feature.onboarding.data.repository.ProfileRepository
+import com.fdev.nutrimindai.feature.profile.domain.repository.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -48,11 +48,11 @@ class LoginViewModel @Inject constructor(
         val currentPassword = _password.value
 
         if (currentEmail.isBlank()) {
-            _uiState.value = LoginUiState.Error("Silakan masukkan email Anda.")
+            _uiState.value = LoginUiState.Error("Please enter your email.")
             return
         }
         if (currentPassword.isBlank()) {
-            _uiState.value = LoginUiState.Error("Silakan masukkan password Anda.")
+            _uiState.value = LoginUiState.Error("Please enter your password.")
             return
         }
 
@@ -80,7 +80,7 @@ class LoginViewModel @Inject constructor(
                     }
                 },
                 onFailure = { error ->
-                    _uiState.value = LoginUiState.Error(error.message ?: "Login gagal. Silakan coba lagi.")
+                    _uiState.value = LoginUiState.Error(error.message ?: "Login failed. Please try again.")
                 }
             )
         }
@@ -96,7 +96,7 @@ class LoginViewModel @Inject constructor(
                     onNavigateToOnboarding()
                 },
                 onFailure = { error ->
-                    _uiState.value = LoginUiState.Error(error.message ?: "Login tamu gagal. Periksa koneksi internet.")
+                    _uiState.value = LoginUiState.Error(error.message ?: "Guest login failed. Please check your internet connection.")
                 }
             )
         }
@@ -105,17 +105,17 @@ class LoginViewModel @Inject constructor(
     fun resetPassword(email: String, onResult: (Boolean, String) -> Unit) {
         val targetEmail = email.trim()
         if (targetEmail.isBlank()) {
-            onResult(false, "Masukkan email Anda untuk reset password.")
+            onResult(false, "Please enter your email to reset password.")
             return
         }
         viewModelScope.launch {
             val result = authRepository.sendPasswordReset(targetEmail)
             result.fold(
                 onSuccess = {
-                    onResult(true, "Tautan reset password telah dikirim ke $targetEmail.")
+                    onResult(true, "Password reset link has been sent to $targetEmail.")
                 },
                 onFailure = { err ->
-                    onResult(false, err.message ?: "Gagal mengirim email reset password.")
+                    onResult(false, err.message ?: "Failed to send password reset email.")
                 }
             )
         }

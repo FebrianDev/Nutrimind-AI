@@ -1,7 +1,9 @@
-package com.fdev.nutrimindai.feature.dailyintake.presentation.home
+package com.fdev.nutrimindai.feature.home.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.fdev.nutrimindai.core.ai.AiProvider
+import com.fdev.nutrimindai.core.ai.AiRepository
 import com.fdev.nutrimindai.feature.dailyintake.data.seeder.DemoDataSeeder
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.DailyLogStatus
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.MealType
@@ -11,21 +13,20 @@ import com.fdev.nutrimindai.feature.dailyintake.domain.repository.DailyLogReposi
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.ExerciseRepository
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.IntakeRepository
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.WaterRepository
-import com.fdev.nutrimindai.feature.onboarding.data.repository.ProfileRepository
-import com.fdev.nutrimindai.feature.onboarding.util.Goal
+import com.fdev.nutrimindai.feature.profile.domain.repository.ProfileRepository
+import com.fdev.nutrimindai.core.model.Goal
+import com.fdev.nutrimindai.core.util.NutritionCalculator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
-
-import com.fdev.nutrimindai.core.ai.AiRepository
-import timber.log.Timber
 
 sealed class HomeUiState {
     data object Loading : HomeUiState()
@@ -48,7 +49,7 @@ class HomeViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
-    val activeProvider: StateFlow<com.fdev.nutrimindai.core.ai.AiProvider> = aiRepository.activeProviderFlow
+    val activeProvider: StateFlow<AiProvider> = aiRepository.activeProviderFlow
 
     private val _coachingTip = MutableStateFlow<String>("")
     val coachingTip: StateFlow<String> = _coachingTip.asStateFlow()
@@ -197,7 +198,7 @@ class HomeViewModel @Inject constructor(
                 val totalExerciseMinutes = currentSummary?.exerciseList?.sumOf { it.durationMinute } ?: 0
                 val targetExercise = 30
 
-                val score = com.fdev.nutrimindai.feature.onboarding.util.NutritionCalculator.calculateHealthScore(
+                val score = NutritionCalculator.calculateHealthScore(
                     cals = totalCalories,
                     targetCal = targetCal,
                     protein = totalProtein,

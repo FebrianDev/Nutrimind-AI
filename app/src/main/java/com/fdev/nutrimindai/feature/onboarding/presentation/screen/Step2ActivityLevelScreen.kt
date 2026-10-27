@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.sp
 import com.fdev.nutrimindai.R
 import com.fdev.nutrimindai.feature.onboarding.presentation.component.SelectionCard
 import com.fdev.nutrimindai.feature.onboarding.presentation.state.OnboardingUiState
-import com.fdev.nutrimindai.feature.onboarding.util.ActivityLevel
+import com.fdev.nutrimindai.core.model.ActivityLevel
 
 /**
  * Step 2 Onboarding Screen: Activity Level selection.

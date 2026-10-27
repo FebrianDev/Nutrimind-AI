@@ -25,7 +25,7 @@ import com.fdev.nutrimindai.R
 import com.fdev.nutrimindai.feature.onboarding.presentation.component.AppTextField
 import com.fdev.nutrimindai.feature.onboarding.presentation.component.GenderSelector
 import com.fdev.nutrimindai.feature.onboarding.presentation.state.OnboardingUiState
-import com.fdev.nutrimindai.feature.onboarding.util.Gender
+import com.fdev.nutrimindai.core.model.Gender
 
 /**
  * Step 1 Onboarding Screen: Collects name, age, gender, height, and current weight.

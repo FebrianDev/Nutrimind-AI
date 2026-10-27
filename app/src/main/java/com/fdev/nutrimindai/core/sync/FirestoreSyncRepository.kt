@@ -5,7 +5,7 @@ import com.fdev.nutrimindai.feature.dailyintake.data.local.dao.ExerciseDao
 import com.fdev.nutrimindai.feature.dailyintake.data.local.dao.FoodDao
 import com.fdev.nutrimindai.feature.dailyintake.data.local.dao.IntakeDao
 import com.fdev.nutrimindai.feature.dailyintake.data.local.dao.WaterDao
-import com.fdev.nutrimindai.feature.onboarding.data.dao.ProfileDao
+import com.fdev.nutrimindai.feature.profile.data.local.dao.ProfileDao
 import com.fdev.nutrimindai.feature.progress.data.local.dao.WeightLogDao
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
@@ -13,10 +13,10 @@ import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
-import com.fdev.nutrimindai.feature.onboarding.data.entity.ProfileEntity
-import com.fdev.nutrimindai.feature.onboarding.util.Gender
-import com.fdev.nutrimindai.feature.onboarding.util.ActivityLevel
-import com.fdev.nutrimindai.feature.onboarding.util.Goal
+import com.fdev.nutrimindai.feature.profile.data.local.entity.ProfileEntity
+import com.fdev.nutrimindai.core.model.Gender
+import com.fdev.nutrimindai.core.model.ActivityLevel
+import com.fdev.nutrimindai.core.model.Goal
 import com.fdev.nutrimindai.feature.dailyintake.data.local.entity.DailyLogEntity
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.DailyLogStatus
 import com.fdev.nutrimindai.feature.dailyintake.data.local.entity.IntakeEntity

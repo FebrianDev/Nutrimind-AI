@@ -28,8 +28,6 @@ import com.fdev.nutrimindai.feature.dailyintake.domain.model.DailyLogStatus
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.DailyMissionItem
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.NutritionSummary
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.TodaySummary
-import com.fdev.nutrimindai.feature.dailyintake.presentation.home.HomeUiState
-import com.fdev.nutrimindai.feature.dailyintake.presentation.home.HomeViewModel
 import com.fdev.nutrimindai.core.ai.AiProvider
 import com.fdev.nutrimindai.feature.home.presentation.components.CoachInsightCard
 import com.fdev.nutrimindai.feature.home.presentation.components.CompleteConfirmationDialog
@@ -41,7 +39,7 @@ import com.fdev.nutrimindai.feature.home.presentation.components.MissionSection
 import com.fdev.nutrimindai.feature.home.presentation.components.NutritionData
 import com.fdev.nutrimindai.feature.home.presentation.components.NutritionSection
 import com.fdev.nutrimindai.feature.home.presentation.components.ReopenConfirmationDialog
-import com.fdev.nutrimindai.feature.onboarding.util.Goal
+import com.fdev.nutrimindai.core.model.Goal
 import java.util.Locale
 
 @Composable

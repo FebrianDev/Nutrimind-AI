@@ -5,7 +5,7 @@ import com.fdev.nutrimindai.feature.dailyintake.domain.model.Intake
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.MealType
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.NutritionSummary
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.TodaySummary
-import com.fdev.nutrimindai.feature.onboarding.util.Goal
+import com.fdev.nutrimindai.core.model.Goal
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test

@@ -1,5 +1,8 @@
-package com.fdev.nutrimindai.feature.onboarding.util
+package com.fdev.nutrimindai.core.util
 
+import com.fdev.nutrimindai.core.model.ActivityLevel
+import com.fdev.nutrimindai.core.model.Gender
+import com.fdev.nutrimindai.core.model.Goal
 import kotlin.math.abs
 import kotlin.math.roundToInt
 

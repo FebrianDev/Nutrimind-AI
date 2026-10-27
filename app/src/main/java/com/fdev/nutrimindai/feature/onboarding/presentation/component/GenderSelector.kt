@@ -34,7 +34,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fdev.nutrimindai.R
-import com.fdev.nutrimindai.feature.onboarding.util.Gender
+import com.fdev.nutrimindai.core.model.Gender
 
 /**
  * Custom 3-way gender selector component featuring icon cards.

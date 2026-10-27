@@ -36,7 +36,7 @@ import com.fdev.nutrimindai.core.designsystem.NutritionExercise
 import com.fdev.nutrimindai.core.designsystem.NutritionProtein
 import com.fdev.nutrimindai.core.designsystem.NutritionWater
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.DailyMissionItem
-import com.fdev.nutrimindai.feature.onboarding.util.Goal
+import com.fdev.nutrimindai.core.model.Goal
 
 @Composable
 fun MissionSection(

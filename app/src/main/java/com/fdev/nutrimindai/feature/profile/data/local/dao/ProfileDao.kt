@@ -1,11 +1,11 @@
-package com.fdev.nutrimindai.feature.onboarding.data.dao
+package com.fdev.nutrimindai.feature.profile.data.local.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
-import com.fdev.nutrimindai.feature.onboarding.data.entity.ProfileEntity
+import com.fdev.nutrimindai.feature.profile.data.local.entity.ProfileEntity
 import kotlinx.coroutines.flow.Flow
 
 /**

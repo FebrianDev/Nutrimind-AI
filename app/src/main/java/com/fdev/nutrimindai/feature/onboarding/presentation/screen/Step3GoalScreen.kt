@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.sp
 import com.fdev.nutrimindai.R
 import com.fdev.nutrimindai.feature.onboarding.presentation.component.SelectionCard
 import com.fdev.nutrimindai.feature.onboarding.presentation.state.OnboardingUiState
-import com.fdev.nutrimindai.feature.onboarding.util.Goal
+import com.fdev.nutrimindai.core.model.Goal
 
 /**
  * Step 3 Onboarding Screen: Primary Goal Selection (Lose Weight, Maintain Weight, Gain Weight).

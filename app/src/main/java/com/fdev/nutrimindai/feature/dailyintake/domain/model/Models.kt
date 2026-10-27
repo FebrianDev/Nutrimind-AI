@@ -1,5 +1,5 @@
 package com.fdev.nutrimindai.feature.dailyintake.domain.model
-import com.fdev.nutrimindai.feature.onboarding.util.Goal
+import com.fdev.nutrimindai.core.model.Goal
 
 data class DailyLog(
     val id: Long,

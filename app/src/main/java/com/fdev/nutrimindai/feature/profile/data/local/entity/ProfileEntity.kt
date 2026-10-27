@@ -1,10 +1,10 @@
-package com.fdev.nutrimindai.feature.onboarding.data.entity
+package com.fdev.nutrimindai.feature.profile.data.local.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.fdev.nutrimindai.feature.onboarding.util.ActivityLevel
-import com.fdev.nutrimindai.feature.onboarding.util.Gender
-import com.fdev.nutrimindai.feature.onboarding.util.Goal
+import com.fdev.nutrimindai.core.model.ActivityLevel
+import com.fdev.nutrimindai.core.model.Gender
+import com.fdev.nutrimindai.core.model.Goal
 
 /**
  * Room Entity representing the user's profile and baseline daily nutritional targets.

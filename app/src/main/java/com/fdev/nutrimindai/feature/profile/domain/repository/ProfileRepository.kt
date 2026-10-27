@@ -1,6 +1,6 @@
-package com.fdev.nutrimindai.feature.onboarding.data.repository
+package com.fdev.nutrimindai.feature.profile.domain.repository
 
-import com.fdev.nutrimindai.feature.onboarding.data.entity.ProfileEntity
+import com.fdev.nutrimindai.feature.profile.data.local.entity.ProfileEntity
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -28,6 +28,7 @@ interface ProfileRepository {
      * @return A [Flow] emitting the latest [ProfileEntity], or null if uninitialized.
      */
     fun getProfile(): Flow<ProfileEntity?>
+
     suspend fun getProfileDirect(): ProfileEntity?
 
     /**

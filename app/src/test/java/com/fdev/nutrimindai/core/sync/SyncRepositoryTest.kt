@@ -11,8 +11,8 @@ import com.fdev.nutrimindai.feature.dailyintake.data.local.entity.ExerciseEntity
 import com.fdev.nutrimindai.feature.dailyintake.data.local.entity.FoodEntity
 import com.fdev.nutrimindai.feature.dailyintake.data.local.entity.IntakeEntity
 import com.fdev.nutrimindai.feature.dailyintake.data.local.entity.WaterEntity
-import com.fdev.nutrimindai.feature.onboarding.data.dao.ProfileDao
-import com.fdev.nutrimindai.feature.onboarding.data.entity.ProfileEntity
+import com.fdev.nutrimindai.feature.profile.data.local.dao.ProfileDao
+import com.fdev.nutrimindai.feature.profile.data.local.entity.ProfileEntity
 import com.fdev.nutrimindai.feature.progress.data.local.dao.WeightLogDao
 import com.fdev.nutrimindai.feature.progress.data.local.entity.WeightLogEntity
 import kotlinx.coroutines.flow.Flow

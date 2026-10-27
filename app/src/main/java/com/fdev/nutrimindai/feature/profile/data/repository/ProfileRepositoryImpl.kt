@@ -1,7 +1,8 @@
-package com.fdev.nutrimindai.feature.onboarding.data.repository
+package com.fdev.nutrimindai.feature.profile.data.repository
 
-import com.fdev.nutrimindai.feature.onboarding.data.dao.ProfileDao
-import com.fdev.nutrimindai.feature.onboarding.data.entity.ProfileEntity
+import com.fdev.nutrimindai.feature.profile.data.local.dao.ProfileDao
+import com.fdev.nutrimindai.feature.profile.data.local.entity.ProfileEntity
+import com.fdev.nutrimindai.feature.profile.domain.repository.ProfileRepository
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 import javax.inject.Singleton

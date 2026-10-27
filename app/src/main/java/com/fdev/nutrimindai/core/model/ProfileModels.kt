@@ -1,4 +1,4 @@
-package com.fdev.nutrimindai.feature.onboarding.util
+package com.fdev.nutrimindai.core.model
 
 /**
  * User gender representation for nutritional and BMR calculations.

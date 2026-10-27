@@ -4,8 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fdev.nutrimindai.core.database.NutriMindDatabase
 import com.fdev.nutrimindai.core.datastore.PreferenceManager
-import com.fdev.nutrimindai.feature.onboarding.data.entity.ProfileEntity
-import com.fdev.nutrimindai.feature.onboarding.data.repository.ProfileRepository
+import com.fdev.nutrimindai.feature.profile.data.local.entity.ProfileEntity
+import com.fdev.nutrimindai.feature.profile.domain.repository.ProfileRepository
 import com.fdev.nutrimindai.core.sync.FirestoreSyncRepository
 import com.fdev.nutrimindai.core.sync.SyncManager
 import com.fdev.nutrimindai.feature.progress.domain.repository.WeightLogRepository
@@ -194,7 +194,7 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val currentProfile = (uiState.value as? ProfileUiState.Success)?.profile ?: return@launch
-                val plan = com.fdev.nutrimindai.feature.onboarding.util.NutritionCalculator.calculatePlan(
+                val plan = com.fdev.nutrimindai.core.util.NutritionCalculator.calculatePlan(
                     age = age,
                     gender = currentProfile.gender,
                     height = height,

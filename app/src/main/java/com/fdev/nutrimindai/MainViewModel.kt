@@ -6,7 +6,7 @@ import com.fdev.nutrimindai.core.datastore.PreferenceManager
 import com.fdev.nutrimindai.core.navigation.NavigationDestination
 import com.fdev.nutrimindai.core.sync.FirestoreSyncRepository
 import com.fdev.nutrimindai.feature.auth.domain.repository.AuthRepository
-import com.fdev.nutrimindai.feature.onboarding.data.repository.ProfileRepository
+import com.fdev.nutrimindai.feature.profile.domain.repository.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
