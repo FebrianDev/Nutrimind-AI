@@ -1,7 +1,10 @@
 package com.fdev.nutrimindai.feature.profile.presentation.screen
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.fdev.nutrimindai.R
+import dagger.hilt.android.qualifiers.ApplicationContext
 import com.fdev.nutrimindai.core.database.NutriMindDatabase
 import com.fdev.nutrimindai.core.datastore.PreferenceManager
 import com.fdev.nutrimindai.core.datastore.AppThemeMode
@@ -25,6 +28,13 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.ImageDecoder
+import android.graphics.Matrix
+import android.os.Build
+import java.io.File
+import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -63,6 +73,7 @@ sealed interface ProfileUiState {
  */
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
+    @param:ApplicationContext private val context: Context,
     private val profileRepository: ProfileRepository,
     private val preferenceManager: PreferenceManager,
     private val database: NutriMindDatabase,
@@ -298,12 +309,12 @@ class ProfileViewModel @Inject constructor(
                 }
                 refreshUnsyncedCount()
                 _syncState.value = _syncState.value.copy(
-                    lastSyncMessage = "Activity logs reset successfully."
+                    lastSyncMessage = context.getString(R.string.profile_reset_data_success)
                 )
             } catch (e: Exception) {
                 Timber.e(e, "Error clearing logging data")
                 _syncState.value = _syncState.value.copy(
-                    lastSyncMessage = "Failed to reset activity logs."
+                    lastSyncMessage = context.getString(R.string.profile_reset_data_error)
                 )
             }
         }
@@ -313,24 +324,30 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             _isUploadingPhoto.value = true
             try {
-                // 1. Save local copy to app files directory
-                val localFile = java.io.File(context.filesDir, "profile_photo.jpg")
-                withContext(Dispatchers.IO) {
-                    context.contentResolver.openInputStream(uri)?.use { input ->
-                        java.io.FileOutputStream(localFile).use { output ->
-                            input.copyTo(output)
-                        }
-                    }
-                }
+                // 1. Process and save local copy to app files directory
+                val localFile = withContext(Dispatchers.IO) {
+                    saveProfilePhotoLocally(context, uri)
+                } ?: throw IllegalStateException("Unable to process or save profile photo locally")
+
                 val localPhotoUrl = "file://${localFile.absolutePath}"
 
                 // 2. Update local Room DB immediately so UI responds instantly
                 val currentProfile = profileRepository.getProfileDirect()
                 if (currentProfile != null) {
-                    profileRepository.updateProfile(currentProfile.copy(photoUrl = localPhotoUrl, isSync = false, updatedAt = System.currentTimeMillis()))
+                    profileRepository.updateProfile(
+                        currentProfile.copy(
+                            photoUrl = localPhotoUrl,
+                            isSync = false,
+                            updatedAt = System.currentTimeMillis()
+                        )
+                    )
                 }
 
-                // 3. Try uploading to Firebase Storage & Firestore
+                _syncState.value = _syncState.value.copy(
+                    lastSyncMessage = context.getString(R.string.profile_photo_updated_success)
+                )
+
+                // 3. Try uploading to Firebase Storage & Firestore in background
                 val user = authRepository.getCurrentUser()
                 val userId = authRepository.getCurrentUserId() ?: "local_user"
                 if (localFile.exists()) {
@@ -363,7 +380,13 @@ class ProfileViewModel @Inject constructor(
                         // Update Room DB with remote download URL
                         val latestProfile = profileRepository.getProfileDirect()
                         if (latestProfile != null) {
-                            profileRepository.updateProfile(latestProfile.copy(photoUrl = downloadUrl, isSync = true, updatedAt = System.currentTimeMillis()))
+                            profileRepository.updateProfile(
+                                latestProfile.copy(
+                                    photoUrl = downloadUrl,
+                                    isSync = true,
+                                    updatedAt = System.currentTimeMillis()
+                                )
+                            )
                         }
                     } catch (e: Exception) {
                         Timber.e(e, "Error uploading profile image to Firebase Storage")
@@ -371,9 +394,76 @@ class ProfileViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Error processing profile image")
+                _syncState.value = _syncState.value.copy(
+                    lastSyncMessage = context.getString(R.string.profile_photo_updated_error)
+                )
             } finally {
                 _isUploadingPhoto.value = false
             }
+        }
+    }
+
+    private fun saveProfilePhotoLocally(context: android.content.Context, uri: android.net.Uri): File? {
+        return try {
+            val timestamp = System.currentTimeMillis()
+            val targetFile = File(context.filesDir, "profile_photo_$timestamp.jpg")
+
+            val bitmap = try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    val source = ImageDecoder.createSource(context.contentResolver, uri)
+                    ImageDecoder.decodeBitmap(source) { decoder, _, _ ->
+                        decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+                        decoder.isMutableRequired = true
+                    }
+                } else {
+                    context.contentResolver.openInputStream(uri)?.use { stream ->
+                        BitmapFactory.decodeStream(stream)
+                    }
+                }
+            } catch (e: Exception) {
+                Timber.w(e, "ImageDecoder/BitmapFactory decode failed, falling back to direct stream copy")
+                null
+            }
+
+            if (bitmap != null) {
+                val maxDim = 800
+                val width = bitmap.width
+                val height = bitmap.height
+                val scaledBitmap = if (width > maxDim || height > maxDim) {
+                    val scale = maxDim.toFloat() / Math.max(width, height)
+                    val matrix = Matrix()
+                    matrix.postScale(scale, scale)
+                    Bitmap.createBitmap(bitmap, 0, 0, width, height, matrix, true)
+                } else {
+                    bitmap
+                }
+
+                FileOutputStream(targetFile).use { out ->
+                    scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 85, out)
+                }
+            } else {
+                context.contentResolver.openInputStream(uri)?.use { input ->
+                    FileOutputStream(targetFile).use { output ->
+                        input.copyTo(output)
+                    }
+                } ?: return null
+            }
+
+            // Cleanup older profile photo files
+            context.filesDir.listFiles { file ->
+                file.name.startsWith("profile_photo") && file.name != targetFile.name
+            }?.forEach { oldFile ->
+                try {
+                    oldFile.delete()
+                } catch (e: Exception) {
+                    Timber.w(e, "Could not delete old profile photo: ${oldFile.name}")
+                }
+            }
+
+            targetFile
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to save profile photo locally")
+            null
         }
     }
 }

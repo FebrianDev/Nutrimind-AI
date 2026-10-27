@@ -35,11 +35,15 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fdev.nutrimindai.core.designsystem.component.UserAvatar
 import com.fdev.nutrimindai.feature.profile.data.local.entity.ProfileEntity
 import com.fdev.nutrimindai.core.model.Goal
+import android.Manifest
+import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import timber.log.Timber
 import java.util.Locale
@@ -60,16 +64,67 @@ fun ProfileScreen(
     val isUploadingPhoto by viewModel.isUploadingPhoto.collectAsStateWithLifecycle()
     val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     val context = LocalContext.current
     var showPhotoSourceDialog by remember { mutableStateOf(false) }
-    var tempPhotoUri by remember { mutableStateOf<Uri?>(null) }
+    var tempPhotoUriString by rememberSaveable { mutableStateOf<String?>(null) }
 
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
-        if (success && tempPhotoUri != null) {
-            viewModel.uploadProfileImage(context, tempPhotoUri!!)
+        val uri = tempPhotoUriString?.let { Uri.parse(it) }
+        if (success && uri != null) {
+            viewModel.uploadProfileImage(context, uri)
+        }
+    }
+
+    fun executeLaunchCamera() {
+        try {
+            val photoFile = java.io.File.createTempFile("profile_pic_", ".jpg", context.cacheDir)
+            val uri = FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.fileprovider",
+                photoFile
+            )
+            tempPhotoUriString = uri.toString()
+            cameraLauncher.launch(uri)
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to launch camera")
+            coroutineScope.launch {
+                snackbarHostState.showSnackbar(
+                    message = context.getString(R.string.profile_photo_updated_error),
+                    duration = SnackbarDuration.Short
+                )
+            }
+        }
+    }
+
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            executeLaunchCamera()
+        } else {
+            coroutineScope.launch {
+                snackbarHostState.showSnackbar(
+                    message = context.getString(R.string.profile_camera_permission_required),
+                    duration = SnackbarDuration.Short
+                )
+            }
+        }
+    }
+
+    fun launchCamera() {
+        val hasPermission = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (hasPermission) {
+            executeLaunchCamera()
+        } else {
+            cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
         }
     }
 
@@ -81,26 +136,14 @@ fun ProfileScreen(
         }
     }
 
-    fun launchCamera() {
+    fun launchGallery() {
         try {
-            val photoFile = java.io.File.createTempFile("profile_pic_", ".jpg", context.cacheDir)
-            val uri = FileProvider.getUriForFile(
-                context,
-                "${context.packageName}.fileprovider",
-                photoFile
-            )
-            tempPhotoUri = uri
-            cameraLauncher.launch(uri)
+            galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         } catch (e: Exception) {
-            Timber.e(e, "Failed to launch camera")
+            Timber.e(e, "Failed to launch visual media picker")
         }
     }
 
-    fun launchGallery() {
-        galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
-    }
-
-    val snackbarHostState = remember { SnackbarHostState() }
     var showResetDialog by remember { mutableStateOf(false) }
     var showResetProgressDialog by remember { mutableStateOf(false) }
     var showThemeDialog by remember { mutableStateOf(false) }
@@ -183,6 +226,8 @@ fun ProfileScreen(
                     if (showEditProfileDialog) {
                         EditProfileDialog(
                             profile = profile,
+                            isUploadingPhoto = isUploadingPhoto,
+                            onEditPhotoClick = { showPhotoSourceDialog = true },
                             onDismiss = { showEditProfileDialog = false },
                             onSave = { name, age, height, weight ->
                                 viewModel.updatePersonalInfo(name, age, height, weight)
@@ -346,6 +391,12 @@ fun ProfileScreen(
                         stringResource(R.string.profile_about_storage_note),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), color = MaterialTheme.colorScheme.outlineVariant)
+                    Text(
+                        stringResource(R.string.medical_disclaimer_full),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.outline
                     )
                 }
             },
@@ -871,6 +922,8 @@ private fun LinkAccountDialog(
 @Composable
 private fun EditProfileDialog(
     profile: ProfileEntity,
+    isUploadingPhoto: Boolean = false,
+    onEditPhotoClick: () -> Unit = {},
     onDismiss: () -> Unit,
     onSave: (name: String, age: Int, height: Int, weight: Float) -> Unit
 ) {
@@ -888,8 +941,18 @@ private fun EditProfileDialog(
         text = {
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                UserAvatar(
+                    photoUrl = profile.photoUrl,
+                    userName = name,
+                    size = 72.dp,
+                    showEditBadge = true,
+                    isUploading = isUploadingPhoto,
+                    onClick = onEditPhotoClick
+                )
+
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },

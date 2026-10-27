@@ -31,6 +31,7 @@ import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.fdev.nutrimindai.R
 import com.fdev.nutrimindai.core.designsystem.BrandPrimary
+import timber.log.Timber
 import java.util.Locale
 
 @Composable
@@ -65,6 +66,11 @@ fun UserAvatar(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(photoUrl)
                     .crossfade(true)
+                    .listener(
+                        onError = { _, result ->
+                            Timber.e(result.throwable, "UserAvatar failed to load photo: $photoUrl")
+                        }
+                    )
                     .build(),
                 contentDescription = stringResource(R.string.avatar_cd_profile_picture),
                 contentScale = ContentScale.Crop,
