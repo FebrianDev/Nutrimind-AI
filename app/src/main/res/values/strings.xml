@@ -458,8 +458,21 @@
     <string name="profile_empty_title">Profile Not Set</string>
     <string name="profile_empty_desc">Setup your profile and target goals to get personalized nutrition advice.</string>
     <string name="profile_btn_create_profile">Create Profile</string>
+    <string name="profile_reset_data_title">Reset Activity Logs</string>
+    <string name="profile_reset_data_sub">Clear food, water, exercise logs &amp; AI chat history</string>
+    <string name="profile_reset_data_dialog_title">Clear Activity Logs?</string>
+    <string name="profile_reset_data_dialog_msg">Are you sure you want to clear all recorded food logs, water intake, exercise records, and AI Coach chat history? Your profile info and weight history will remain intact.</string>
+    <string name="profile_reset_data_confirm_btn">Clear Activity Logs</string>
 
     <!-- Theme Settings -->
+    <string name="profile_theme_title">App Theme</string>
+    <string name="profile_theme_dialog_title">Choose App Theme</string>
+    <string name="profile_theme_sub_system">System Default</string>
+    <string name="profile_theme_sub_light">Light Mode</string>
+    <string name="profile_theme_sub_dark">Dark Mode</string>
+    <string name="profile_theme_desc_system">Follow system dark mode settings</string>
+    <string name="profile_theme_desc_light">Always use light theme</string>
+    <string name="profile_theme_desc_dark">Always use dark theme</string>
 
     <!-- NutriCoach AI Screen -->
     <string name="coach_title">NutriCoach AI</string>

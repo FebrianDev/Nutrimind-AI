@@ -20,6 +20,12 @@ import javax.inject.Singleton
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = PREFERENCES_NAME)
 
+enum class AppThemeMode {
+    SYSTEM,
+    LIGHT,
+    DARK
+}
+
 data class ReminderSettings(
     val breakfastEnabled: Boolean = true,
     val breakfastTime: String = "07:30",
@@ -44,6 +50,7 @@ class PreferenceManager @Inject constructor(
     private object PreferencesKeys {
         val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
         val DEMO_SEEDED = booleanPreferencesKey("demo_seeded")
+        val THEME_MODE = stringPreferencesKey("theme_mode")
 
         // Reminder Preferences
         val BREAKFAST_ENABLED = booleanPreferencesKey("reminder_breakfast_enabled")
@@ -186,6 +193,29 @@ class PreferenceManager @Inject constructor(
     suspend fun setActiveAiProvider(providerName: String) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.ACTIVE_AI_PROVIDER] = providerName
+        }
+    }
+
+    val themeMode: Flow<AppThemeMode> = dataStore.data
+        .catch { exception ->
+            if (exception is IOException) {
+                emit(emptyPreferences())
+            } else {
+                throw exception
+            }
+        }
+        .map { preferences ->
+            val modeStr = preferences[PreferencesKeys.THEME_MODE] ?: AppThemeMode.SYSTEM.name
+            try {
+                AppThemeMode.valueOf(modeStr)
+            } catch (e: Exception) {
+                AppThemeMode.SYSTEM
+            }
+        }
+
+    suspend fun setThemeMode(mode: AppThemeMode) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.THEME_MODE] = mode.name
         }
     }
 }

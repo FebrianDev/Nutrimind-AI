@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fdev.nutrimindai.core.database.NutriMindDatabase
 import com.fdev.nutrimindai.core.datastore.PreferenceManager
+import com.fdev.nutrimindai.core.datastore.AppThemeMode
 import com.fdev.nutrimindai.feature.profile.data.local.entity.ProfileEntity
 import com.fdev.nutrimindai.feature.profile.domain.repository.ProfileRepository
 import com.fdev.nutrimindai.core.sync.FirestoreSyncRepository
@@ -71,6 +72,19 @@ class ProfileViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val reminderScheduler: com.fdev.nutrimindai.core.notification.ReminderScheduler
 ) : ViewModel() {
+
+    val themeMode: StateFlow<AppThemeMode> = preferenceManager.themeMode
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = AppThemeMode.SYSTEM
+        )
+
+    fun setThemeMode(mode: AppThemeMode) {
+        viewModelScope.launch {
+            preferenceManager.setThemeMode(mode)
+        }
+    }
 
     private val _syncState = MutableStateFlow(SyncUiState())
     val syncState: StateFlow<SyncUiState> = _syncState.asStateFlow()
@@ -260,6 +274,37 @@ class ProfileViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Error during logout and data clearing")
+            }
+        }
+    }
+
+    /**
+     * Clears only daily activity logging data (food intake, water, exercise, AI chats)
+     * while keeping user profile, weight logs, and auth session intact.
+     */
+    fun resetProgressData() {
+        viewModelScope.launch {
+            try {
+                withContext(Dispatchers.IO) {
+                    database.runInTransaction {
+                        val db = database.openHelper.writableDatabase
+                        db.execSQL("DELETE FROM daily_log_table")
+                        db.execSQL("DELETE FROM intake_table")
+                        db.execSQL("DELETE FROM water_table")
+                        db.execSQL("DELETE FROM exercise_table")
+                        db.execSQL("DELETE FROM food_table")
+                        db.execSQL("DELETE FROM chat_message_table")
+                    }
+                }
+                refreshUnsyncedCount()
+                _syncState.value = _syncState.value.copy(
+                    lastSyncMessage = "Activity logs reset successfully."
+                )
+            } catch (e: Exception) {
+                Timber.e(e, "Error clearing logging data")
+                _syncState.value = _syncState.value.copy(
+                    lastSyncMessage = "Failed to reset activity logs."
+                )
             }
         }
     }

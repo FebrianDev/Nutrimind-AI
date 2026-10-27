@@ -15,6 +15,10 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 
+import com.fdev.nutrimindai.core.datastore.AppThemeMode
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
+
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val authRepository: AuthRepository,
@@ -22,6 +26,13 @@ class MainViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
     private val firestoreSyncRepository: FirestoreSyncRepository
 ) : ViewModel() {
+
+    val themeMode: StateFlow<AppThemeMode> = preferenceManager.themeMode
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = AppThemeMode.SYSTEM
+        )
 
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()

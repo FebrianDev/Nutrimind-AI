@@ -23,6 +23,9 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+import androidx.compose.foundation.isSystemInDarkTheme
+import com.fdev.nutrimindai.core.datastore.AppThemeMode
+
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
@@ -42,8 +45,15 @@ class MainActivity : ComponentActivity() {
         setContent {
             val startDestination by viewModel.startDestination.collectAsStateWithLifecycle()
             val pendingDeepLink by viewModel.pendingDeepLink.collectAsStateWithLifecycle()
+            val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
 
-            NutriMindAITheme {
+            val useDarkTheme = when (themeMode) {
+                AppThemeMode.SYSTEM -> isSystemInDarkTheme()
+                AppThemeMode.LIGHT -> false
+                AppThemeMode.DARK -> true
+            }
+
+            NutriMindAITheme(darkTheme = useDarkTheme) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background,

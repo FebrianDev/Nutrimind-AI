@@ -26,6 +26,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.res.stringResource
+import com.fdev.nutrimindai.core.datastore.AppThemeMode
 import com.fdev.nutrimindai.R
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -57,6 +58,7 @@ fun ProfileScreen(
     val accountInfo by viewModel.accountInfo.collectAsStateWithLifecycle()
     val linkAccountState by viewModel.linkAccountState.collectAsStateWithLifecycle()
     val isUploadingPhoto by viewModel.isUploadingPhoto.collectAsStateWithLifecycle()
+    val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
 
     val context = LocalContext.current
@@ -100,6 +102,8 @@ fun ProfileScreen(
 
     val snackbarHostState = remember { SnackbarHostState() }
     var showResetDialog by remember { mutableStateOf(false) }
+    var showResetProgressDialog by remember { mutableStateOf(false) }
+    var showThemeDialog by remember { mutableStateOf(false) }
     var showEditProfileDialog by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
     var showLinkAccountDialog by remember { mutableStateOf(false) }
@@ -162,12 +166,15 @@ fun ProfileScreen(
                         profile = profile,
                         syncState = syncState,
                         accountInfo = accountInfo,
+                        themeMode = themeMode,
                         isUploadingPhoto = isUploadingPhoto,
                         onEditPhotoClick = { showPhotoSourceDialog = true },
                         onSyncNowClick = { viewModel.syncDataNow() },
+                        onThemeClick = { showThemeDialog = true },
                         onEditProfileClick = { showEditProfileDialog = true },
                         onHealthGoalClick = onNavigateToGoalSettings,
                         onReminderSettingsClick = onNavigateToReminderSettings,
+                        onResetDataClick = { showResetProgressDialog = true },
                         onLinkAccountClick = { showLinkAccountDialog = true },
                         onAboutClick = { showAboutDialog = true },
                         onLogOutClick = { showResetDialog = true }
@@ -216,6 +223,59 @@ fun ProfileScreen(
         )
     }
 
+    if (showResetProgressDialog) {
+        AlertDialog(
+            onDismissRequest = { showResetProgressDialog = false },
+            containerColor = MaterialTheme.colorScheme.surface,
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Warning,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.size(32.dp)
+                )
+            },
+            title = {
+                Text(
+                    text = stringResource(R.string.profile_reset_data_dialog_title),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(
+                    text = stringResource(R.string.profile_reset_data_dialog_msg),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showResetProgressDialog = false
+                        viewModel.resetProgressData()
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error,
+                        contentColor = MaterialTheme.colorScheme.onError
+                    )
+                ) {
+                    Text(
+                        text = stringResource(R.string.profile_reset_data_confirm_btn),
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showResetProgressDialog = false }) {
+                    Text(
+                        text = stringResource(R.string.dialog_cancel),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+        )
+    }
+
     if (showResetDialog) {
         AlertDialog(
             onDismissRequest = { showResetDialog = false },
@@ -247,6 +307,17 @@ fun ProfileScreen(
                 TextButton(onClick = { showResetDialog = false }) {
                     Text(stringResource(R.string.dialog_cancel), color = MaterialTheme.colorScheme.onSurface)
                 }
+            }
+        )
+    }
+
+    if (showThemeDialog) {
+        ThemeSelectionDialog(
+            currentMode = themeMode,
+            onDismiss = { showThemeDialog = false },
+            onSelectMode = { selectedMode ->
+                viewModel.setThemeMode(selectedMode)
+                showThemeDialog = false
             }
         )
     }
@@ -292,12 +363,15 @@ private fun ProfileMainContent(
     profile: ProfileEntity,
     syncState: SyncUiState,
     accountInfo: AccountInfo,
+    themeMode: AppThemeMode,
     isUploadingPhoto: Boolean,
     onEditPhotoClick: () -> Unit,
     onSyncNowClick: () -> Unit,
+    onThemeClick: () -> Unit,
     onEditProfileClick: () -> Unit,
     onHealthGoalClick: () -> Unit,
     onReminderSettingsClick: () -> Unit,
+    onResetDataClick: () -> Unit,
     onLinkAccountClick: () -> Unit,
     onAboutClick: () -> Unit,
     onLogOutClick: () -> Unit
@@ -526,6 +600,20 @@ private fun ProfileMainContent(
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
 
                 QuickMenuItem(
+                    icon = Icons.Default.Palette,
+                    iconContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                    iconTint = MaterialTheme.colorScheme.primary,
+                    title = stringResource(R.string.profile_theme_title),
+                    subtitle = when (themeMode) {
+                        AppThemeMode.SYSTEM -> stringResource(R.string.profile_theme_sub_system)
+                        AppThemeMode.LIGHT -> stringResource(R.string.profile_theme_sub_light)
+                        AppThemeMode.DARK -> stringResource(R.string.profile_theme_sub_dark)
+                    },
+                    onClick = onThemeClick
+                )
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
+
+                QuickMenuItem(
                     icon = Icons.Default.Person,
                     iconContainerColor = MaterialTheme.colorScheme.secondaryContainer,
                     iconTint = MaterialTheme.colorScheme.secondary,
@@ -535,6 +623,15 @@ private fun ProfileMainContent(
                 )
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
 
+                QuickMenuItem(
+                    icon = Icons.Default.RestartAlt,
+                    iconContainerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f),
+                    iconTint = MaterialTheme.colorScheme.error,
+                    title = stringResource(R.string.profile_reset_data_title),
+                    subtitle = stringResource(R.string.profile_reset_data_sub),
+                    onClick = onResetDataClick
+                )
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
 
                 QuickMenuItem(
                     icon = Icons.Default.Info,
@@ -1085,4 +1182,110 @@ private fun PhotoSourceDialog(
             }
         }
     )
+}
+
+@Composable
+private fun ThemeSelectionDialog(
+    currentMode: AppThemeMode,
+    onDismiss: () -> Unit,
+    onSelectMode: (AppThemeMode) -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = MaterialTheme.colorScheme.surface,
+        title = {
+            Text(
+                text = stringResource(R.string.profile_theme_dialog_title),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                ThemeOptionItem(
+                    title = stringResource(R.string.profile_theme_sub_system),
+                    subtitle = stringResource(R.string.profile_theme_desc_system),
+                    icon = Icons.Default.BrightnessAuto,
+                    isSelected = currentMode == AppThemeMode.SYSTEM,
+                    onClick = { onSelectMode(AppThemeMode.SYSTEM) }
+                )
+                ThemeOptionItem(
+                    title = stringResource(R.string.profile_theme_sub_light),
+                    subtitle = stringResource(R.string.profile_theme_desc_light),
+                    icon = Icons.Default.LightMode,
+                    isSelected = currentMode == AppThemeMode.LIGHT,
+                    onClick = { onSelectMode(AppThemeMode.LIGHT) }
+                )
+                ThemeOptionItem(
+                    title = stringResource(R.string.profile_theme_sub_dark),
+                    subtitle = stringResource(R.string.profile_theme_desc_dark),
+                    icon = Icons.Default.DarkMode,
+                    isSelected = currentMode == AppThemeMode.DARK,
+                    onClick = { onSelectMode(AppThemeMode.DARK) }
+                )
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(
+                    text = stringResource(R.string.dialog_cancel),
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+        }
+    )
+}
+
+@Composable
+private fun ThemeOptionItem(
+    title: String,
+    subtitle: String,
+    icon: ImageVector,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        shape = RoundedCornerShape(12.dp),
+        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f) else Color.Transparent,
+        border = if (isSelected) BorderStroke(1.dp, MaterialTheme.colorScheme.primary) else null
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            RadioButton(
+                selected = isSelected,
+                onClick = onClick,
+                colors = RadioButtonDefaults.colors(selectedColor = MaterialTheme.colorScheme.primary)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Column {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                )
+            }
+        }
+    }
 }
