@@ -18,6 +18,9 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -30,10 +33,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fdev.nutrimindai.R
 import com.fdev.nutrimindai.core.designsystem.*
-
-import android.content.Intent
-import androidx.compose.ui.platform.LocalContext
-import java.util.Locale
+import com.fdev.nutrimindai.feature.progress.presentation.components.ShareSummaryBottomSheet
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,8 +43,9 @@ fun DailyReviewScreen(
     onBackClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val context = LocalContext.current
-    val shareChooserTitle = stringResource(R.string.daily_review_share_title)
+    var showShareSheet by remember { mutableStateOf(false) }
+
+    val currentDetail = (uiState as? DailyReviewUiState.Success)?.data
 
     Scaffold(
         topBar = {
@@ -62,37 +63,14 @@ fun DailyReviewScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = {
-                        val detail = (uiState as? DailyReviewUiState.Success)?.data
-                        if (detail != null) {
-                            val shareText = buildString {
-                                appendLine("🌟 NutriMind AI - Daily Review")
-                                appendLine("📅 Date: ${detail.displayDate}")
-                                appendLine("🏆 Health Score: ${detail.score}/100 (${detail.status})")
-                                appendLine()
-                                appendLine("📊 Daily Nutrition:")
-                                appendLine("• Calories: ${String.format(Locale.US, "%,d", detail.calories)} / ${detail.targetCalories} kcal")
-                                appendLine("• Protein: ${detail.protein.toInt()}g / ${detail.targetProtein.toInt()}g")
-                                appendLine("• Carbs: ${detail.carbs.toInt()}g / ${detail.targetCarbs.toInt()}g")
-                                appendLine("• Fat: ${detail.fat.toInt()}g / ${detail.targetFat.toInt()}g")
-                                appendLine("• Water: ${detail.water}ml / ${detail.targetWater}ml")
-                                appendLine("• Exercise: ${detail.exerciseMinutes} min / ${detail.targetExerciseMinutes} min")
-                                if (detail.aiSummary.isNotBlank()) {
-                                    appendLine()
-                                    appendLine("🤖 AI Evaluation:")
-                                    appendLine(detail.aiSummary)
-                                }
+                    IconButton(
+                        onClick = {
+                            if (currentDetail != null) {
+                                showShareSheet = true
                             }
-                            val sendIntent = Intent().apply {
-                                action = Intent.ACTION_SEND
-                                putExtra(Intent.EXTRA_TEXT, shareText)
-                                type = "text/plain"
-                            }
-
-                            val shareIntent = Intent.createChooser(sendIntent, shareChooserTitle)
-                            context.startActivity(shareIntent)
-                        }
-                    }) {
+                        },
+                        enabled = currentDetail != null
+                    ) {
                         Icon(Icons.Default.Share, contentDescription = stringResource(R.string.btn_share))
                     }
                 }
@@ -141,9 +119,39 @@ fun DailyReviewScreen(
                         summary = detail.aiSummary
                     )
                     NotesSection(note = detail.note)
+
+                    // Prominent Share Summary Button
+                    Button(
+                        onClick = { showShareSheet = true },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = BrandPrimary)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Share,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(R.string.share_summary_btn),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
                     Spacer(modifier = Modifier.height(16.dp))
                 }
             }
+        }
+
+        if (showShareSheet && currentDetail != null) {
+            ShareSummaryBottomSheet(
+                detail = currentDetail,
+                onDismiss = { showShareSheet = false }
+            )
         }
     }
 }

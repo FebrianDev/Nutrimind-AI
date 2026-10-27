@@ -459,6 +459,8 @@
     <string name="profile_empty_desc">Setup your profile and target goals to get personalized nutrition advice.</string>
     <string name="profile_btn_create_profile">Create Profile</string>
 
+    <!-- Theme Settings -->
+
     <!-- NutriCoach AI Screen -->
     <string name="coach_title">NutriCoach AI</string>
     <string name="coach_name">NutriCoach</string>
@@ -721,4 +723,16 @@
     <string name="macro_val_g">%1$sg</string>
     <string name="scan_macro_distribution_format">P: %1$d%% • C: %2$d%% • F: %3$d%%</string>
     <string name="food_search_item_summary_format">%1$d kcal • P: %2$dg  C: %3$dg  F: %4$dg</string>
+
+    <!-- Social & Daily Summary Sharing -->
+    <string name="share_summary_btn">Share Summary Card</string>
+    <string name="share_dialog_subtitle">Inspire your friends or save your daily progress snapshot</string>
+    <string name="share_btn_image">Share as Image</string>
+    <string name="share_btn_text">Share as Text</string>
+    <string name="share_generating_image">Generating Image…</string>
+    <string name="share_image_error">Unable to generate summary card image</string>
+    <string name="share_caption_template">My Daily Health Review on NutriMind AI! Health Score: %1$d/100 🌿 #NutriMindAI</string>
+    <string name="share_badge_daily_snapshot">Daily Health Snapshot</string>
+    <string name="share_ai_evaluation_title">Meta AI Coach Evaluation</string>
+    <string name="share_powered_by">Powered by Meta AI &amp; Llama 3.3</string>
 </resources>

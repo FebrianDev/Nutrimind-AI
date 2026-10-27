@@ -103,5 +103,6 @@ class DailyReviewViewModelTest {
         assertTrue(state is DailyReviewUiState.Success)
         val data = (state as DailyReviewUiState.Success).data
         assertEquals(cachedSummary, data.aiSummary)
+        assertEquals("Alex", data.userName)
     }
 }

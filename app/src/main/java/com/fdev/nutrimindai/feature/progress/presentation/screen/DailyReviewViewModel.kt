@@ -27,6 +27,7 @@ import kotlin.math.roundToInt
 data class DailyReviewDetailData(
     val dateStr: String = "",
     val displayDate: String = "",
+    val userName: String = "Champion",
     val score: Int = 0,
     val status: String = "Good",
     val calories: Int = 0,
@@ -155,12 +156,14 @@ class DailyReviewViewModel @Inject constructor(
                         }
                     }
 
+                    val userName = profile?.name?.ifBlank { "Champion" } ?: "Champion"
                     val notesList = exercises.mapNotNull { it.note }.filter { it.isNotBlank() }
                     val noteText = if (notesList.isNotEmpty()) notesList.joinToString("; ") else "Completed daily log."
 
                     DailyReviewDetailData(
                         dateStr = dateStr,
                         displayDate = dateStr,
+                        userName = userName,
                         score = score,
                         status = status,
                         calories = totalCalories,
