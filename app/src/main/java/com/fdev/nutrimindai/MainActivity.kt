@@ -43,6 +43,7 @@ class MainActivity : ComponentActivity() {
         viewModel.handleIntent(intent)
 
         setContent {
+            val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
             val startDestination by viewModel.startDestination.collectAsStateWithLifecycle()
             val pendingDeepLink by viewModel.pendingDeepLink.collectAsStateWithLifecycle()
             val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
@@ -58,27 +59,29 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background,
                 ) {
-                    val navController = rememberNavController()
-                    RootNavGraph(
-                        navController = navController,
-                        startDestination = startDestination
-                    )
+                    if (!isLoading && startDestination != null) {
+                        val navController = rememberNavController()
+                        RootNavGraph(
+                            navController = navController,
+                            startDestination = startDestination!!
+                        )
 
-                    // Handle Notification Deep Links
-                    LaunchedEffect(pendingDeepLink, startDestination) {
-                        val destination = pendingDeepLink
-                        if (!destination.isNullOrBlank() && startDestination == NavigationDestination.Home) {
-                            when (destination) {
-                                NotificationHelper.NAV_DEST_BREAKFAST -> navController.navigate(NavigationDestination.MealDetail("Breakfast"))
-                                NotificationHelper.NAV_DEST_LUNCH -> navController.navigate(NavigationDestination.MealDetail("Lunch"))
-                                NotificationHelper.NAV_DEST_DINNER -> navController.navigate(NavigationDestination.MealDetail("Dinner"))
-                                NotificationHelper.NAV_DEST_WATER -> navController.navigate(NavigationDestination.Water)
-                                NotificationHelper.NAV_DEST_DAILY_REVIEW -> {
-                                    val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-                                    navController.navigate(NavigationDestination.DailyReview(todayStr))
+                        // Handle Notification Deep Links
+                        LaunchedEffect(pendingDeepLink, startDestination) {
+                            val destination = pendingDeepLink
+                            if (!destination.isNullOrBlank() && startDestination == NavigationDestination.Home) {
+                                when (destination) {
+                                    NotificationHelper.NAV_DEST_BREAKFAST -> navController.navigate(NavigationDestination.MealDetail("Breakfast"))
+                                    NotificationHelper.NAV_DEST_LUNCH -> navController.navigate(NavigationDestination.MealDetail("Lunch"))
+                                    NotificationHelper.NAV_DEST_DINNER -> navController.navigate(NavigationDestination.MealDetail("Dinner"))
+                                    NotificationHelper.NAV_DEST_WATER -> navController.navigate(NavigationDestination.Water)
+                                    NotificationHelper.NAV_DEST_DAILY_REVIEW -> {
+                                        val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                                        navController.navigate(NavigationDestination.DailyReview(todayStr))
+                                    }
                                 }
+                                viewModel.clearPendingDeepLink()
                             }
-                            viewModel.clearPendingDeepLink()
                         }
                     }
                 }

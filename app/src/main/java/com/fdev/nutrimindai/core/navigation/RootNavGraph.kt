@@ -1,6 +1,10 @@
 package com.fdev.nutrimindai.core.navigation
 
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.Modifier
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -23,6 +27,7 @@ import com.fdev.nutrimindai.feature.profile.presentation.screen.GoalSettingsScre
 import com.fdev.nutrimindai.feature.profile.presentation.screen.ProfileScreen
 import com.fdev.nutrimindai.feature.activity.presentation.screen.ActivityScreen
 import com.fdev.nutrimindai.feature.activity.presentation.screen.ActivityDetailScreen
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import com.fdev.nutrimindai.feature.coach.presentation.CoachScreen
 
 /**
@@ -31,6 +36,7 @@ import com.fdev.nutrimindai.feature.coach.presentation.CoachScreen
  * @param navController Controller managing app navigation state.
  * @param startDestination The initial destination to show.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun RootNavGraph(
     navController: NavHostController,
@@ -47,7 +53,8 @@ fun RootNavGraph(
         NavigationDestination.Profile::class
     )
 
-    val shouldShowBottomBar = bottomBarDestinations.any { currentDestination?.hierarchy?.any { d -> d.hasRoute(it) } == true }
+    val isImeVisible = WindowInsets.isImeVisible
+    val shouldShowBottomBar = bottomBarDestinations.any { currentDestination?.hierarchy?.any { d -> d.hasRoute(it) } == true } && !isImeVisible
 
     Scaffold(
         bottomBar = {
@@ -59,7 +66,9 @@ fun RootNavGraph(
         NavHost(
             navController = navController,
             startDestination = startDestination,
-            modifier = androidx.compose.ui.Modifier.padding(innerPadding)
+            modifier = Modifier
+                .padding(innerPadding)
+                .consumeWindowInsets(innerPadding)
         ) {
             // --- Authentication Routes ---
             composable<NavigationDestination.Login> {

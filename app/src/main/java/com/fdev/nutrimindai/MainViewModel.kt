@@ -37,8 +37,8 @@ class MainViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(true)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    private val _startDestination = MutableStateFlow<NavigationDestination>(NavigationDestination.Login)
-    val startDestination: StateFlow<NavigationDestination> = _startDestination.asStateFlow()
+    private val _startDestination = MutableStateFlow<NavigationDestination?>(null)
+    val startDestination: StateFlow<NavigationDestination?> = _startDestination.asStateFlow()
 
     private val _pendingDeepLink = MutableStateFlow<String?>(null)
     val pendingDeepLink: StateFlow<String?> = _pendingDeepLink.asStateFlow()
