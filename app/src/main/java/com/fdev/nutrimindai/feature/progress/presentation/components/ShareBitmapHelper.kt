@@ -105,7 +105,7 @@ object ShareBitmapHelper {
                 appendLine("\"${detail.aiSummary}\"")
             }
             appendLine()
-            appendLine("🌿 Powered by NutriMind AI & Meta Llama 3.3")
+            appendLine("🌿 Powered by NutriMind AI & Meta AI (Muse Spark & Llama 3)")
             appendLine("#NutriMindAI #HealthJourney")
         }
     }

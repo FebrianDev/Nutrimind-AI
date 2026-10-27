@@ -1,5 +1,6 @@
 package com.fdev.nutrimindai.core.network
 
+import com.fdev.nutrimindai.BuildConfig
 import com.fdev.nutrimindai.core.network.ApiConstants.TIMEOUT_SECONDS
 import com.fdev.nutrimindai.core.util.Constants.BASE_URL
 import dagger.Module
@@ -30,7 +31,12 @@ object NetworkModule {
     @Singleton
     fun provideLoggingInterceptor(): HttpLoggingInterceptor =
         HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
+            level = if (BuildConfig.DEBUG) {
+                HttpLoggingInterceptor.Level.BODY
+            } else {
+                HttpLoggingInterceptor.Level.NONE
+            }
+            redactHeader("Authorization")
         }
 
     @Provides

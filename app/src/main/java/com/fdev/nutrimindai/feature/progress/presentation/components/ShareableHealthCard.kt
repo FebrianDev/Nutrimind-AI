@@ -195,6 +195,14 @@ private fun ScoreHeroSection(detail: DailyReviewDetailData) {
         else -> Icons.Default.AutoAwesome
     }
 
+    val statusLabel = when (detail.status) {
+        "Excellent" -> stringResource(R.string.status_excellent)
+        "Good" -> stringResource(R.string.status_good)
+        "Fair" -> stringResource(R.string.status_fair)
+        "Needs Attention" -> stringResource(R.string.status_needs_attention)
+        else -> detail.status
+    }
+
     Surface(
         shape = RoundedCornerShape(20.dp),
         color = Color(0x1AFFFFFF),
@@ -233,7 +241,7 @@ private fun ScoreHeroSection(detail: DailyReviewDetailData) {
                             modifier = Modifier.size(14.dp)
                         )
                         Text(
-                            text = detail.status,
+                            text = statusLabel,
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             color = scoreColor

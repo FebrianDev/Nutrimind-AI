@@ -142,6 +142,28 @@ fun DailyReviewScreen(
                         )
                     }
 
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.outline,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = stringResource(R.string.medical_disclaimer_short),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.outline,
+                            textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                        )
+                    }
+
                     Spacer(modifier = Modifier.height(16.dp))
                 }
             }
@@ -160,6 +182,13 @@ fun DailyReviewScreen(
 @Composable
 fun DateAndScoreHeader(date: String, score: Int, status: String) {
     val statusColor = if (score >= 80) LightSuccess else NutritionFat
+    val statusLabel = when (status) {
+        "Excellent" -> stringResource(R.string.status_excellent)
+        "Good" -> stringResource(R.string.status_good)
+        "Fair" -> stringResource(R.string.status_fair)
+        "Needs Attention" -> stringResource(R.string.status_needs_attention)
+        else -> status
+    }
 
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -209,7 +238,7 @@ fun DateAndScoreHeader(date: String, score: Int, status: String) {
                 )
             }
             Text(
-                text = status,
+                text = statusLabel,
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

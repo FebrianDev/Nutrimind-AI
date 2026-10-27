@@ -104,6 +104,12 @@ class MetaAiService @Inject constructor(
                 if (responseText.isNotBlank()) {
                     return@withContext Result.success(responseText.trim())
                 }
+            } catch (e: MetaAiAuthException) {
+                Timber.e("MetaAiService: auth failure, terminating candidate search: ${e.message}")
+                return@withContext Result.failure(IllegalStateException(formatErrorMessage(e)))
+            } catch (e: MetaAiRateLimitException) {
+                Timber.w("MetaAiService: rate limit reached, terminating candidate search: ${e.message}")
+                return@withContext Result.failure(IllegalStateException(formatErrorMessage(e)))
             } catch (e: Exception) {
                 Timber.w("MetaAiService: text generation failed with model $modelName: ${e.message}")
                 lastException = e
@@ -159,6 +165,12 @@ class MetaAiService @Inject constructor(
                 if (responseText.isNotBlank()) {
                     return@withContext Result.success(responseText.trim())
                 }
+            } catch (e: MetaAiAuthException) {
+                Timber.e("MetaAiService: auth failure, terminating candidate search: ${e.message}")
+                return@withContext Result.failure(IllegalStateException(formatErrorMessage(e)))
+            } catch (e: MetaAiRateLimitException) {
+                Timber.w("MetaAiService: rate limit reached, terminating candidate search: ${e.message}")
+                return@withContext Result.failure(IllegalStateException(formatErrorMessage(e)))
             } catch (e: Exception) {
                 Timber.w("MetaAiService: chat failed with model $modelName: ${e.message}")
                 lastException = e
@@ -181,6 +193,11 @@ class MetaAiService @Inject constructor(
         val base64Image = encodeBitmapToBase64(bitmap)
         val prompt = """
             You are an expert nutritionist AI powered by Meta Llama Vision. Analyze the food or meal image provided and return estimated nutritional info.
+
+            MULTICULTURAL & MULTI-FOOD VISION CAPABILITIES:
+            - Accurately recognize single items or complex multi-component plates and bowls (e.g., rice with protein and vegetables, mixed salads, noodle dishes).
+            - Expertly identify international and local regional cuisines (e.g., Indonesian dishes like Nasi Goreng, Gado-Gado, Satay, Rendang, Soto, Tempeh, Tofu, Pecel, as well as Asian, Mediterranean, Latin, and Western foods).
+            - In the "description", provide a concise breakdown of detected components and estimated portion size (e.g., "1 plate of steamed white rice (~150g) with grilled chicken breast (~120g) and steamed vegetables").
 
             IMPORTANT:
             If the image DOES NOT contain any recognizable food, meal, snack, beverage, or edible item (e.g., photo of a person, animal, electronic device, furniture, empty surface, document, or random object):
@@ -209,7 +226,7 @@ class MetaAiService @Inject constructor(
                 "servingSize": 1.0,
                 "servingUnit": "portion",
                 "confidence": 0.92,
-                "description": "Short description of detected food in English"
+                "description": "Short description with component breakdown and estimated portion in English"
             }
             Do not include codeblock markers, markdown formatting, or any explanation text outside the JSON.
         """.trimIndent()
@@ -268,6 +285,12 @@ class MetaAiService @Inject constructor(
                 }
             } catch (e: IllegalArgumentException) {
                 return@withContext Result.failure(e)
+            } catch (e: MetaAiAuthException) {
+                Timber.e("MetaAiService: vision auth failure, terminating candidate search: ${e.message}")
+                return@withContext Result.failure(IllegalStateException(formatErrorMessage(e)))
+            } catch (e: MetaAiRateLimitException) {
+                Timber.w("MetaAiService: vision rate limit reached, terminating candidate search: ${e.message}")
+                return@withContext Result.failure(IllegalStateException(formatErrorMessage(e)))
             } catch (e: Exception) {
                 Timber.w("MetaAiService: vision analysis failed with model $modelName: ${e.message}")
                 lastException = e
@@ -294,7 +317,11 @@ class MetaAiService @Inject constructor(
 
             if (!response.isSuccessful) {
                 Timber.e("MetaAiService HTTP ${response.code}: $responseBody")
-                throw IOException("Meta AI HTTP ${response.code}: $responseBody")
+                when (response.code) {
+                    401, 403 -> throw MetaAiAuthException(response.code, responseBody)
+                    429 -> throw MetaAiRateLimitException(responseBody)
+                    else -> throw IOException("Meta AI HTTP ${response.code}: $responseBody")
+                }
             }
 
             val parsedResponse = json.decodeFromString<ChatCompletionResponse>(responseBody)
@@ -350,12 +377,12 @@ class MetaAiService @Inject constructor(
         val msg = exception?.message ?: ""
         return when {
             msg.contains("No food items detected") -> msg
-            msg.contains("401") || msg.contains("Unauthorized") || msg.contains("unauthenticated") ->
-                "Invalid Meta AI API Key. Please verify META_AI_API_KEY in local.properties."
+            exception is MetaAiAuthException || msg.contains("401") || msg.contains("403") || msg.contains("Unauthorized") || msg.contains("unauthenticated") ->
+                "Invalid or unauthorized Meta AI API Key. Please verify META_AI_API_KEY in local.properties."
+            exception is MetaAiRateLimitException || msg.contains("429") || msg.contains("rate_limit") || msg.contains("Rate Limit") ->
+                "Meta AI rate limit reached. Please wait a moment before trying again."
             msg.contains("404") || msg.contains("NOT_FOUND") ->
                 "Meta AI model endpoint not found. Please check model configuration or endpoint URL."
-            msg.contains("429") || msg.contains("rate_limit") ->
-                "Meta AI rate limit reached. Please wait a moment before trying again."
             msg.contains("timeout") || msg.contains("Timeout") ->
                 "Request to Meta AI timed out. Please check your internet connection."
             else ->
@@ -363,3 +390,6 @@ class MetaAiService @Inject constructor(
         }
     }
 }
+
+class MetaAiAuthException(val statusCode: Int, rawBody: String) : IOException("Meta AI Authentication Error ($statusCode): $rawBody")
+class MetaAiRateLimitException(rawBody: String) : IOException("Meta AI Rate Limit Exceeded (429): $rawBody")
