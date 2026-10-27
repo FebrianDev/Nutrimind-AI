@@ -30,7 +30,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CameraScanViewModel @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val aiRepository: AiRepository,
     private val intakeRepository: IntakeRepository,
     private val dailyLogRepository: DailyLogRepository,

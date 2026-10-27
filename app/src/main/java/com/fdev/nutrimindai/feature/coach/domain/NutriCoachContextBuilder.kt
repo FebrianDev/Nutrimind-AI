@@ -4,7 +4,7 @@ import com.fdev.nutrimindai.feature.dailyintake.data.local.dao.DailyLogDao
 import com.fdev.nutrimindai.feature.dailyintake.data.local.dao.ExerciseDao
 import com.fdev.nutrimindai.feature.dailyintake.data.local.dao.IntakeDao
 import com.fdev.nutrimindai.feature.dailyintake.data.local.dao.WaterDao
-import com.fdev.nutrimindai.feature.onboarding.data.dao.ProfileDao
+import com.fdev.nutrimindai.feature.profile.data.local.dao.ProfileDao
 import com.fdev.nutrimindai.feature.progress.data.local.dao.WeightLogDao
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -38,7 +38,7 @@ class NutriCoachContextBuilder @Inject constructor(
         val exercises = dailyLog?.let { exerciseDao.getExercisesForDailyLogDirect(it.id) } ?: emptyList()
         val latestWeight = weightLogDao.getLatestWeightLogDirect()
 
-        val name = profile?.name ?: "Pengguna"
+        val name = profile?.name ?: "User"
         val goal = profile?.goal?.name ?: "MaintainWeight"
         val currentWeight = latestWeight?.weightKg ?: profile?.currentWeight ?: 70.0f
         val targetWeight = profile?.targetWeight ?: 65.0f
@@ -68,6 +68,8 @@ class NutriCoachContextBuilder @Inject constructor(
         val dinnerItems = intakes.filter { it.mealType == MealType.DINNER }
         val snackItems = intakes.filter { it.mealType == MealType.OTHERS }
 
+        val hydrationPercent = if (targetWater > 0) (totalWater * 100) / targetWater else 0
+
         fun formatMealList(items: List<com.fdev.nutrimindai.feature.dailyintake.data.local.entity.IntakeEntity>): String {
             if (items.isEmpty()) return "Not logged yet"
             return items.joinToString(", ") { "${it.foodName} (${it.calories} kcal, P:${it.protein}g C:${it.carbs}g F:${it.fat}g)" }
@@ -89,7 +91,7 @@ You have direct, real-time access to the user's health diary and Room database f
 - Consumed Protein: ${String.format(Locale.US, "%.1f", consumedProtein)} / ${targetProtein}g
 - Consumed Carbs: ${String.format(Locale.US, "%.1f", consumedCarbs)} / ${targetCarbs}g
 - Consumed Fat: ${String.format(Locale.US, "%.1f", consumedFat)} / ${targetFat}g
-- Hydration: $totalWater / $targetWater ml (${(totalWater * 100) / targetWater}%)
+- Hydration: $totalWater / $targetWater ml ($hydrationPercent%)
 - Workouts: $totalExerciseMin mins, $totalBurnedCal kcal burned (${exercises.size} session(s))
 
 [MEALS RECORDED TODAY]
@@ -99,10 +101,10 @@ You have direct, real-time access to the user's health diary and Room database f
 - Snacks/Others: ${formatMealList(snackItems)}
 
 [COACHING PRINCIPLES]
-1. Respond in English warmly, respectfully, and empathetically, matching the user's language style.
+1. Respond in English warmly, respectfully, and empathetically, maintaining an encouraging and scientifically sound coaching tone.
 2. Provide personalized, context-aware suggestions directly addressing what the user has eaten, their remaining calories/macros, and their workout/hydration status today.
 3. Keep responses structured, concise, and actionable using bullet points and emojis where helpful. Avoid overwhelmingly long essays unless the user explicitly asks for detailed explanations.
-4. If recommending food or snacks, suggest realistic, accessible, and balanced healthy options while accurately noting estimated calories/macros.
+4. If recommending food, meals, or snacks, suggest realistic, accessible, and balanced healthy options, accurately noting estimated calories/macros.
 5. Always encourage healthy habits, mindful eating, proper hydration, and consistency over perfection.
 """.trimIndent()
     }

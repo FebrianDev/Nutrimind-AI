@@ -10,7 +10,6 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
 
 import androidx.compose.material3.*
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,7 +18,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fdev.nutrimindai.R
 import com.fdev.nutrimindai.core.designsystem.*
@@ -102,19 +101,11 @@ fun TrendDetailScreen(
                         .padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(24.dp)
                 ) {
-                    TabRow(
+                    PrimaryTabRow(
                         selectedTabIndex = detail.selectedPeriodTab,
                         containerColor = Color.Transparent,
                         contentColor = MaterialTheme.colorScheme.primary,
-                        divider = {},
-                        indicator = { tabPositions ->
-                            if (detail.selectedPeriodTab < tabPositions.size) {
-                                TabRowDefaults.SecondaryIndicator(
-                                    Modifier.tabIndicatorOffset(tabPositions[detail.selectedPeriodTab]),
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                            }
-                        }
+                        divider = {}
                     ) {
                         tabs.forEachIndexed { index, title ->
                             Tab(
@@ -199,7 +190,7 @@ fun TrendSummarySection(
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = "$unit/day",
+                    text = stringResource(R.string.trend_unit_per_day, unit),
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

@@ -10,11 +10,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.DirectionsBike
+import androidx.compose.material.icons.automirrored.filled.DirectionsRun
+import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.DirectionsBike
-import androidx.compose.material.icons.filled.DirectionsRun
-import androidx.compose.material.icons.filled.DirectionsWalk
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material3.*
@@ -187,7 +187,7 @@ fun ExerciseSummaryCard(calories: Int, duration: Int) {
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    imageVector = Icons.Default.DirectionsRun,
+                    imageVector = Icons.AutoMirrored.Filled.DirectionsRun,
                     contentDescription = null,
                     tint = Color(0xFFD32F2F),
                     modifier = Modifier.size(32.dp)
@@ -245,9 +245,9 @@ fun ExerciseItemCard(
                 contentAlignment = Alignment.Center
             ) {
                 val icon = when (exercise.exerciseType.lowercase()) {
-                    "running" -> Icons.Default.DirectionsRun
-                    "walking" -> Icons.Default.DirectionsWalk
-                    "cycling" -> Icons.Default.DirectionsBike
+                    "running" -> Icons.AutoMirrored.Filled.DirectionsRun
+                    "walking" -> Icons.AutoMirrored.Filled.DirectionsWalk
+                    "cycling" -> Icons.AutoMirrored.Filled.DirectionsBike
                     "gym" -> Icons.Default.FitnessCenter
                     else -> Icons.Default.MoreHoriz
                 }
@@ -309,9 +309,9 @@ fun AddExerciseScreen(
     val addUiState by viewModel.addExerciseUiState.collectAsStateWithLifecycle()
 
     val exerciseTypes = listOf(
-        Triple("Running", R.string.exercise_type_running, Icons.Default.DirectionsRun),
-        Triple("Walking", R.string.exercise_type_walking, Icons.Default.DirectionsWalk),
-        Triple("Cycling", R.string.exercise_type_cycling, Icons.Default.DirectionsBike),
+        Triple("Running", R.string.exercise_type_running, Icons.AutoMirrored.Filled.DirectionsRun),
+        Triple("Walking", R.string.exercise_type_walking, Icons.AutoMirrored.Filled.DirectionsWalk),
+        Triple("Cycling", R.string.exercise_type_cycling, Icons.AutoMirrored.Filled.DirectionsBike),
         Triple("Gym", R.string.exercise_type_gym, Icons.Default.FitnessCenter),
         Triple("Other", R.string.exercise_type_other, Icons.Default.MoreHoriz)
     )

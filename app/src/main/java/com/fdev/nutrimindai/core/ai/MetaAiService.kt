@@ -180,8 +180,25 @@ class MetaAiService @Inject constructor(
 
         val base64Image = encodeBitmapToBase64(bitmap)
         val prompt = """
-            You are an expert nutritionist AI powered by Meta Llama Vision. Analyze the food image provided and return estimated nutritional info.
-            Return ONLY a valid JSON object matching this schema strictly:
+            You are an expert nutritionist AI powered by Meta Llama Vision. Analyze the food or meal image provided and return estimated nutritional info.
+
+            IMPORTANT:
+            If the image DOES NOT contain any recognizable food, meal, snack, beverage, or edible item (e.g., photo of a person, animal, electronic device, furniture, empty surface, document, or random object):
+            Return ONLY this JSON strictly:
+            {
+                "name": "Non-Food Item",
+                "calories": 0,
+                "protein": 0.0,
+                "carbs": 0.0,
+                "fat": 0.0,
+                "fiber": 0.0,
+                "servingSize": 0.0,
+                "servingUnit": "portion",
+                "confidence": 0.0,
+                "description": "No food detected in image"
+            }
+
+            Otherwise, if food IS present, return ONLY a valid JSON object matching this schema strictly:
             {
                 "name": "Food Name in English",
                 "calories": 450,
@@ -228,9 +245,29 @@ class MetaAiService @Inject constructor(
                 val responseText = executeChatCompletion(requestPayload)
                 if (responseText.isNotBlank()) {
                     val cleanJson = cleanJsonText(responseText)
+                    if (cleanJson.isBlank() || !cleanJson.startsWith("{") || !cleanJson.endsWith("}")) {
+                        Timber.w("MetaAiService: Non-food or non-JSON response from vision model: $responseText")
+                        return@withContext Result.failure(
+                            IllegalArgumentException("No food items detected in this image. Please take a clear, well-lit photo of your meal.")
+                        )
+                    }
+
                     val parsedResult = json.decodeFromString<FoodRecognitionResult>(cleanJson)
+
+                    // Non-Food guard validation
+                    if (parsedResult.confidence <= 0.0 ||
+                        parsedResult.name.equals("Non-Food Item", ignoreCase = true) ||
+                        (parsedResult.calories == 0 && parsedResult.description.contains("No food", ignoreCase = true))
+                    ) {
+                        return@withContext Result.failure(
+                            IllegalArgumentException("No food items detected in this image. Please take a clear, well-lit photo of your meal.")
+                        )
+                    }
+
                     return@withContext Result.success(parsedResult)
                 }
+            } catch (e: IllegalArgumentException) {
+                return@withContext Result.failure(e)
             } catch (e: Exception) {
                 Timber.w("MetaAiService: vision analysis failed with model $modelName: ${e.message}")
                 lastException = e
@@ -312,6 +349,7 @@ class MetaAiService @Inject constructor(
     private fun formatErrorMessage(exception: Exception?): String {
         val msg = exception?.message ?: ""
         return when {
+            msg.contains("No food items detected") -> msg
             msg.contains("401") || msg.contains("Unauthorized") || msg.contains("unauthenticated") ->
                 "Invalid Meta AI API Key. Please verify META_AI_API_KEY in local.properties."
             msg.contains("404") || msg.contains("NOT_FOUND") ->
