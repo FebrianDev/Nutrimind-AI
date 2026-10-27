@@ -29,12 +29,29 @@ class FoodRepositoryImpl @Inject constructor(
         return localDataSource.searchFoodsDirect(query).map { it.toDomain() }
     }
 
+    override suspend fun findFoodByName(name: String): Food? {
+        return localDataSource.findFoodByName(name)?.toDomain()
+    }
+
     override suspend fun insertFoods(foods: List<Food>) {
-        localDataSource.insertFoods(foods.map { it.toEntity() })
+        val nonDuplicateEntities = foods.map { food ->
+            val existing = localDataSource.findFoodByName(food.name)
+            if (existing != null) {
+                food.toEntity().copy(id = existing.id)
+            } else {
+                food.toEntity()
+            }
+        }
+        localDataSource.insertFoods(nonDuplicateEntities)
     }
 
     override suspend fun insertFood(food: Food): Long {
-        return localDataSource.insertFood(food.toEntity())
+        val existing = localDataSource.findFoodByName(food.name)
+        return if (existing != null) {
+            localDataSource.insertFood(food.toEntity().copy(id = existing.id))
+        } else {
+            localDataSource.insertFood(food.toEntity())
+        }
     }
 
     override suspend fun getFoodCount(): Int {

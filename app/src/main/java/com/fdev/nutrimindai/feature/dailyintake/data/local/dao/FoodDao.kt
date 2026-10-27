@@ -21,6 +21,9 @@ interface FoodDao {
     @Query("SELECT * FROM food_table WHERE name LIKE '%' || :query || '%' ORDER BY name ASC")
     suspend fun searchFoodsDirect(query: String): List<FoodEntity>
 
+    @Query("SELECT * FROM food_table WHERE LOWER(TRIM(name)) = LOWER(TRIM(:name)) LIMIT 1")
+    suspend fun findFoodByName(name: String): FoodEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertFoods(foods: List<FoodEntity>)
 

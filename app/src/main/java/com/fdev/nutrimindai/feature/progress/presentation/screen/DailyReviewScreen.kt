@@ -248,24 +248,24 @@ fun DateAndScoreHeader(date: String, score: Int, status: String) {
 
 @Composable
 fun NutritionBreakdownSection(detail: DailyReviewDetailData) {
-    val calProg = (detail.calories.toFloat() / detail.targetCalories).coerceIn(0f, 1f)
+    val calProg = (detail.calories.toFloat() / detail.targetCalories.coerceAtLeast(1)).coerceIn(0f, 1f)
     val calPercent = "${(calProg * 100).toInt()}%"
 
-    val proteinProg = (detail.protein.toFloat() / detail.targetProtein.toFloat()).coerceIn(0f, 1f)
+    val proteinProg = (detail.protein.toFloat() / detail.targetProtein.toFloat().coerceAtLeast(1f)).coerceIn(0f, 1f)
     val proteinPercent = "${(proteinProg * 100).toInt()}%"
 
-    val carbsProg = (detail.carbs.toFloat() / detail.targetCarbs.toFloat()).coerceIn(0f, 1f)
+    val carbsProg = (detail.carbs.toFloat() / detail.targetCarbs.toFloat().coerceAtLeast(1f)).coerceIn(0f, 1f)
     val carbsPercent = "${(carbsProg * 100).toInt()}%"
 
-    val fatProg = (detail.fat.toFloat() / detail.targetFat.toFloat()).coerceIn(0f, 1f)
+    val fatProg = (detail.fat.toFloat() / detail.targetFat.toFloat().coerceAtLeast(1f)).coerceIn(0f, 1f)
     val fatPercent = "${(fatProg * 100).toInt()}%"
 
     val waterL = detail.water / 1000f
     val targetWaterL = detail.targetWater / 1000f
-    val waterProg = (detail.water.toFloat() / detail.targetWater).coerceIn(0f, 1f)
+    val waterProg = (detail.water.toFloat() / detail.targetWater.coerceAtLeast(1)).coerceIn(0f, 1f)
     val waterPercent = "${(waterProg * 100).toInt()}%"
 
-    val exProg = (detail.exerciseMinutes.toFloat() / detail.targetExerciseMinutes).coerceIn(0f, 1f)
+    val exProg = (detail.exerciseMinutes.toFloat() / detail.targetExerciseMinutes.coerceAtLeast(1)).coerceIn(0f, 1f)
     val exPercent = if (exProg >= 1f) stringResource(R.string.status_completed) else "${(exProg * 100).toInt()}%"
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {

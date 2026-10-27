@@ -8,6 +8,7 @@ interface LocalFoodDataSource {
     suspend fun getAllFoodsDirect(): List<FoodEntity>
     fun searchFoods(query: String): Flow<List<FoodEntity>>
     suspend fun searchFoodsDirect(query: String): List<FoodEntity>
+    suspend fun findFoodByName(name: String): FoodEntity?
     suspend fun insertFoods(foods: List<FoodEntity>)
     suspend fun insertFood(food: FoodEntity): Long
     suspend fun getFoodCount(): Int

@@ -25,6 +25,10 @@ class LocalFoodDataSourceImpl @Inject constructor(
         return foodDao.searchFoodsDirect(query)
     }
 
+    override suspend fun findFoodByName(name: String): FoodEntity? {
+        return foodDao.findFoodByName(name)
+    }
+
     override suspend fun insertFoods(foods: List<FoodEntity>) {
         foodDao.insertFoods(foods)
     }

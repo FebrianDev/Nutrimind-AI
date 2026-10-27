@@ -17,6 +17,7 @@ import com.fdev.nutrimindai.feature.profile.domain.repository.ProfileRepository
 import com.fdev.nutrimindai.core.model.Goal
 import com.fdev.nutrimindai.core.util.NutritionCalculator
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -59,13 +60,32 @@ class HomeViewModel @Inject constructor(
 
     private var hasInitiatedTipGeneration = false
 
+    private var lastLoadedDate: String = ""
+    private var loadDataJob: Job? = null
+
     private val currentDate: String
         get() = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
 
     init {
         viewModelScope.launch {
             demoDataSeeder.seedIfNeeded()
-            loadData()
+            startObservingDateAndData()
+        }
+    }
+
+    fun checkDateAndReloadIfNeeded() {
+        val today = currentDate
+        if (today != lastLoadedDate) {
+            startObservingDateAndData()
+        }
+    }
+
+    private fun startObservingDateAndData() {
+        loadDataJob?.cancel()
+        loadDataJob = viewModelScope.launch {
+            val today = currentDate
+            lastLoadedDate = today
+            loadData(today)
         }
     }
 
@@ -111,12 +131,12 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private suspend fun loadData() {
+    private suspend fun loadData(dateToLoad: String) {
         try {
-            val dailyLogId = dailyLogRepository.getOrCreateDailyLog(currentDate)
+            val dailyLogId = dailyLogRepository.getOrCreateDailyLog(dateToLoad)
 
             combine(
-                dailyLogRepository.getDailyLogByDate(currentDate),
+                dailyLogRepository.getDailyLogByDate(dateToLoad),
                 intakeRepository.getIntakesForDailyLog(dailyLogId),
                 waterRepository.getWaterRecordsForDailyLog(dailyLogId),
                 exerciseRepository.getExercisesForDailyLog(dailyLogId),
