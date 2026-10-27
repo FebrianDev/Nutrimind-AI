@@ -288,8 +288,11 @@ class ProgressViewModel @Inject constructor(
 
         val targetCal = profile?.dailyCalories ?: NutritionSummary.DEFAULT_GOAL_CALORIES
         val targetProtein = profile?.dailyProtein?.toDouble() ?: NutritionSummary.DEFAULT_GOAL_PROTEIN.toDouble()
-        val targetWater = NutritionSummary.DEFAULT_GOAL_WATER
         val targetExercise = profile?.dailyExerciseMinutes ?: 30
+        val targetWater = com.fdev.nutrimindai.core.util.NutritionCalculator.calculateDynamicWaterTarget(
+            weightKg = profile?.currentWeight ?: 70f,
+            exerciseMinutes = targetExercise
+        )
 
         val shortDatePattern = SimpleDateFormat("dd/MM", Locale.getDefault())
 

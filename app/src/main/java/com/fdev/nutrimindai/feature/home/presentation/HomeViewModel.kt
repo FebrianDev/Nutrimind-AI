@@ -136,6 +136,11 @@ class HomeViewModel @Inject constructor(
                 val totalFat = intakes.sumOf { it.fat }
                 val totalFiber = intakes.sumOf { it.fiber }
                 val totalExerciseCalories = exercises.sumOf { it.caloriesBurned }
+                val totalExerciseMinutes = exercises.sumOf { it.durationMinute }
+                val dynamicWaterGoal = NutritionCalculator.calculateDynamicWaterTarget(
+                    weightKg = profile?.currentWeight ?: 70f,
+                    exerciseMinutes = totalExerciseMinutes
+                )
 
                 val nutritionSummary = NutritionSummary(
                     calories = totalCalories,
@@ -148,7 +153,8 @@ class HomeViewModel @Inject constructor(
                     goalCalories = profile?.dailyCalories ?: NutritionSummary.DEFAULT_GOAL_CALORIES,
                     goalProtein = profile?.dailyProtein ?: NutritionSummary.DEFAULT_GOAL_PROTEIN,
                     goalCarbs = profile?.dailyCarbs ?: NutritionSummary.DEFAULT_GOAL_CARBS,
-                    goalFat = profile?.dailyFat ?: NutritionSummary.DEFAULT_GOAL_FAT
+                    goalFat = profile?.dailyFat ?: NutritionSummary.DEFAULT_GOAL_FAT,
+                    goalWater = dynamicWaterGoal
                 )
 
                 TodaySummary(

@@ -22,6 +22,7 @@ data class NutritionPlanResult(
     val dailyCarbs: Int,
     val dailyFat: Int,
     val dailyExerciseMinutes: Int,
+    val dailyWaterMl: Int = 2500,
     val estimatedTime: String
 )
 
@@ -75,6 +76,7 @@ object NutritionCalculator {
         }
 
         val estimatedTime = calculateEstimatedTimeframe(currentWeight, targetWeight, goal)
+        val dynamicWater = calculateDynamicWaterTarget(currentWeight, exerciseMinutes)
 
         return NutritionPlanResult(
             dailyCalories = targetCalories,
@@ -82,6 +84,7 @@ object NutritionCalculator {
             dailyCarbs = carbsGrams,
             dailyFat = fatGrams,
             dailyExerciseMinutes = exerciseMinutes,
+            dailyWaterMl = dynamicWater,
             estimatedTime = estimatedTime
         )
     }
@@ -171,5 +174,25 @@ object NutritionCalculator {
         val exerciseScore = (exerciseMin.toFloat() / safeTargetExercise.toFloat()).coerceIn(0f, 1f) * 20f
 
         return (calScore + proteinScore + waterScore + exerciseScore).roundToInt().coerceIn(0, 100)
+    }
+
+    /**
+     * Calculates dynamic daily water intake target in milliliters.
+     * Clinically aligned with World Health Organization (WHO) and Mayo Clinic recommendations:
+     * - Base hydration: 35 ml per kilogram of body weight
+     * - Physical activity compensation: +350 ml for every 30 minutes of exercise
+     *
+     * @param weightKg User body weight in kilograms.
+     * @param exerciseMinutes Total duration of physical exercise in minutes.
+     * @return Daily hydration target in ml, bounded within a safe range [1500, 5000].
+     */
+    fun calculateDynamicWaterTarget(
+        weightKg: Float,
+        exerciseMinutes: Int = 0
+    ): Int {
+        val safeWeight = if (weightKg > 20f) weightKg else 70f
+        val baseWater = safeWeight * 35.0
+        val exerciseWater = (exerciseMinutes.coerceAtLeast(0) / 30.0) * 350.0
+        return (baseWater + exerciseWater).roundToInt().coerceIn(1500, 5000)
     }
 }

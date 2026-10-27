@@ -2,10 +2,13 @@ package com.fdev.nutrimindai.feature.dailyintake.presentation.water
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.fdev.nutrimindai.core.util.NutritionCalculator
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.DailyLogStatus
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.Water
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.DailyLogRepository
+import com.fdev.nutrimindai.feature.dailyintake.domain.repository.ExerciseRepository
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.WaterRepository
+import com.fdev.nutrimindai.feature.profile.domain.repository.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,6 +25,8 @@ sealed interface WaterUiState {
     data class Success(
         val waterRecords: List<Water>,
         val totalMl: Int,
+        val goalMl: Int = 2500,
+        val exerciseMinutes: Int = 0,
         val status: DailyLogStatus
     ) : WaterUiState
     data class Error(val message: String) : WaterUiState
@@ -30,7 +35,9 @@ sealed interface WaterUiState {
 @HiltViewModel
 class WaterViewModel @Inject constructor(
     private val waterRepository: WaterRepository,
-    private val dailyLogRepository: DailyLogRepository
+    private val dailyLogRepository: DailyLogRepository,
+    private val exerciseRepository: ExerciseRepository,
+    private val profileRepository: ProfileRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<WaterUiState>(WaterUiState.Loading)
@@ -50,12 +57,20 @@ class WaterViewModel @Inject constructor(
 
                 combine(
                     dailyLogRepository.getDailyLogByDate(currentDate),
-                    waterRepository.getWaterRecordsForDailyLog(dailyLogId)
-                ) { dailyLog, records ->
+                    waterRepository.getWaterRecordsForDailyLog(dailyLogId),
+                    exerciseRepository.getExercisesForDailyLog(dailyLogId),
+                    profileRepository.getProfile()
+                ) { dailyLog, records, exercises, profile ->
                     val status = dailyLog?.status ?: DailyLogStatus.DRAFT
+                    val totalExerciseMin = exercises.sumOf { it.durationMinute }
+                    val userWeight = profile?.currentWeight ?: 70f
+                    val dynamicGoal = NutritionCalculator.calculateDynamicWaterTarget(userWeight, totalExerciseMin)
+
                     WaterUiState.Success(
                         waterRecords = records,
                         totalMl = records.sumOf { it.amountMl },
+                        goalMl = dynamicGoal,
+                        exerciseMinutes = totalExerciseMin,
                         status = status
                     )
                 }.collect { state ->

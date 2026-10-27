@@ -118,7 +118,10 @@ class ActivityDetailViewModel @Inject constructor(
 
                     val targetCal = com.fdev.nutrimindai.feature.dailyintake.domain.model.NutritionSummary.DEFAULT_GOAL_CALORIES
                     val targetProtein = profile?.dailyProtein?.toDouble() ?: 140.0
-                    val targetWater = com.fdev.nutrimindai.feature.dailyintake.domain.model.NutritionSummary.DEFAULT_GOAL_WATER
+                    val targetWater = com.fdev.nutrimindai.core.util.NutritionCalculator.calculateDynamicWaterTarget(
+                        weightKg = profile?.currentWeight ?: 70f,
+                        exerciseMinutes = exerciseMinutes
+                    )
                     val targetExercise = profile?.dailyExerciseMinutes ?: 30
 
                     val score = com.fdev.nutrimindai.core.util.NutritionCalculator.calculateHealthScore(

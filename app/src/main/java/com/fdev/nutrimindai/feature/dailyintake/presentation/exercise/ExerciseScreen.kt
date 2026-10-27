@@ -14,9 +14,11 @@ import androidx.compose.material.icons.automirrored.filled.DirectionsBike
 import androidx.compose.material.icons.automirrored.filled.DirectionsRun
 import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -316,6 +318,13 @@ fun AddExerciseScreen(
         Triple("Other", R.string.exercise_type_other, Icons.Default.MoreHoriz)
     )
 
+    val parsedDuration = duration.toIntOrNull() ?: 0
+    val metCalories = remember(selectedType, parsedDuration, viewModel.userWeight) {
+        if (parsedDuration > 0) {
+            viewModel.calculateMetCalories(selectedType, parsedDuration)
+        } else 0
+    }
+
     LaunchedEffect(Unit) {
         viewModel.resetAddExerciseState()
     }
@@ -395,7 +404,12 @@ fun AddExerciseScreen(
                             name = stringResource(nameRes),
                             icon = icon,
                             isSelected = selectedType == typeId,
-                            onClick = { selectedType = typeId }
+                            onClick = {
+                                selectedType = typeId
+                                if (parsedDuration > 0) {
+                                    calories = viewModel.calculateMetCalories(typeId, parsedDuration).toString()
+                                }
+                            }
                         )
                     }
                 }
@@ -403,7 +417,13 @@ fun AddExerciseScreen(
 
             OutlinedTextField(
                 value = duration,
-                onValueChange = { duration = it },
+                onValueChange = {
+                    duration = it
+                    val d = it.toIntOrNull() ?: 0
+                    if (d > 0 && (calories.isBlank() || calories == "0")) {
+                        calories = viewModel.calculateMetCalories(selectedType, d).toString()
+                    }
+                },
                 label = { Text(stringResource(R.string.exercise_duration_label)) },
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -411,10 +431,62 @@ fun AddExerciseScreen(
                 shape = RoundedCornerShape(12.dp)
             )
 
+            if (metCalories > 0) {
+                SuggestionChip(
+                    onClick = { calories = metCalories.toString() },
+                    label = {
+                        Text(
+                            text = stringResource(R.string.exercise_met_estimate_chip, metCalories),
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                    },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Bolt,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    },
+                    colors = SuggestionChipDefaults.suggestionChipColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                        labelColor = MaterialTheme.colorScheme.primary
+                    )
+                )
+            }
+
             OutlinedTextField(
                 value = calories,
                 onValueChange = { calories = it },
                 label = { Text(stringResource(R.string.exercise_calories_burned_label)) },
+                placeholder = {
+                    if (metCalories > 0) {
+                        Text(
+                            text = "e.g. $metCalories",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
+                        )
+                    }
+                },
+                supportingText = if (metCalories > 0) {
+                    {
+                        Text(
+                            text = stringResource(R.string.exercise_met_helper, viewModel.userWeight),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                } else null,
+                trailingIcon = if (metCalories > 0 && calories != metCalories.toString()) {
+                    {
+                        IconButton(onClick = { calories = metCalories.toString() }) {
+                            Icon(
+                                imageVector = Icons.Rounded.AutoAwesome,
+                                contentDescription = "Auto-fill MET calories",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                } else null,
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,

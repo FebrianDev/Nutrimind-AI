@@ -2,10 +2,12 @@ package com.fdev.nutrimindai.feature.dailyintake.presentation.exercise
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.fdev.nutrimindai.core.util.MetExerciseCalculator
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.DailyLogStatus
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.Exercise
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.DailyLogRepository
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.ExerciseRepository
+import com.fdev.nutrimindai.feature.profile.domain.repository.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -39,7 +41,8 @@ sealed interface AddExerciseUiState {
 @HiltViewModel
 class ExerciseViewModel @Inject constructor(
     private val exerciseRepository: ExerciseRepository,
-    private val dailyLogRepository: DailyLogRepository
+    private val dailyLogRepository: DailyLogRepository,
+    private val profileRepository: ProfileRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<ExerciseUiState>(ExerciseUiState.Loading)
@@ -51,8 +54,26 @@ class ExerciseViewModel @Inject constructor(
     private val currentDate: String
         get() = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
 
+    var userWeight: Float = MetExerciseCalculator.DEFAULT_WEIGHT_KG
+        private set
+
     init {
+        viewModelScope.launch {
+            profileRepository.getProfile().collect { profile ->
+                if (profile != null && profile.currentWeight > 20f) {
+                    userWeight = profile.currentWeight
+                }
+            }
+        }
         loadExercises()
+    }
+
+    fun calculateMetCalories(type: String, durationMinutes: Int): Int {
+        return MetExerciseCalculator.calculateCalories(
+            exerciseType = type,
+            durationMinutes = durationMinutes,
+            weightKg = userWeight
+        )
     }
 
     private fun loadExercises() {

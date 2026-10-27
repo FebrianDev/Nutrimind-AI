@@ -84,7 +84,11 @@ fun WaterScreen(
                         contentPadding = PaddingValues(top = 8.dp, bottom = 32.dp)
                     ) {
                         item {
-                            WaterProgressCard(totalMl = state.totalMl)
+                            WaterProgressCard(
+                                totalMl = state.totalMl,
+                                goalMl = state.goalMl,
+                                exerciseMinutes = state.exerciseMinutes
+                            )
                         }
 
                         if (state.status == DailyLogStatus.DRAFT) {
@@ -143,7 +147,11 @@ fun WaterScreen(
 }
 
 @Composable
-fun WaterProgressCard(totalMl: Int, goalMl: Int = 2500) {
+fun WaterProgressCard(
+    totalMl: Int,
+    goalMl: Int = 2500,
+    exerciseMinutes: Int = 0
+) {
     Card(
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)),
@@ -180,7 +188,7 @@ fun WaterProgressCard(totalMl: Int, goalMl: Int = 2500) {
 
             Spacer(modifier = Modifier.height(16.dp))
             LinearProgressIndicator(
-                progress = { (totalMl.toFloat() / goalMl).coerceIn(0f, 1f) },
+                progress = { if (goalMl > 0) (totalMl.toFloat() / goalMl).coerceIn(0f, 1f) else 0f },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(12.dp)
@@ -188,6 +196,17 @@ fun WaterProgressCard(totalMl: Int, goalMl: Int = 2500) {
                 color = Color(0xFF0288D1),
                 trackColor = MaterialTheme.colorScheme.surface
             )
+
+            if (exerciseMinutes > 0) {
+                Spacer(modifier = Modifier.height(12.dp))
+                val extraWater = ((exerciseMinutes / 30f) * 350f).toInt()
+                Text(
+                    text = stringResource(R.string.water_dynamic_goal_note, extraWater),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color(0xFF0288D1),
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
         }
     }
 }
