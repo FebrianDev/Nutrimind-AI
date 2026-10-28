@@ -134,34 +134,9 @@ private fun ActivityDetailContent(
                 CompletedBanner()
             }
 
-            DailyScoreCard(score = data.healthScore)
-
-            // Meta AI Daily Clinical Evaluation
-            AISummarySection(summary = data.aiSummary)
-
-            // Share Summary Card Button
-            Button(
-                onClick = { showShareSheet = true },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Share,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = stringResource(R.string.share_summary_btn),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-
             TimelineSection(items = data.timelineItems)
+
+            DailyScoreCard(score = data.healthScore)
 
             if (data.isToday && isDraft) {
                 Button(
@@ -200,6 +175,31 @@ private fun ActivityDetailContent(
                         Text(text = stringResource(R.string.home_btn_reopen_journal), color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
                     }
                 }
+            }
+
+            // Meta AI Daily Clinical Evaluation
+            AISummarySection(summary = data.aiSummary)
+
+            // Share Summary Card Button
+            Button(
+                onClick = { showShareSheet = true },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Share,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.share_summary_btn),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold
+                )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
