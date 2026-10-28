@@ -43,4 +43,13 @@ interface AiRepository {
     ): Result<String>
 
     suspend fun transcribeAudio(audioFile: java.io.File): Result<String>
+
+    suspend fun generateSmartRecipes(
+        remainingCalories: Int,
+        remainingProtein: Double,
+        remainingCarbs: Double,
+        remainingFat: Double,
+        mealType: com.fdev.nutrimindai.feature.dailyintake.domain.model.MealType = com.fdev.nutrimindai.feature.dailyintake.domain.model.MealType.DINNER,
+        userGoal: String = "Maintenance"
+    ): Result<List<com.fdev.nutrimindai.feature.dailyintake.domain.model.SmartRecipe>>
 }

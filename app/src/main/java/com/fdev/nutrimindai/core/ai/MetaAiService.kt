@@ -7,6 +7,8 @@ import com.fdev.nutrimindai.core.ai.model.ChatChoice
 import com.fdev.nutrimindai.core.ai.model.ChatCompletionRequest
 import com.fdev.nutrimindai.core.ai.model.ChatCompletionResponse
 import com.fdev.nutrimindai.core.ai.model.ChatMessagePayload
+import com.fdev.nutrimindai.feature.dailyintake.domain.model.MealType
+import com.fdev.nutrimindai.feature.dailyintake.domain.model.SmartRecipe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
@@ -639,6 +641,199 @@ class MetaAiService @Inject constructor(
                 "Request to Meta AI timed out. Please check your internet connection."
             else ->
                 "Failed to connect to Meta AI. Please check your network connection and API Key."
+        }
+    }
+
+    private fun cleanJsonArray(raw: String): String {
+        var text = raw.trim()
+        val firstBracket = text.indexOf('[')
+        val lastBracket = text.lastIndexOf(']')
+        if (firstBracket != -1 && lastBracket != -1 && lastBracket >= firstBracket) {
+            text = text.substring(firstBracket, lastBracket + 1)
+        } else {
+            if (text.startsWith("```")) {
+                val firstLineEnd = text.indexOf('\n')
+                if (firstLineEnd != -1) {
+                    text = text.substring(firstLineEnd + 1)
+                }
+                if (text.endsWith("```")) {
+                    text = text.substring(0, text.length - 3)
+                }
+            }
+        }
+        return text.trim()
+    }
+
+    suspend fun generateSmartRecipes(
+        remainingCalories: Int,
+        remainingProtein: Double,
+        remainingCarbs: Double,
+        remainingFat: Double,
+        mealType: MealType,
+        userGoal: String
+    ): Result<List<SmartRecipe>> = withContext(Dispatchers.IO) {
+        val targetCals = remainingCalories.coerceIn(150, 1500)
+
+        if (!isApiKeyConfigured) {
+            return@withContext Result.success(getFallbackRecipes(targetCals, mealType))
+        }
+
+        val prompt = """
+            You are NutriChef AI, a Michelin-star clinical dietitian chef powered by Meta AI.
+            The user has $targetCals kcal remaining for today (Target: ${remainingProtein.toInt()}g protein, ${remainingCarbs.toInt()}g carbs, ${remainingFat.toInt()}g fat).
+            Meal type: ${mealType.name}.
+            User Goal: $userGoal.
+
+            Recommend exactly 2 to 3 delicious, healthy, easy-to-cook recipes that fit comfortably within this remaining calorie and macro budget.
+            Return ONLY a valid JSON array matching this exact schema:
+            [
+              {
+                "title": "Recipe Name in Indonesian",
+                "description": "Short tempting description highlighting health benefits",
+                "prepTimeMinutes": 15,
+                "calories": 380,
+                "protein": 32.0,
+                "carbs": 25.0,
+                "fat": 11.0,
+                "fiber": 4.0,
+                "ingredients": ["100g dada ayam", "1 butir telur", "1 siung bawang putih"],
+                "instructions": ["Tumis bumbu hingga harum...", "Masukkan ayam...", "Sajikan hangat."],
+                "chefTip": "NutriChef tip for cooking or substitution"
+              }
+            ]
+            Do not include markdown codeblocks or conversational text outside the JSON.
+        """.trimIndent()
+
+        var lastException: Exception? = null
+
+        for (modelName in candidateTextModels) {
+            try {
+                Timber.d("MetaAiService: generating smart recipes with model: $modelName")
+                val requestPayload = ChatCompletionRequest(
+                    model = modelName,
+                    messages = listOf(
+                        ChatMessagePayload(
+                            role = "user",
+                            content = JsonPrimitive(prompt)
+                        )
+                    ),
+                    temperature = 0.5,
+                    maxTokens = 1200
+                )
+
+                val responseText = executeChatCompletion(requestPayload)
+                if (responseText.isNotBlank()) {
+                    val cleanJson = cleanJsonArray(responseText)
+                    if (cleanJson.isNotBlank() && cleanJson.startsWith("[") && cleanJson.endsWith("]")) {
+                        val parsedRecipes = json.decodeFromString<List<SmartRecipe>>(cleanJson)
+                        if (parsedRecipes.isNotEmpty()) {
+                            val enriched = parsedRecipes.map { it.copy(mealType = mealType) }
+                            return@withContext Result.success(enriched)
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Timber.w("MetaAiService: recipe generation failed with model $modelName: ${e.message}")
+                lastException = e
+            }
+        }
+
+        Timber.w("MetaAiService: falling back to curated recipes due to: ${lastException?.message}")
+        Result.success(getFallbackRecipes(targetCals, mealType))
+    }
+
+    fun getFallbackRecipes(targetCals: Int, mealType: MealType): List<SmartRecipe> {
+        return when {
+            targetCals <= 350 -> listOf(
+                SmartRecipe(
+                    title = "Dada Ayam Panggang Rosemary & Salad",
+                    description = "Menu rendah kalori tinggi protein, cocok untuk dinner ringan bernutrisi.",
+                    prepTimeMinutes = 15,
+                    calories = 290,
+                    protein = 34.0,
+                    carbs = 8.0,
+                    fat = 7.0,
+                    fiber = 4.0,
+                    mealType = mealType,
+                    ingredients = listOf("120g dada ayam fillet", "1 sdt minyak zaitun", "1/2 sdt rosemary & lada hitam", "Salad selada & tomat ceri"),
+                    instructions = listOf("Bumbui ayam dengan rosemary, garam, dan lada.", "Panggang di teflon anti lengket 5 menit tiap sisi.", "Sajikan dengan salad segar."),
+                    chefTip = "Gunakan perasan lemon agar daging ayam tetap juicy dan segar."
+                ),
+                SmartRecipe(
+                    title = "Omelet Putih Telur Bayam Jamur",
+                    description = "Kaya mikronutrien dan protein murni tanpa kelebihan lemak jenuh.",
+                    prepTimeMinutes = 10,
+                    calories = 230,
+                    protein = 25.0,
+                    carbs = 7.0,
+                    fat = 6.0,
+                    fiber = 3.0,
+                    mealType = mealType,
+                    ingredients = listOf("3 butir putih telur", "1 butir telur utuh", "50g bayam segar", "4 buah jamur champignon iris"),
+                    instructions = listOf("Kocok telur bersama sejumput lada dan garam.", "Tumis bayam dan jamur dengan sedikit minyak.", "Tuang telur, masak dengan api kecil hingga matang merata."),
+                    chefTip = "Tambahkan sedikit bubuk oregano untuk aroma ala bistro Italia."
+                )
+            )
+            targetCals <= 600 -> listOf(
+                SmartRecipe(
+                    title = "Nasi Merah Salmon Teriyaki & Brokoli",
+                    description = "Kombinasi asam lemak omega-3 dan karbohidrat kompleks indeks glikemik rendah.",
+                    prepTimeMinutes = 20,
+                    calories = 460,
+                    protein = 38.0,
+                    carbs = 44.0,
+                    fat = 13.0,
+                    fiber = 5.0,
+                    mealType = mealType,
+                    ingredients = listOf("100g nasi beras merah matang", "120g fillet salmon", "1 sdm saus teriyaki rendah sodium", "100g brokoli kukus"),
+                    instructions = listOf("Panaskan wajan dengan sedikit olive oil, panggang salmon hingga golden brown.", "Tuang saus teriyaki, masak 1 menit hingga meresap.", "Tata salmon di atas nasi merah bersama brokoli kukus."),
+                    chefTip = "Jangan memasak salmon terlalu lama agar teksturnya tetap lembut dan omega-3 tidak rusak."
+                ),
+                SmartRecipe(
+                    title = "Tumis Sapi Lada Hitam Paprika & Nasi",
+                    description = "Zat besi tinggi untuk stamina optimal dan pembentukan sel darah merah.",
+                    prepTimeMinutes = 15,
+                    calories = 490,
+                    protein = 36.0,
+                    carbs = 48.0,
+                    fat = 14.0,
+                    fiber = 4.0,
+                    mealType = mealType,
+                    ingredients = listOf("100g daging sapi tenderloin iris tipis", "1/2 buah paprika merah & hijau", "1 sdm saus lada hitam", "100g nasi putih matang"),
+                    instructions = listOf("Tumis bawang bombay dan paprika hingga harum layu.", "Masukkan irisan sapi tenderloin, aduk cepat dengan api besar.", "Tambahkan saus lada hitam dan sajikan bersama nasi."),
+                    chefTip = "Iris daging sapi melawan serat agar teksturnya empuk saat dimakan."
+                )
+            )
+            else -> listOf(
+                SmartRecipe(
+                    title = "Double Protein Chicken Steak & Sweet Potato",
+                    description = "Bahan bakar pemulihan otot intensif dengan karbohidrat sehat kaya serat.",
+                    prepTimeMinutes = 25,
+                    calories = 650,
+                    protein = 54.0,
+                    carbs = 62.0,
+                    fat = 16.0,
+                    fiber = 7.0,
+                    mealType = mealType,
+                    ingredients = listOf("200g dada ayam panggang", "150g ubi madu panggang", "Buncis & wortel tumis bawang putih", "1 sdm BBQ sauce light"),
+                    instructions = listOf("Bumbui ayam dan panggang hingga matang sempurna.", "Panggang ubi madu dalam oven/air fryer 180°C selama 15 menit.", "Sajikan hangat dengan saus BBQ."),
+                    chefTip = "Kulit ubi jangan dikupas, cukup cuci bersih karena mengandung serat tinggi."
+                ),
+                SmartRecipe(
+                    title = "Nasi Goreng Beras Merah Dada Ayam & Telur",
+                    description = "Versi sehat dari menu nusantara dengan kalori terkontrol dan protein melimpah.",
+                    prepTimeMinutes = 15,
+                    calories = 610,
+                    protein = 45.0,
+                    carbs = 68.0,
+                    fat = 15.0,
+                    fiber = 6.0,
+                    mealType = mealType,
+                    ingredients = listOf("150g nasi merah dingin", "120g dada ayam suwir", "1 butir telur", "Bawang merah, bawang putih, cabai, kecap manis secukupnya"),
+                    instructions = listOf("Tumis bumbu halus dengan 1 sdt olive oil.", "Masukkan telur dan orak-arik.", "Masukkan nasi merah dan ayam suwir, bumbui dengan kecap dan garam hingga wangi."),
+                    chefTip = "Gunakan nasi merah dingin semalam agar butirannya tidak menggumpal saat digoreng."
+                )
+            )
         }
     }
 }

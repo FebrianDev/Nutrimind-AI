@@ -55,7 +55,11 @@ sealed interface NavigationDestination {
     data class ManualEntry(val mealType: String) : NavigationDestination
 
     @Serializable
-    data class CameraScan(val mealType: String, val launchGalleryDirectly: Boolean = false) : NavigationDestination
+    data class CameraScan(
+        val mealType: String,
+        val launchGalleryDirectly: Boolean = false,
+        val initialMode: String? = null
+    ) : NavigationDestination
 
     @Serializable
     data object ReminderSettings : NavigationDestination

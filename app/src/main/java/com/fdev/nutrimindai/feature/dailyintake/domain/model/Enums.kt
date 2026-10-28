@@ -17,5 +17,7 @@ enum class FoodSource {
     CAMERA,
     GALLERY,
     SEARCH,
-    MANUAL
+    MANUAL,
+    BARCODE,
+    AI_CHEF
 }

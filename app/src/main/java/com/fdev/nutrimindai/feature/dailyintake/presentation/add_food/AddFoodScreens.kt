@@ -2,6 +2,8 @@ package com.fdev.nutrimindai.feature.dailyintake.presentation.add_food
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -10,12 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.CameraAlt
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.PhotoLibrary
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -41,9 +38,11 @@ import com.fdev.nutrimindai.feature.dailyintake.domain.model.FoodSource
 fun AddFoodBottomSheet(
     onDismiss: () -> Unit,
     onNavigateToCamera: () -> Unit = {},
+    onNavigateToBarcode: () -> Unit = {},
     onNavigateToGallery: () -> Unit = {},
     onNavigateToSearch: () -> Unit,
-    onNavigateToManual: () -> Unit
+    onNavigateToManual: () -> Unit,
+    onNavigateToNutriChef: () -> Unit = {}
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -71,6 +70,28 @@ fun AddFoodBottomSheet(
                 onClick = {
                     onDismiss()
                     onNavigateToCamera()
+                }
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            AddFoodOption(
+                icon = Icons.Default.QrCodeScanner,
+                title = stringResource(R.string.food_scan_barcode_title),
+                subtitle = stringResource(R.string.food_scan_barcode_subtitle),
+                iconTint = Color(0xFF00BCD4),
+                onClick = {
+                    onDismiss()
+                    onNavigateToBarcode()
+                }
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            AddFoodOption(
+                icon = Icons.Rounded.AutoAwesome,
+                title = stringResource(R.string.nutrichef_title),
+                subtitle = stringResource(R.string.nutrichef_subtitle),
+                iconTint = Color(0xFFFF7043),
+                onClick = {
+                    onDismiss()
+                    onNavigateToNutriChef()
                 }
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -184,7 +205,8 @@ fun PlaceholderDialog(
 fun SearchFoodScreen(
     mealType: String,
     viewModel: AddFoodViewModel = hiltViewModel(),
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onNavigateToBarcode: () -> Unit = {}
 ) {
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val foods by viewModel.foods.collectAsStateWithLifecycle()
@@ -377,6 +399,15 @@ fun SearchFoodScreen(
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 placeholder = { Text(stringResource(R.string.food_search_placeholder)) },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                trailingIcon = {
+                    IconButton(onClick = onNavigateToBarcode) {
+                        Icon(
+                            imageVector = Icons.Default.QrCodeScanner,
+                            contentDescription = stringResource(R.string.scan_barcode_btn_tooltip),
+                            tint = Color(0xFF00BCD4)
+                        )
+                    }
+                },
                 shape = RoundedCornerShape(16.dp),
                 singleLine = true
             )
@@ -634,6 +665,7 @@ fun ManualEntryScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {

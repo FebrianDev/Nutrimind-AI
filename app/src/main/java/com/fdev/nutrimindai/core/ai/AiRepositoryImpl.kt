@@ -111,4 +111,22 @@ class AiRepositoryImpl @Inject constructor(
     override suspend fun transcribeAudio(audioFile: java.io.File): Result<String> {
         return metaAiService.transcribeAudio(audioFile)
     }
+
+    override suspend fun generateSmartRecipes(
+        remainingCalories: Int,
+        remainingProtein: Double,
+        remainingCarbs: Double,
+        remainingFat: Double,
+        mealType: com.fdev.nutrimindai.feature.dailyintake.domain.model.MealType,
+        userGoal: String
+    ): Result<List<com.fdev.nutrimindai.feature.dailyintake.domain.model.SmartRecipe>> {
+        return metaAiService.generateSmartRecipes(
+            remainingCalories = remainingCalories,
+            remainingProtein = remainingProtein,
+            remainingCarbs = remainingCarbs,
+            remainingFat = remainingFat,
+            mealType = mealType,
+            userGoal = userGoal
+        )
+    }
 }

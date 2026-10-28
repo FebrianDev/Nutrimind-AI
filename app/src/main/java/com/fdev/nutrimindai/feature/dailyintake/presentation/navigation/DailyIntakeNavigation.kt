@@ -23,12 +23,19 @@ fun NavGraphBuilder.dailyIntakeGraph(navController: NavController) {
     composable<NavigationDestination.MealDetail> { backStackEntry ->
         val mealDetail = backStackEntry.toRoute<NavigationDestination.MealDetail>()
         var showAddFoodBottomSheet by remember { mutableStateOf(false) }
+        var showNutriChefBottomSheet by remember { mutableStateOf(false) }
 
         if (showAddFoodBottomSheet) {
             AddFoodBottomSheet(
                 onDismiss = { showAddFoodBottomSheet = false },
                 onNavigateToCamera = {
                     navController.navigate(NavigationDestination.CameraScan(mealDetail.mealType, launchGalleryDirectly = false))
+                },
+                onNavigateToBarcode = {
+                    navController.navigate(NavigationDestination.CameraScan(mealDetail.mealType, launchGalleryDirectly = false, initialMode = "BARCODE"))
+                },
+                onNavigateToNutriChef = {
+                    showNutriChefBottomSheet = true
                 },
                 onNavigateToGallery = {
                     navController.navigate(NavigationDestination.CameraScan(mealDetail.mealType, launchGalleryDirectly = true))
@@ -39,6 +46,12 @@ fun NavGraphBuilder.dailyIntakeGraph(navController: NavController) {
                 onNavigateToManual = {
                     navController.navigate(NavigationDestination.ManualEntry(mealDetail.mealType))
                 }
+            )
+        }
+
+        if (showNutriChefBottomSheet) {
+            com.fdev.nutrimindai.feature.dailyintake.presentation.nutrichef.NutriChefBottomSheet(
+                onDismiss = { showNutriChefBottomSheet = false }
             )
         }
 
@@ -56,6 +69,7 @@ fun NavGraphBuilder.dailyIntakeGraph(navController: NavController) {
         CameraScanScreen(
             mealType = args.mealType,
             launchGalleryDirectly = args.launchGalleryDirectly,
+            initialMode = args.initialMode,
             onNavigateBack = { navController.popBackStack() }
         )
     }
@@ -65,7 +79,10 @@ fun NavGraphBuilder.dailyIntakeGraph(navController: NavController) {
         val args = backStackEntry.toRoute<NavigationDestination.SearchFood>()
         SearchFoodScreen(
             mealType = args.mealType,
-            onNavigateBack = { navController.popBackStack() }
+            onNavigateBack = { navController.popBackStack() },
+            onNavigateToBarcode = {
+                navController.navigate(NavigationDestination.CameraScan(args.mealType, initialMode = "BARCODE"))
+            }
         )
     }
 
