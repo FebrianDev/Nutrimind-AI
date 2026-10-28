@@ -187,6 +187,12 @@ class OnboardingViewModel @Inject constructor(
         viewModelScope.launch {
             val state = _uiState.value
             val currentWeightVal = state.currentWeight.toFloatOrNull() ?: 70.0f
+            val photoUrl = try {
+                com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.photoUrl?.toString()
+            } catch (e: Exception) {
+                null
+            }
+
             val profile = ProfileEntity(
                 name = state.name.trim(),
                 age = state.age.toIntOrNull() ?: 25,
@@ -200,7 +206,8 @@ class OnboardingViewModel @Inject constructor(
                 dailyProtein = state.calculatedProtein,
                 dailyCarbs = state.calculatedCarbs,
                 dailyFat = state.calculatedFat,
-                dailyExerciseMinutes = state.calculatedExerciseMinutes
+                dailyExerciseMinutes = state.calculatedExerciseMinutes,
+                photoUrl = photoUrl
             )
 
             profileRepository.saveProfile(profile)

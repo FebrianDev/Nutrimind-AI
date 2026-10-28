@@ -195,4 +195,95 @@ object NutritionCalculator {
         val exerciseWater = (exerciseMinutes.coerceAtLeast(0) / 30.0) * 350.0
         return (baseWater + exerciseWater).roundToInt().coerceIn(1500, 5000)
     }
+
+    /**
+     * Calculates user Total Daily Energy Expenditure (TDEE).
+     */
+    fun calculateTdee(
+        age: Int,
+        gender: Gender,
+        height: Int,
+        weight: Float,
+        activityLevel: ActivityLevel
+    ): Double {
+        val bmr = calculateBmr(age, gender, height, weight)
+        return bmr * getActivityMultiplier(activityLevel)
+    }
+
+    /**
+     * Calculates dynamic projected weight based on the Energy Balance Model.
+     * In nutritional physiology: ~7,700 kcal deficit/surplus corresponds to ~1 kg of fat mass change.
+     *
+     * @param anchorWeightKg Last verified physical scale weight (ground truth).
+     * @param netCalorieBalance Total cumulative (calories consumed - (TDEE + active exercise burn)) since anchor.
+     * @return Projected weight in kg, clamped to realistic biological boundaries.
+     */
+    fun calculateProjectedWeight(
+        anchorWeightKg: Float,
+        netCalorieBalance: Double
+    ): Float {
+        val deltaKg = (netCalorieBalance / 7700.0).toFloat()
+        // Bound single-window projection to safe biological limits [anchor - 5kg, anchor + 5kg]
+        val projected = (anchorWeightKg + deltaKg).coerceIn(anchorWeightKg - 5.0f, anchorWeightKg + 5.0f)
+        return (projected * 10f).roundToInt() / 10f
+    }
+
+    /**
+     * Evaluates metabolic adaptation and calibration between physical scale weight and AI projection.
+     */
+    fun evaluateMetabolicCalibration(
+        actualWeight: Float,
+        projectedWeight: Float
+    ): AdaptiveCalibrationResult {
+        val deviation = ((actualWeight - projectedWeight) * 10f).roundToInt() / 10f
+        return when {
+            abs(deviation) <= 0.3f -> {
+                AdaptiveCalibrationResult(
+                    actualWeight = actualWeight,
+                    projectedWeight = projectedWeight,
+                    deviationKg = deviation,
+                    statusEmoji = "🎯",
+                    title = "Akurasi Tinggi (>95%)",
+                    feedbackMessage = "Proyeksi AI dan metabolisme tubuhmu sangat sinkron! Pola makan dan pengeluaran energimu sesuai dengan model TDEE teoretis. Teruskan konsistensi ini!",
+                    isAccurate = true
+                )
+            }
+            deviation < -0.3f -> {
+                AdaptiveCalibrationResult(
+                    actualWeight = actualWeight,
+                    projectedWeight = projectedWeight,
+                    deviationKg = deviation,
+                    statusEmoji = "🔥",
+                    title = "Pembakaran Lebih Cepat",
+                    feedbackMessage = "Berat fisikmu turun ${abs(deviation)} kg lebih banyak dari proyeksi! Kemungkinan Total Daily Energy Expenditure (TDEE) atau aktivitas harianmu lebih tinggi dari perkiraan.",
+                    isAccurate = false
+                )
+            }
+            else -> {
+                AdaptiveCalibrationResult(
+                    actualWeight = actualWeight,
+                    projectedWeight = projectedWeight,
+                    deviationKg = deviation,
+                    statusEmoji = "💧",
+                    title = "Fluktuasi Cairan & Adaptasi",
+                    feedbackMessage = "Berat fisik tercatat +$deviation kg dari proyeksi. Ini sangat wajar akibat retensi cairan (sodium/karbohidrat) atau transit pencernaan, bukan kenaikan lemak murni. AI telah menyelaraskan baseline timbanganmu.",
+                    isAccurate = false
+                )
+            }
+        }
+    }
 }
+
+/**
+ * Result model for Adaptive Metabolic Calibration.
+ */
+data class AdaptiveCalibrationResult(
+    val actualWeight: Float,
+    val projectedWeight: Float,
+    val deviationKg: Float,
+    val statusEmoji: String,
+    val title: String,
+    val feedbackMessage: String,
+    val isAccurate: Boolean
+)
+

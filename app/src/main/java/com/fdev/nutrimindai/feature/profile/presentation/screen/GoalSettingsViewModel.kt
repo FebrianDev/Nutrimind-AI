@@ -279,8 +279,10 @@ class GoalSettingsViewModel @Inject constructor(
                     goal = state.goal
                 )
 
+                val existing = profileRepository.getProfileDirect()
                 val updatedEntity = ProfileEntity(
-                    name = state.name.ifBlank { "NutriMind User" },
+                    id = existing?.id ?: ProfileEntity.DEFAULT_PROFILE_ID,
+                    name = state.name.ifBlank { existing?.name ?: "NutriMind User" },
                     age = age,
                     gender = state.gender,
                     height = height,
@@ -293,7 +295,10 @@ class GoalSettingsViewModel @Inject constructor(
                     dailyCarbs = plan.dailyCarbs,
                     dailyFat = plan.dailyFat,
                     dailyExerciseMinutes = plan.dailyExerciseMinutes,
-                    updatedAt = System.currentTimeMillis()
+                    photoUrl = existing?.photoUrl,
+                    createdAt = existing?.createdAt ?: System.currentTimeMillis(),
+                    updatedAt = System.currentTimeMillis(),
+                    isSync = false
                 )
 
                 profileRepository.saveProfile(updatedEntity)

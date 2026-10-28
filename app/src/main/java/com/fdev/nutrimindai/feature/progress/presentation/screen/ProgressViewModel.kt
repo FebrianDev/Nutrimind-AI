@@ -17,6 +17,7 @@ import com.fdev.nutrimindai.feature.dailyintake.domain.repository.WaterRepositor
 import com.fdev.nutrimindai.feature.profile.data.local.entity.ProfileEntity
 import com.fdev.nutrimindai.feature.profile.domain.repository.ProfileRepository
 import com.fdev.nutrimindai.core.model.Goal
+import com.fdev.nutrimindai.core.util.AdaptiveCalibrationResult
 import com.fdev.nutrimindai.core.util.NutritionCalculator
 import com.fdev.nutrimindai.feature.progress.data.local.entity.WeightLogEntity
 import com.fdev.nutrimindai.feature.progress.domain.repository.WeightLogRepository
@@ -35,6 +36,7 @@ import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
 import kotlin.math.abs
+import kotlin.math.roundToInt
 
 sealed class DateRangeFilter {
     data object Last1Day : DateRangeFilter()
@@ -59,7 +61,8 @@ data class DailyTrendPoint(
     val protein: Float,
     val water: Float,
     val weight: Float,
-    val exercise: Float
+    val exercise: Float,
+    val isActualWeight: Boolean = true
 )
 
 data class ProgressGoalData(
@@ -67,7 +70,13 @@ data class ProgressGoalData(
     val progressPercent: Float = 0.6f,
     val currentWeightKg: Float = 72.0f,
     val targetWeightKg: Float = 68.0f,
-    val remainingDays: Int = 30
+    val remainingDays: Int = 30,
+    val isUsingProjection: Boolean = false,
+    val lastActualWeightKg: Float = 72.0f,
+    val lastActualWeightDate: String? = null,
+    val projectedDeltaKg: Float = 0.0f,
+    val metabolicNotice: String? = null,
+    val needsCalibrationPrompt: Boolean = false
 )
 
 data class ProgressData(
@@ -118,6 +127,13 @@ class ProgressViewModel @Inject constructor(
     private val _selectedFilter = MutableStateFlow<DateRangeFilter>(DateRangeFilter.Last7Days)
     val selectedFilter: StateFlow<DateRangeFilter> = _selectedFilter.asStateFlow()
 
+    private val _calibrationFeedback = MutableStateFlow<AdaptiveCalibrationResult?>(null)
+    val calibrationFeedback: StateFlow<AdaptiveCalibrationResult?> = _calibrationFeedback.asStateFlow()
+
+    fun dismissCalibrationFeedback() {
+        _calibrationFeedback.value = null
+    }
+
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
     private val dayLabelFormat = SimpleDateFormat("EEE", Locale.getDefault())
     private val dateDisplayFormat = SimpleDateFormat("MMM dd", Locale.getDefault())
@@ -135,6 +151,16 @@ class ProgressViewModel @Inject constructor(
     fun logWeight(weightKg: Float, note: String? = null, onSuccess: () -> Unit = {}) {
         viewModelScope.launch {
             try {
+                // If user was using AI projection, trigger Adaptive Metabolic Calibration evaluation
+                val currentGoalData = (_uiState.value as? ProgressUiState.Success)?.data?.goalData
+                if (currentGoalData != null && currentGoalData.isUsingProjection) {
+                    val feedback = NutritionCalculator.evaluateMetabolicCalibration(
+                        actualWeight = weightKg,
+                        projectedWeight = currentGoalData.currentWeightKg
+                    )
+                    _calibrationFeedback.value = feedback
+                }
+
                 weightLogRepository.logWeight(
                     date = currentDate,
                     weightKg = weightKg,
@@ -276,8 +302,7 @@ class ProgressViewModel @Inject constructor(
         filter: DateRangeFilter
     ): ProgressData {
         val totalDays = dayRecords.size
-        val latestWeightLog = weightLogs.lastOrNull()
-        val goalData = buildGoalData(profile, weightLogs)
+        val goalData = buildGoalData(profile, weightLogs, dayRecords)
         val trendPoints = mutableListOf<DailyTrendPoint>()
         val reviews = mutableListOf<DailyReviewData>()
 
@@ -293,6 +318,19 @@ class ProgressViewModel @Inject constructor(
             weightKg = profile?.currentWeight ?: 70f,
             exerciseMinutes = targetExercise
         )
+
+        val latestActualLog = weightLogs.maxByOrNull { it.date }
+        val anchorDate = latestActualLog?.date ?: ""
+        val anchorWeight = latestActualLog?.weightKg ?: profile?.currentWeight ?: 70.0f
+        val userTdee = if (profile != null) {
+            NutritionCalculator.calculateTdee(
+                profile.age,
+                profile.gender,
+                profile.height,
+                goalData.lastActualWeightKg,
+                profile.activityLevel
+            )
+        } else 2200.0
 
         val shortDatePattern = SimpleDateFormat("dd/MM", Locale.getDefault())
 
@@ -318,10 +356,27 @@ class ProgressViewModel @Inject constructor(
             totalWaterSum += water
 
             val loggedWeightForDay = weightLogs.find { it.date == record.dateStr }?.weightKg
-            val actualWeight = loggedWeightForDay
-                ?: latestWeightLog?.weightKg
-                ?: profile?.currentWeight
-                ?: 72.0f
+            val isActual = loggedWeightForDay != null
+            val actualWeight = if (isActual) {
+                loggedWeightForDay!!
+            } else {
+                if (anchorDate.isNotBlank() && record.dateStr > anchorDate) {
+                    var netUpToDay = 0.0
+                    for (prev in dayRecords) {
+                        if (prev.dateStr > anchorDate && prev.dateStr <= record.dateStr) {
+                            val c = prev.intakes.sumOf { it.calories }
+                            val ex = prev.exercises.sumOf { it.caloriesBurned }
+                            if (c > 0) {
+                                netUpToDay += (c - (userTdee + ex))
+                            }
+                        }
+                    }
+                    NutritionCalculator.calculateProjectedWeight(anchorWeight, netUpToDay)
+                } else {
+                    weightLogs.filter { it.date <= record.dateStr }.lastOrNull()?.weightKg
+                        ?: anchorWeight
+                }
+            }
 
             trendPoints.add(
                 DailyTrendPoint(
@@ -331,7 +386,8 @@ class ProgressViewModel @Inject constructor(
                     protein = protein.toFloat(),
                     water = water.toFloat(),
                     weight = actualWeight,
-                    exercise = exerciseCalories.toFloat()
+                    exercise = exerciseCalories.toFloat(),
+                    isActualWeight = isActual
                 )
             )
 
@@ -411,7 +467,11 @@ class ProgressViewModel @Inject constructor(
         )
     }
 
-    private fun buildGoalData(profile: ProfileEntity?, weightLogs: List<WeightLogEntity>): ProgressGoalData {
+    private fun buildGoalData(
+        profile: ProfileEntity?,
+        weightLogs: List<WeightLogEntity>,
+        dayRecords: List<DayRecord>
+    ): ProgressGoalData {
         if (profile == null) return ProgressGoalData()
 
         val goalTitle = when (profile.goal) {
@@ -420,11 +480,77 @@ class ProgressViewModel @Inject constructor(
             Goal.GainWeight -> "Weight Gain Goal"
         }
 
-        // The initial starting weight is the earliest recorded weight log,
-        // or profile.currentWeight if no prior logs exist.
-        val startWeight = weightLogs.firstOrNull()?.weightKg ?: profile.currentWeight
-        val currentWeight = weightLogs.lastOrNull()?.weightKg ?: profile.currentWeight
+        val startWeight = weightLogs.minByOrNull { it.date }?.weightKg ?: profile.currentWeight
         val targetWeight = profile.targetWeight
+
+        val latestActualLog = weightLogs.maxByOrNull { it.date }
+        val anchorWeight = latestActualLog?.weightKg ?: profile.currentWeight
+        val anchorDate = latestActualLog?.date ?: ""
+        val todayStr = currentDate
+
+        val todayActualLog = weightLogs.find { it.date == todayStr }
+
+        val userTdee = NutritionCalculator.calculateTdee(
+            profile.age,
+            profile.gender,
+            profile.height,
+            anchorWeight,
+            profile.activityLevel
+        )
+
+        var cumulativeNetBalance = 0.0
+        for (record in dayRecords) {
+            if (record.dateStr > anchorDate && record.dateStr <= todayStr) {
+                val cals = record.intakes.sumOf { it.calories }
+                val exBurn = record.exercises.sumOf { it.caloriesBurned }
+                if (cals > 0) {
+                    cumulativeNetBalance += (cals - (userTdee + exBurn))
+                }
+            }
+        }
+
+        val isUsingProjection = todayActualLog == null && anchorDate.isNotBlank() && anchorDate < todayStr
+        val currentWeight = if (isUsingProjection) {
+            NutritionCalculator.calculateProjectedWeight(anchorWeight, cumulativeNetBalance)
+        } else {
+            todayActualLog?.weightKg ?: anchorWeight
+        }
+
+        val projectedDelta = if (isUsingProjection) {
+            val rawDelta = currentWeight - anchorWeight
+            (rawDelta * 10f).roundToInt() / 10f
+        } else 0.0f
+
+        var diffDays = 0
+        val lastActualWeightDate = if (anchorDate.isBlank()) {
+            null
+        } else {
+            try {
+                val anchorTime = dateFormat.parse(anchorDate)?.time ?: 0L
+                val todayTime = dateFormat.parse(todayStr)?.time ?: 0L
+                diffDays = ((todayTime - anchorTime) / (1000 * 60 * 60 * 24)).toInt()
+                when (diffDays) {
+                    0 -> "Today"
+                    1 -> "Yesterday"
+                    in 2..30 -> "$diffDays days ago"
+                    else -> dateDisplayFormat.format(dateFormat.parse(anchorDate) ?: Date())
+                }
+            } catch (e: Exception) {
+                anchorDate
+            }
+        }
+
+        val needsCalibrationPrompt = isUsingProjection && diffDays >= 7
+
+        val metabolicNotice = if (isUsingProjection) {
+            if (projectedDelta < 0) {
+                "Deficit projection: ${projectedDelta} kg"
+            } else if (projectedDelta > 0) {
+                "Surplus projection: +${projectedDelta} kg"
+            } else {
+                "On track with baseline"
+            }
+        } else null
 
         val progressPercent = when (profile.goal) {
             Goal.LoseWeight -> {
@@ -451,7 +577,6 @@ class ProgressViewModel @Inject constructor(
             }
         }
 
-        // Estimate remaining days based on remaining weight to lose/gain (~0.5kg per week = ~0.07kg per day)
         val remainingKg = abs(currentWeight - targetWeight)
         val remainingDays = if (profile.goal == Goal.MaintainWeight || remainingKg <= 0.2f) {
             0
@@ -464,7 +589,13 @@ class ProgressViewModel @Inject constructor(
             progressPercent = progressPercent,
             currentWeightKg = currentWeight,
             targetWeightKg = targetWeight,
-            remainingDays = remainingDays
+            remainingDays = remainingDays,
+            isUsingProjection = isUsingProjection,
+            lastActualWeightKg = anchorWeight,
+            lastActualWeightDate = lastActualWeightDate,
+            projectedDeltaKg = projectedDelta,
+            metabolicNotice = metabolicNotice,
+            needsCalibrationPrompt = needsCalibrationPrompt
         )
     }
 

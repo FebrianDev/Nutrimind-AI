@@ -117,9 +117,23 @@ class CoachActionExecutor @Inject constructor(
                         )
                         val profile = profileRepository.getProfileDirect()
                         if (profile != null) {
+                            val plan = com.fdev.nutrimindai.core.util.NutritionCalculator.calculatePlan(
+                                age = profile.age,
+                                gender = profile.gender,
+                                height = profile.height,
+                                currentWeight = action.weightKg,
+                                targetWeight = profile.targetWeight,
+                                activityLevel = profile.activityLevel,
+                                goal = profile.goal
+                            )
                             profileRepository.updateProfile(
                                 profile.copy(
                                     currentWeight = action.weightKg,
+                                    dailyCalories = plan.dailyCalories,
+                                    dailyProtein = plan.dailyProtein,
+                                    dailyCarbs = plan.dailyCarbs,
+                                    dailyFat = plan.dailyFat,
+                                    dailyExerciseMinutes = plan.dailyExerciseMinutes,
                                     updatedAt = System.currentTimeMillis()
                                 )
                             )

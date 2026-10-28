@@ -33,7 +33,8 @@ fun ProgressTrendChart(
     unit: String,
     modifier: Modifier = Modifier,
     lineColor: Color = MaterialTheme.colorScheme.primary,
-    targetValue: Float? = null
+    targetValue: Float? = null,
+    pointTypes: List<Boolean>? = null // true = actual scale, false = AI projected
 ) {
     if (dataPoints.isEmpty() || labels.size != dataPoints.size) {
         Box(
@@ -58,6 +59,12 @@ fun ProgressTrendChart(
         if (selectedIndex in dataPoints.indices) {
             val selectedVal = dataPoints[selectedIndex]
             val selectedLabel = labels[selectedIndex]
+            val isVerified = pointTypes?.getOrNull(selectedIndex)
+            val typeTag = when (isVerified) {
+                true -> " " + stringResource(R.string.chart_tag_verified_scale)
+                false -> " " + stringResource(R.string.chart_tag_projected_ai)
+                null -> ""
+            }
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -66,7 +73,11 @@ fun ProgressTrendChart(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = stringResource(R.string.chart_point_tooltip, selectedLabel, selectedVal.toInt(), unit),
+                    text = if (unit == "kg" || unit == "L") {
+                        "$selectedLabel: ${String.format(java.util.Locale.US, "%.1f", selectedVal)} $unit$typeTag"
+                    } else {
+                        stringResource(R.string.chart_point_tooltip, selectedLabel, selectedVal.toInt(), unit)
+                    },
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     color = lineColor
@@ -177,18 +188,33 @@ fun ProgressTrendChart(
             // Draw data points
             points.forEachIndexed { index, point ->
                 val isSelected = index == selectedIndex
+                val isActual = pointTypes?.getOrNull(index) ?: true
 
-                drawCircle(
-                    color = if (isSelected) lineColor else surfaceVariantColor,
-                    radius = if (isSelected) 7.dp.toPx() else 4.dp.toPx(),
-                    center = point
-                )
-                drawCircle(
-                    color = lineColor,
-                    radius = if (isSelected) 5.dp.toPx() else 3.dp.toPx(),
-                    center = point,
-                    style = Stroke(width = 2.dp.toPx())
-                )
+                if (isActual) {
+                    drawCircle(
+                        color = if (isSelected) lineColor else surfaceVariantColor,
+                        radius = if (isSelected) 7.dp.toPx() else 4.5.dp.toPx(),
+                        center = point
+                    )
+                    drawCircle(
+                        color = lineColor,
+                        radius = if (isSelected) 5.dp.toPx() else 3.dp.toPx(),
+                        center = point,
+                        style = Stroke(width = 2.dp.toPx())
+                    )
+                } else {
+                    drawCircle(
+                        color = surfaceVariantColor.copy(alpha = 0.9f),
+                        radius = if (isSelected) 6.dp.toPx() else 3.5.dp.toPx(),
+                        center = point
+                    )
+                    drawCircle(
+                        color = lineColor.copy(alpha = 0.6f),
+                        radius = if (isSelected) 4.5.dp.toPx() else 2.5.dp.toPx(),
+                        center = point,
+                        style = Stroke(width = 1.5.dp.toPx())
+                    )
+                }
             }
         }
 

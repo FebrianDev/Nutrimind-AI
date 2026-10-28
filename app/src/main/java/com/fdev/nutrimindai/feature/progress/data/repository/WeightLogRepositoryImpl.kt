@@ -37,10 +37,14 @@ class WeightLogRepositoryImpl @Inject constructor(
     }
 
     override suspend fun logWeight(date: String, weightKg: Float, note: String?) {
+        val existing = weightLogDao.getWeightLogByDateDirect(date)
         val entity = WeightLogEntity(
+            id = existing?.id ?: 0,
             date = date,
             weightKg = weightKg,
-            note = note?.trim()?.ifBlank { null }
+            note = note?.trim()?.ifBlank { null } ?: existing?.note,
+            timestamp = System.currentTimeMillis(),
+            isSync = false
         )
         weightLogDao.insertWeightLog(entity)
     }

@@ -93,6 +93,7 @@ class SyncRepositoryTest {
         override suspend fun insertFoods(foods: List<FoodEntity>) {}
         override suspend fun insertFood(food: FoodEntity): Long = 1L
         override suspend fun getFoodCount(): Int = 0
+        override suspend fun findFoodByName(name: String): FoodEntity? = null
         override suspend fun getUnsyncedFoods(): List<FoodEntity> = emptyList()
         override suspend fun markFoodsSynced(ids: List<Long>) {}
     }

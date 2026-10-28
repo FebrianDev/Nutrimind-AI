@@ -34,7 +34,8 @@ data class TrendDetailData(
     val lowestSub: String = "-",
     val goalValStr: String = "0",
     val chartPoints: List<Float> = emptyList(),
-    val chartLabels: List<String> = emptyList()
+    val chartLabels: List<String> = emptyList(),
+    val pointTypes: List<Boolean>? = null
 )
 
 sealed class TrendDetailUiState {
@@ -92,6 +93,7 @@ class TrendDetailViewModel @Inject constructor(
 
                 val points = mutableListOf<Float>()
                 val labels = mutableListOf<String>()
+                val pointTypes = mutableListOf<Boolean>()
 
                 val dayCal = cal.clone() as Calendar
                 var highestVal = Float.MIN_VALUE
@@ -128,10 +130,36 @@ class TrendDetailViewModel @Inject constructor(
                         }
                         "Weight" -> {
                             val loggedForDay = weightLogs.find { it.date == dateStr }?.weightKg
-                            valForDay = loggedForDay
-                                ?: weightLogs.filter { it.date <= dateStr }.lastOrNull()?.weightKg
-                                ?: profile?.currentWeight
-                                ?: 70.0f
+                            pointTypes.add(loggedForDay != null)
+                            valForDay = if (loggedForDay != null) {
+                                loggedForDay
+                            } else {
+                                val anchorLog = weightLogs.filter { it.date <= dateStr }.lastOrNull()
+                                val anchorWeight = anchorLog?.weightKg ?: profile?.currentWeight ?: 70.0f
+                                val anchorDate = anchorLog?.date ?: ""
+                                if (anchorDate.isNotBlank() && dateStr > anchorDate && profile != null) {
+                                    val tdee = com.fdev.nutrimindai.core.util.NutritionCalculator.calculateTdee(
+                                        profile.age,
+                                        profile.gender,
+                                        profile.height,
+                                        anchorWeight,
+                                        profile.activityLevel
+                                    )
+                                    var netBal = 0.0
+                                    val betweenLogs = logs.filter { it.date > anchorDate && it.date <= dateStr }
+                                    for (bLog in betweenLogs) {
+                                        val intakes = intakeRepository.getIntakesForDailyLogDirect(bLog.id)
+                                        val c = intakes.sumOf { it.calories }
+                                        val ex = exerciseRepository.getExercisesForDailyLogDirect(bLog.id).sumOf { it.caloriesBurned }
+                                        if (c > 0) {
+                                            netBal += (c - (tdee + ex))
+                                        }
+                                    }
+                                    com.fdev.nutrimindai.core.util.NutritionCalculator.calculateProjectedWeight(anchorWeight, netBal)
+                                } else {
+                                    anchorWeight
+                                }
+                            }
                         }
                         "Exercise" -> {
                             if (log != null) {
@@ -184,7 +212,13 @@ class TrendDetailViewModel @Inject constructor(
                 val goalValStr = when (metric) {
                     "Calories" -> "${profile?.dailyCalories ?: 2200}"
                     "Protein" -> "${profile?.dailyProtein ?: 140}"
-                    "Water" -> "2.5"
+                    "Water" -> {
+                        val waterTargetMl = com.fdev.nutrimindai.core.util.NutritionCalculator.calculateDynamicWaterTarget(
+                            profile?.currentWeight ?: 70f,
+                            profile?.dailyExerciseMinutes ?: 30
+                        )
+                        String.format(Locale.US, "%.1f", waterTargetMl / 1000f)
+                    }
                     "Weight" -> String.format(Locale.US, "%.1f", profile?.targetWeight ?: 68.0f)
                     "Exercise" -> "${profile?.dailyExerciseMinutes ?: 30}"
                     else -> "0"
@@ -227,7 +261,8 @@ class TrendDetailViewModel @Inject constructor(
                         lowestSub = lowestLabel,
                         goalValStr = goalValStr,
                         chartPoints = points,
-                        chartLabels = labels
+                        chartLabels = labels,
+                        pointTypes = if (metric == "Weight") pointTypes else null
                     )
                 )
             } catch (e: Exception) {

@@ -144,6 +144,7 @@ fun TrendDetailScreen(
                             labels = detail.chartLabels,
                             unit = detail.unit,
                             lineColor = lineColor,
+                            pointTypes = detail.pointTypes,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(220.dp)

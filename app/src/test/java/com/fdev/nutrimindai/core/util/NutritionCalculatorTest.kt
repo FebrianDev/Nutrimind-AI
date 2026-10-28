@@ -51,4 +51,55 @@ class NutritionCalculatorTest {
         // 45 min exercise -> (45 / 30) * 350 = 525 ml. Base 2450 + 525 = 2975 ml
         assertEquals(2975, plan.dailyWaterMl)
     }
+
+    @Test
+    fun `calculateProjectedWeight correctly calculates weight change based on calorie deficit and surplus`() {
+        // Anchor weight 70.0 kg, net calorie deficit of 3850 kcal -> -0.5 kg -> 69.5 kg
+        val deficitWeight = NutritionCalculator.calculateProjectedWeight(
+            anchorWeightKg = 70.0f,
+            netCalorieBalance = -3850.0
+        )
+        assertEquals(69.5f, deficitWeight, 0.05f)
+
+        // Net calorie surplus of 3850 kcal -> +0.5 kg -> 70.5 kg
+        val surplusWeight = NutritionCalculator.calculateProjectedWeight(
+            anchorWeightKg = 70.0f,
+            netCalorieBalance = 3850.0
+        )
+        assertEquals(70.5f, surplusWeight, 0.05f)
+    }
+
+    @Test
+    fun `evaluateMetabolicCalibration produces high accuracy result when deviation is within 0_3 kg`() {
+        val result = NutritionCalculator.evaluateMetabolicCalibration(
+            actualWeight = 69.8f,
+            projectedWeight = 70.0f
+        )
+        assertTrue(result.isAccurate)
+        assertEquals(-0.2f, result.deviationKg, 0.01f)
+        assertEquals("🎯", result.statusEmoji)
+    }
+
+    @Test
+    fun `evaluateMetabolicCalibration detects faster metabolic burn when weight loss exceeds projection`() {
+        val result = NutritionCalculator.evaluateMetabolicCalibration(
+            actualWeight = 69.2f,
+            projectedWeight = 70.0f
+        )
+        assertEquals(false, result.isAccurate)
+        assertEquals(-0.8f, result.deviationKg, 0.01f)
+        assertEquals("🔥", result.statusEmoji)
+    }
+
+    @Test
+    fun `evaluateMetabolicCalibration handles fluid retention appropriately when weight is higher than projection`() {
+        val result = NutritionCalculator.evaluateMetabolicCalibration(
+            actualWeight = 70.6f,
+            projectedWeight = 70.0f
+        )
+        assertEquals(false, result.isAccurate)
+        assertEquals(0.6f, result.deviationKg, 0.01f)
+        assertEquals("💧", result.statusEmoji)
+    }
 }
+
