@@ -4,9 +4,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.DirectionsRun
 import androidx.compose.material.icons.rounded.*
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -22,7 +24,8 @@ fun IntakeSection(
     waterSummary: String,
     exerciseSummary: String,
     onMealClick: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onSyncHealthConnect: (() -> Unit)? = null
 ) {
     val notLoggedText = stringResource(R.string.home_intake_not_logged)
 
@@ -66,11 +69,45 @@ fun IntakeSection(
     )
 
     Column(modifier = modifier) {
-        Text(
-            text = stringResource(R.string.home_todays_intake),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onBackground
-        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(R.string.home_todays_intake),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+
+            if (onSyncHealthConnect != null) {
+                androidx.compose.material3.Surface(
+                    onClick = onSyncHealthConnect,
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Watch,
+                            contentDescription = stringResource(R.string.health_connect_sync),
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Text(
+                            text = "Sync Watch",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            }
+        }
         Spacer(modifier = Modifier.height(12.dp))
 
         // Grid 3 Columns, 2 Rows

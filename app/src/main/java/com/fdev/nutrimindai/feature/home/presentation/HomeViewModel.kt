@@ -6,6 +6,7 @@ import com.fdev.nutrimindai.core.ai.AiProvider
 import com.fdev.nutrimindai.core.ai.AiRepository
 import com.fdev.nutrimindai.feature.dailyintake.data.seeder.DemoDataSeeder
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.DailyLogStatus
+import com.fdev.nutrimindai.feature.dailyintake.domain.model.Exercise
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.MealType
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.NutritionSummary
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.TodaySummary
@@ -44,8 +45,64 @@ class HomeViewModel @Inject constructor(
     private val exerciseRepository: ExerciseRepository,
     private val profileRepository: ProfileRepository,
     private val demoDataSeeder: DemoDataSeeder,
-    private val aiRepository: AiRepository
+    private val aiRepository: AiRepository,
+    private val healthConnectManager: com.fdev.nutrimindai.core.health.HealthConnectManager
 ) : ViewModel() {
+
+    val isHealthConnectAvailable: Boolean
+        get() = healthConnectManager.isAvailable
+
+    val healthConnectPermissions: Set<String>
+        get() = healthConnectManager.permissions
+
+    suspend fun hasHealthConnectPermissions(): Boolean {
+        return healthConnectManager.hasAllPermissions()
+    }
+
+    fun syncHealthConnect(onResult: (String) -> Unit = {}) {
+        viewModelScope.launch {
+            if (!healthConnectManager.isAvailable) {
+                onResult("Google Health Connect tidak tersedia di perangkat ini.")
+                return@launch
+            }
+
+            if (!healthConnectManager.hasAllPermissions()) {
+                onResult("Izin Health Connect diperlukan.")
+                return@launch
+            }
+
+            try {
+                val metrics = healthConnectManager.readTodayMetrics()
+                val currentDailyLogId = (uiState.value as? HomeUiState.Success)?.summary?.dailyLogId
+                if (currentDailyLogId != null) {
+                    val existing = exerciseRepository.getExercisesForDailyLogDirect(currentDailyLogId)
+                        .find { it.exerciseType == com.fdev.nutrimindai.core.health.HealthConnectManager.HEALTH_CONNECT_EXERCISE_TYPE }
+
+                    if (existing != null) {
+                        exerciseRepository.deleteExercise(existing)
+                    }
+
+                    if (metrics.activeCalories > 0 || metrics.steps > 0) {
+                        exerciseRepository.addExercise(
+                            Exercise(
+                                id = 0,
+                                dailyLogId = currentDailyLogId,
+                                exerciseType = com.fdev.nutrimindai.core.health.HealthConnectManager.HEALTH_CONNECT_EXERCISE_TYPE,
+                                durationMinute = (metrics.steps / 100).toInt().coerceAtLeast(1),
+                                caloriesBurned = metrics.activeCalories,
+                                note = "Disinkronkan dari Google Health Connect (${metrics.steps} langkah)"
+                            )
+                        )
+                        onResult("Berhasil sinkronkan ${metrics.steps} langkah & ${metrics.activeCalories} kkal aktif!")
+                    } else {
+                        onResult("Health Connect: Belum ada data langkah/kalori aktif hari ini.")
+                    }
+                }
+            } catch (e: Exception) {
+                onResult("Gagal sinkronkan Health Connect: ${e.localizedMessage}")
+            }
+        }
+    }
 
     private val _uiState = MutableStateFlow<HomeUiState>(HomeUiState.Loading)
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
@@ -178,7 +235,7 @@ class HomeViewModel @Inject constructor(
                 )
 
                 TodaySummary(
-                    date = currentDate,
+                    date = dateToLoad,
                     dailyLogId = dailyLogId,
                     userName = profile?.name ?: "User",
                     userPhotoUrl = profile?.photoUrl,

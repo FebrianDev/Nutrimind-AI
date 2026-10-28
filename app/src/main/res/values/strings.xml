@@ -816,4 +816,75 @@
     <!-- Reset Feedback Strings -->
     <string name="profile_reset_data_success">Activity logs reset successfully.</string>
     <string name="profile_reset_data_error">Failed to reset activity logs.</string>
+
+    <!-- Dynamic Weight Projection -->
+    <string name="label_ai_projected">Estimasi AI</string>
+    <string name="label_scale_verified">Timbangan Aktual</string>
+    <string name="label_last_actual">Timbangan fisik terakhir: %1$.1f kg (%2$s)</string>
+    <string name="label_scale_verified_today">Tervalidasi timbangan fisik hari ini</string>
+    <string name="label_calibrate_scale">Timbang / Kalibrasi Aktual</string>
+    <string name="label_update_scale">Koreksi Timbangan</string>
+    <string name="label_earlier">sebelumnya</string>
+    <string name="label_from_caloric_balance">dari defisit kalori</string>
+    <string name="label_from_caloric_surplus">dari surplus kalori</string>
+    <string name="desc_calibrate_dialog">Masukkan hasil timbangan fisikmu untuk mengkalibrasi proyeksi metabolisme AI secara akurat.</string>
+
+    <!-- Fase 3 & 4 Strings -->
+    <string name="chart_tag_verified_scale">(Timbangan Fisik)</string>
+    <string name="chart_tag_projected_ai">(Estimasi AI)</string>
+    <string name="card_weekly_calibration_title">Waktunya Kalibrasi Mingguan 🎉</string>
+    <string name="card_weekly_calibration_desc">Kamu sudah konsisten menjaga nutrisi selama seminggu ini! Timbang fisik pagi ini untuk mencocokkan proyeksi AI dengan hasil nyatamu.</string>
+    <string name="btn_calibrate_now">Timbang Sekarang</string>
+    <string name="dialog_calibration_result_title">Hasil Kalibrasi Metabolisme AI</string>
+    <string name="label_scale_reading">Timbangan Fisik</string>
+    <string name="label_ai_prior_projection">Proyeksi Sebelumnya</string>
+    <string name="label_deviation">Deviasi</string>
+    <string name="btn_understand">Mengerti &amp; Lanjutkan</string>
+
+    <!-- Barcode Scanner Strings -->
+    <string name="food_scan_barcode_title">Pindai Barcode Kemasan</string>
+    <string name="food_scan_barcode_subtitle">Pindai barcode snack, susu, atau makanan kemasan</string>
+    <string name="scan_mode_food_ai">Foto Makanan</string>
+    <string name="scan_mode_barcode">Barcode Produk</string>
+    <string name="scan_barcode_hint">Arahkan kamera ke barcode produk kemasan</string>
+    <string name="scan_barcode_searching">Mencari data produk di Open Food Facts...</string>
+    <string name="scan_barcode_btn_tooltip">Pindai Barcode Kemasan</string>
+
+    <!-- PDF Export Strings -->
+    <string name="btn_export_pdf">Ekspor PDF</string>
+    <string name="exporting_pdf">Menyiapkan laporan PDF...</string>
+    <string name="export_pdf_success">Laporan PDF berhasil dibuat</string>
+    <string name="export_pdf_error">Gagal membuat laporan PDF</string>
+    <string name="cd_export_pdf">Ekspor Laporan PDF</string>
+
+    <!-- NutriChef AI (Smart Recipe Generator) Strings -->
+    <string name="nutrichef_title">NutriChef AI</string>
+    <string name="nutrichef_subtitle">Smart recipe ideas tailored to your remaining calorie budget</string>
+    <string name="nutrichef_card_title">Wondering What to Cook?</string>
+    <string name="nutrichef_card_desc">%1$d kcal remaining today. Let NutriChef craft a balanced, delicious meal!</string>
+    <string name="nutrichef_btn_generate">Ask Chef</string>
+    <string name="nutrichef_btn_log_meal">Log to Daily Journal</string>
+    <string name="nutrichef_generating">NutriChef is crafting nutritious recipes...</string>
+    <string name="nutrichef_empty">No recipes generated yet</string>
+    <string name="nutrichef_prep_time">%1$d Mins</string>
+    <string name="nutrichef_ingredients">Ingredients:</string>
+    <string name="nutrichef_instructions">Cooking Steps:</string>
+    <string name="nutrichef_added_success">Recipe logged to your daily journal successfully!</string>
+    <string name="nutrichef_remaining_budget">Today\'s Remaining Budget</string>
+    <string name="nutrichef_hide_details">Hide Ingredients &amp; Cooking Steps</string>
+    <string name="nutrichef_view_details">View Ingredients &amp; Cooking Steps (%1$d items)</string>
+    <string name="nutrichef_recipe_logged_toast">Recipe \'%1$s\' added to journal successfully!</string>
+    <string name="nutrichef_recipe_fail_toast">Failed to save recipe: %1$s</string>
+    <string name="meal_breakfast">Breakfast</string>
+    <string name="meal_lunch">Lunch</string>
+    <string name="meal_dinner">Dinner</string>
+    <string name="meal_snack">Snack</string>
+
+    <!-- Google Health Connect Strings -->
+    <string name="health_connect_title">Google Health Connect</string>
+    <string name="health_connect_sync">Sinkronkan Aktivitas</string>
+    <string name="health_connect_syncing">Menghubungkan ke Health Connect...</string>
+    <string name="health_connect_synced">Berhasil sinkronkan %1$d langkah &amp; %2$d kkal aktif</string>
+    <string name="health_connect_permission_needed">Izin Health Connect diperlukan untuk membaca langkah dan kalori aktif</string>
+    <string name="health_connect_not_available">Google Health Connect tidak tersedia di perangkat ini</string>
 </resources>

@@ -2,6 +2,8 @@ package com.fdev.nutrimindai.feature.dailyintake.presentation.exercise
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -30,6 +32,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.material.icons.filled.Sync
+import androidx.compose.material.icons.rounded.Watch
+import androidx.compose.ui.platform.LocalContext
+import androidx.health.connect.client.PermissionController
+import kotlinx.coroutines.launch
 import com.fdev.nutrimindai.R
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -44,6 +54,36 @@ fun ExerciseScreen(
     onNavigateToAddExercise: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+
+    val healthConnectPermissionLauncher = rememberLauncherForActivityResult(
+        contract = PermissionController.createRequestPermissionResultContract()
+    ) { granted ->
+        if (viewModel.healthConnectPermissions.all { it in granted }) {
+            viewModel.syncHealthConnect { msg ->
+                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            Toast.makeText(context, context.getString(R.string.health_connect_permission_needed), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    val onSyncClick: () -> Unit = {
+        if (!viewModel.isHealthConnectAvailable) {
+            Toast.makeText(context, context.getString(R.string.health_connect_not_available), Toast.LENGTH_SHORT).show()
+        } else {
+            coroutineScope.launch {
+                if (viewModel.hasHealthConnectPermissions()) {
+                    viewModel.syncHealthConnect { msg ->
+                        Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    healthConnectPermissionLauncher.launch(viewModel.healthConnectPermissions)
+                }
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -52,6 +92,15 @@ fun ExerciseScreen(
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.scan_btn_back))
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onSyncClick) {
+                        Icon(
+                            imageVector = Icons.Default.Sync,
+                            contentDescription = stringResource(R.string.health_connect_sync),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
                     }
                 }
             )
@@ -94,7 +143,7 @@ fun ExerciseScreen(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(horizontal = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(20.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
                         contentPadding = PaddingValues(top = 8.dp, bottom = 88.dp)
                     ) {
                         item {
@@ -105,11 +154,15 @@ fun ExerciseScreen(
                         }
 
                         item {
+                            HealthConnectSyncBanner(onSyncClick = onSyncClick)
+                        }
+
+                        item {
                             Text(
                                 text = stringResource(R.string.exercise_todays_title),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(top = 8.dp)
+                                modifier = Modifier.padding(top = 4.dp)
                             )
                         }
 
@@ -375,6 +428,7 @@ fun AddExerciseScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .verticalScroll(rememberScrollState())
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
@@ -534,5 +588,82 @@ fun ExerciseTypeItem(name: String, icon: ImageVector, isSelected: Boolean, onCli
             color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
         )
+    }
+}
+
+@Composable
+fun HealthConnectSyncBanner(
+    onSyncClick: () -> Unit
+) {
+    Surface(
+        onClick = onSyncClick,
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.25f)),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(
+                modifier = Modifier.weight(1f),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Watch,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+
+                Column {
+                    Text(
+                        text = stringResource(R.string.health_connect_title),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "Sinkronkan langkah & kalori aktif dari Smartwatch",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            Surface(
+                shape = RoundedCornerShape(8.dp),
+                color = MaterialTheme.colorScheme.primary
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Sync,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Text(
+                        text = "Sync",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+            }
+        }
     }
 }

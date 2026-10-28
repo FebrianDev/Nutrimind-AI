@@ -13,12 +13,14 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -42,8 +44,19 @@ import com.fdev.nutrimindai.feature.home.presentation.components.IntakeSection
 import com.fdev.nutrimindai.feature.home.presentation.components.MissionSection
 import com.fdev.nutrimindai.feature.home.presentation.components.NutritionData
 import com.fdev.nutrimindai.feature.home.presentation.components.NutritionSection
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.AutoAwesome
+import androidx.compose.material.icons.rounded.RestaurantMenu
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
+import androidx.compose.ui.draw.clip
+import com.fdev.nutrimindai.feature.dailyintake.presentation.nutrichef.NutriChefBottomSheet
 import com.fdev.nutrimindai.feature.home.presentation.components.ReopenConfirmationDialog
 import com.fdev.nutrimindai.core.model.Goal
+import kotlinx.coroutines.launch
 import java.util.Locale
 
 @Composable
@@ -61,6 +74,38 @@ fun HomeScreen(
 
     var showCompleteDialog by remember { mutableStateOf(false) }
     var showReopenDialog by remember { mutableStateOf(false) }
+    var showNutriChefBottomSheet by remember { mutableStateOf(false) }
+
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+
+    val healthConnectPermissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        contract = androidx.health.connect.client.PermissionController.createRequestPermissionResultContract()
+    ) { granted ->
+        if (viewModel.healthConnectPermissions.all { it in granted }) {
+            viewModel.syncHealthConnect { msg ->
+                android.widget.Toast.makeText(context, msg, android.widget.Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            android.widget.Toast.makeText(context, context.getString(R.string.health_connect_permission_needed), android.widget.Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    val onSyncHealthConnect: () -> Unit = {
+        if (!viewModel.isHealthConnectAvailable) {
+            android.widget.Toast.makeText(context, context.getString(R.string.health_connect_not_available), android.widget.Toast.LENGTH_SHORT).show()
+        } else {
+            coroutineScope.launch {
+                if (viewModel.hasHealthConnectPermissions()) {
+                    viewModel.syncHealthConnect { msg ->
+                        android.widget.Toast.makeText(context, msg, android.widget.Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    healthConnectPermissionLauncher.launch(viewModel.healthConnectPermissions)
+                }
+            }
+        }
+    }
 
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
@@ -96,6 +141,15 @@ fun HomeScreen(
             onConfirm = {
                 showReopenDialog = false
                 viewModel.reopenToday()
+            }
+        )
+    }
+
+    if (showNutriChefBottomSheet) {
+        NutriChefBottomSheet(
+            onDismiss = { showNutriChefBottomSheet = false },
+            onMealLogged = {
+                viewModel.checkDateAndReloadIfNeeded()
             }
         )
     }
@@ -150,6 +204,8 @@ fun HomeScreen(
                 onNavigateToWater = onNavigateToWater,
                 onNavigateToExercise = onNavigateToExercise,
                 onNavigateToDailyReview = onNavigateToDailyReview,
+                onOpenNutriChef = { showNutriChefBottomSheet = true },
+                onSyncHealthConnect = onSyncHealthConnect,
                 onCompleteTodayClick = { showCompleteDialog = true },
                 onReopenTodayClick = { showReopenDialog = true }
             )
@@ -168,6 +224,8 @@ fun HomeContent(
     onNavigateToWater: () -> Unit,
     onNavigateToExercise: () -> Unit,
     onNavigateToDailyReview: (String) -> Unit = {},
+    onOpenNutriChef: () -> Unit = {},
+    onSyncHealthConnect: (() -> Unit)? = null,
     onCompleteTodayClick: () -> Unit,
     onReopenTodayClick: () -> Unit
 ) {
@@ -247,7 +305,15 @@ fun HomeContent(
                 water = water
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            val remainingCalories = (nutrition.goalCalories - nutrition.calories).coerceAtLeast(0)
+            if (remainingCalories > 100 && summary.status != DailyLogStatus.COMPLETED) {
+                Spacer(modifier = Modifier.height(20.dp))
+                NutriChefCard(
+                    remainingCalories = remainingCalories,
+                    onOpenNutriChef = onOpenNutriChef
+                )
+            }
+
 
             IntakeSection(
                 breakfastCalories = summary.breakfastList.sumOf { it.calories },
@@ -262,7 +328,8 @@ fun HomeContent(
                         "Exercise" -> onNavigateToExercise()
                         else -> onNavigateToMealDetail(mealType)
                     }
-                }
+                },
+                onSyncHealthConnect = onSyncHealthConnect
             )
         }
 
@@ -472,6 +539,95 @@ private fun formatExerciseSummary(totalMinutes: Int): String {
         stringResource(R.string.home_intake_exercise_format, totalMinutes)
     } else {
         stringResource(R.string.home_intake_not_logged)
+    }
+}
+
+/**
+ * NutriChefCard prompts the user with remaining calorie budget recommendations
+ * and invites them to open the AI Chef recipe generator.
+ *
+ * @param remainingCalories The remaining daily calorie budget for the user.
+ * @param onOpenNutriChef Callback invoked when the card or button is tapped.
+ */
+@Composable
+fun NutriChefCard(
+    remainingCalories: Int,
+    onOpenNutriChef: () -> Unit
+) {
+    Surface(
+        onClick = onOpenNutriChef,
+        shape = RoundedCornerShape(18.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(
+                modifier = Modifier.weight(1f),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(
+                            Brush.linearGradient(
+                                listOf(Color(0xFFFF9800), Color(0xFFFF5722))
+                            )
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.RestaurantMenu,
+                        contentDescription = stringResource(R.string.nutrichef_title),
+                        tint = Color.White,
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+
+                Column {
+                    Text(
+                        text = stringResource(R.string.nutrichef_card_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = stringResource(R.string.nutrichef_card_desc, remainingCalories),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            Surface(
+                shape = RoundedCornerShape(10.dp),
+                color = MaterialTheme.colorScheme.primaryContainer
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.AutoAwesome,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Text(
+                        text = stringResource(R.string.nutrichef_btn_generate),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+        }
     }
 }
 
