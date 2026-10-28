@@ -82,7 +82,7 @@ class CameraScanViewModel @Inject constructor(
             }.onFailure { error ->
                 Timber.e(error, "Failed to analyze barcode product")
                 _uiState.value = CameraScanUiState.Error(
-                    error.message ?: "Produk barcode tidak ditemukan di database. Silakan coba pindai kembali atau tambahkan manual."
+                    error.message ?: "Product barcode was not found in the database. Please try scanning again or enter manually."
                 )
             }
         }

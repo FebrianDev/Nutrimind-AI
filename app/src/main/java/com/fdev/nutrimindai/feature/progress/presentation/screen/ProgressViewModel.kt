@@ -91,7 +91,8 @@ data class ProgressData(
     val weeklyTrendPoints: List<DailyTrendPoint> = emptyList(),
     val dailyReviews: List<DailyReviewData> = emptyList(),
     val aiInsight: String = "",
-    val selectedFilter: DateRangeFilter = DateRangeFilter.Last7Days
+    val selectedFilter: DateRangeFilter = DateRangeFilter.Last7Days,
+    val userName: String = "Champion"
 )
 
 sealed class ProgressUiState {
@@ -451,6 +452,8 @@ class ProgressViewModel @Inject constructor(
             goalWater = targetWater
         )
 
+        val userName = profile?.name?.ifBlank { "Champion" } ?: "Champion"
+
         return ProgressData(
             goalData = goalData,
             todayNutrition = todayNutrition,
@@ -463,7 +466,8 @@ class ProgressViewModel @Inject constructor(
             weeklyTrendPoints = trendPoints,
             dailyReviews = reviews,
             aiInsight = aiInsight,
-            selectedFilter = filter
+            selectedFilter = filter,
+            userName = userName
         )
     }
 

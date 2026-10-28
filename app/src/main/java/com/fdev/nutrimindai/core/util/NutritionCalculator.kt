@@ -243,8 +243,8 @@ object NutritionCalculator {
                     projectedWeight = projectedWeight,
                     deviationKg = deviation,
                     statusEmoji = "🎯",
-                    title = "Akurasi Tinggi (>95%)",
-                    feedbackMessage = "Proyeksi AI dan metabolisme tubuhmu sangat sinkron! Pola makan dan pengeluaran energimu sesuai dengan model TDEE teoretis. Teruskan konsistensi ini!",
+                    title = "High Precision (>95%)",
+                    feedbackMessage = "Your AI projection and metabolism are highly synchronized! Your diet and energy expenditure match your theoretical TDEE model. Keep up the consistency!",
                     isAccurate = true
                 )
             }
@@ -254,8 +254,8 @@ object NutritionCalculator {
                     projectedWeight = projectedWeight,
                     deviationKg = deviation,
                     statusEmoji = "🔥",
-                    title = "Pembakaran Lebih Cepat",
-                    feedbackMessage = "Berat fisikmu turun ${abs(deviation)} kg lebih banyak dari proyeksi! Kemungkinan Total Daily Energy Expenditure (TDEE) atau aktivitas harianmu lebih tinggi dari perkiraan.",
+                    title = "Higher Energy Expenditure",
+                    feedbackMessage = "Your scale weight is ${abs(deviation)} kg lower than projected! Your Total Daily Energy Expenditure (TDEE) or active daily movement may be higher than estimated.",
                     isAccurate = false
                 )
             }
@@ -265,8 +265,8 @@ object NutritionCalculator {
                     projectedWeight = projectedWeight,
                     deviationKg = deviation,
                     statusEmoji = "💧",
-                    title = "Fluktuasi Cairan & Adaptasi",
-                    feedbackMessage = "Berat fisik tercatat +$deviation kg dari proyeksi. Ini sangat wajar akibat retensi cairan (sodium/karbohidrat) atau transit pencernaan, bukan kenaikan lemak murni. AI telah menyelaraskan baseline timbanganmu.",
+                    title = "Fluid Fluctuation & Adaptation",
+                    feedbackMessage = "Scale weight recorded +$deviation kg compared to projection. This is common due to water retention (sodium/carbs) or digestive contents rather than fat gain. AI has recalibrated your baseline scale weight.",
                     isAccurate = false
                 )
             }

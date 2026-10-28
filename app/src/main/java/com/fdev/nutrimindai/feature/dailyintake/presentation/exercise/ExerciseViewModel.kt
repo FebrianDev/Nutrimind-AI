@@ -61,12 +61,12 @@ class ExerciseViewModel @Inject constructor(
     fun syncHealthConnect(onResult: (String) -> Unit = {}) {
         viewModelScope.launch {
             if (!healthConnectManager.isAvailable) {
-                onResult("Google Health Connect tidak tersedia di perangkat ini.")
+                onResult("Google Health Connect is not available on this device.")
                 return@launch
             }
 
             if (!healthConnectManager.hasAllPermissions()) {
-                onResult("Izin Health Connect diperlukan.")
+                onResult("Health Connect permission is required.")
                 return@launch
             }
 
@@ -88,15 +88,15 @@ class ExerciseViewModel @Inject constructor(
                             exerciseType = HealthConnectManager.HEALTH_CONNECT_EXERCISE_TYPE,
                             durationMinute = (metrics.steps / 100).toInt().coerceAtLeast(1),
                             caloriesBurned = metrics.activeCalories,
-                            note = "Disinkronkan dari Google Health Connect (${metrics.steps} langkah)"
+                            note = "Synced from Google Health Connect (${metrics.steps} steps)"
                         )
                     )
-                    onResult("Berhasil sinkronkan ${metrics.steps} langkah & ${metrics.activeCalories} kkal!")
+                    onResult("Successfully synced ${metrics.steps} steps & ${metrics.activeCalories} kcal!")
                 } else {
-                    onResult("Health Connect: Belum ada data langkah/kalori aktif hari ini.")
+                    onResult("Health Connect: No steps or active calorie data logged today.")
                 }
             } catch (e: Exception) {
-                onResult("Gagal sinkronkan Health Connect: ${e.localizedMessage}")
+                onResult("Failed to sync Health Connect: ${e.localizedMessage}")
             }
         }
     }

@@ -818,44 +818,44 @@
     <string name="profile_reset_data_error">Failed to reset activity logs.</string>
 
     <!-- Dynamic Weight Projection -->
-    <string name="label_ai_projected">Estimasi AI</string>
-    <string name="label_scale_verified">Timbangan Aktual</string>
-    <string name="label_last_actual">Timbangan fisik terakhir: %1$.1f kg (%2$s)</string>
-    <string name="label_scale_verified_today">Tervalidasi timbangan fisik hari ini</string>
-    <string name="label_calibrate_scale">Timbang / Kalibrasi Aktual</string>
-    <string name="label_update_scale">Koreksi Timbangan</string>
-    <string name="label_earlier">sebelumnya</string>
-    <string name="label_from_caloric_balance">dari defisit kalori</string>
-    <string name="label_from_caloric_surplus">dari surplus kalori</string>
-    <string name="desc_calibrate_dialog">Masukkan hasil timbangan fisikmu untuk mengkalibrasi proyeksi metabolisme AI secara akurat.</string>
+    <string name="label_ai_projected">AI Projected</string>
+    <string name="label_scale_verified">Scale Verified</string>
+    <string name="label_last_actual">Last scale weight: %1$.1f kg (%2$s)</string>
+    <string name="label_scale_verified_today">Verified by physical scale today</string>
+    <string name="label_calibrate_scale">Calibrate Scale Weight</string>
+    <string name="label_update_scale">Update Scale Weight</string>
+    <string name="label_earlier">earlier</string>
+    <string name="label_from_caloric_balance">from caloric deficit</string>
+    <string name="label_from_caloric_surplus">from caloric surplus</string>
+    <string name="desc_calibrate_dialog">Enter your physical scale measurement to accurately calibrate AI metabolic projections.</string>
 
-    <!-- Fase 3 & 4 Strings -->
-    <string name="chart_tag_verified_scale">(Timbangan Fisik)</string>
-    <string name="chart_tag_projected_ai">(Estimasi AI)</string>
-    <string name="card_weekly_calibration_title">Waktunya Kalibrasi Mingguan 🎉</string>
-    <string name="card_weekly_calibration_desc">Kamu sudah konsisten menjaga nutrisi selama seminggu ini! Timbang fisik pagi ini untuk mencocokkan proyeksi AI dengan hasil nyatamu.</string>
-    <string name="btn_calibrate_now">Timbang Sekarang</string>
-    <string name="dialog_calibration_result_title">Hasil Kalibrasi Metabolisme AI</string>
-    <string name="label_scale_reading">Timbangan Fisik</string>
-    <string name="label_ai_prior_projection">Proyeksi Sebelumnya</string>
-    <string name="label_deviation">Deviasi</string>
-    <string name="btn_understand">Mengerti &amp; Lanjutkan</string>
+    <!-- Phase 3 & 4 Strings -->
+    <string name="chart_tag_verified_scale">(Scale Verified)</string>
+    <string name="chart_tag_projected_ai">(AI Projected)</string>
+    <string name="card_weekly_calibration_title">Weekly Calibration Time 🎉</string>
+    <string name="card_weekly_calibration_desc">You\'ve been consistent with your nutrition this week! Weigh yourself this morning to align AI projections with real results.</string>
+    <string name="btn_calibrate_now">Weigh In Now</string>
+    <string name="dialog_calibration_result_title">AI Metabolic Calibration Result</string>
+    <string name="label_scale_reading">Physical Scale Reading</string>
+    <string name="label_ai_prior_projection">Prior AI Projection</string>
+    <string name="label_deviation">Deviation</string>
+    <string name="btn_understand">Understand &amp; Continue</string>
 
     <!-- Barcode Scanner Strings -->
-    <string name="food_scan_barcode_title">Pindai Barcode Kemasan</string>
-    <string name="food_scan_barcode_subtitle">Pindai barcode snack, susu, atau makanan kemasan</string>
-    <string name="scan_mode_food_ai">Foto Makanan</string>
-    <string name="scan_mode_barcode">Barcode Produk</string>
-    <string name="scan_barcode_hint">Arahkan kamera ke barcode produk kemasan</string>
-    <string name="scan_barcode_searching">Mencari data produk di Open Food Facts...</string>
-    <string name="scan_barcode_btn_tooltip">Pindai Barcode Kemasan</string>
+    <string name="food_scan_barcode_title">Scan Product Barcode</string>
+    <string name="food_scan_barcode_subtitle">Scan barcode for packaged food or beverages</string>
+    <string name="scan_mode_food_ai">Food Photo</string>
+    <string name="scan_mode_barcode">Product Barcode</string>
+    <string name="scan_barcode_hint">Point camera at product barcode</string>
+    <string name="scan_barcode_searching">Searching product data on Open Food Facts...</string>
+    <string name="scan_barcode_btn_tooltip">Scan Product Barcode</string>
 
     <!-- PDF Export Strings -->
-    <string name="btn_export_pdf">Ekspor PDF</string>
-    <string name="exporting_pdf">Menyiapkan laporan PDF...</string>
-    <string name="export_pdf_success">Laporan PDF berhasil dibuat</string>
-    <string name="export_pdf_error">Gagal membuat laporan PDF</string>
-    <string name="cd_export_pdf">Ekspor Laporan PDF</string>
+    <string name="btn_export_pdf">Export</string>
+    <string name="exporting_pdf">Preparing PDF report...</string>
+    <string name="export_pdf_success">PDF report created successfully</string>
+    <string name="export_pdf_error">Failed to create PDF report</string>
+    <string name="cd_export_pdf">Export PDF Report</string>
 
     <!-- NutriChef AI (Smart Recipe Generator) Strings -->
     <string name="nutrichef_title">NutriChef AI</string>
@@ -882,9 +882,11 @@
 
     <!-- Google Health Connect Strings -->
     <string name="health_connect_title">Google Health Connect</string>
-    <string name="health_connect_sync">Sinkronkan Aktivitas</string>
-    <string name="health_connect_syncing">Menghubungkan ke Health Connect...</string>
-    <string name="health_connect_synced">Berhasil sinkronkan %1$d langkah &amp; %2$d kkal aktif</string>
-    <string name="health_connect_permission_needed">Izin Health Connect diperlukan untuk membaca langkah dan kalori aktif</string>
-    <string name="health_connect_not_available">Google Health Connect tidak tersedia di perangkat ini</string>
+    <string name="health_connect_sync">Sync Activity</string>
+    <string name="health_connect_sync_subtitle">Sync steps &amp; active calories from Smartwatch</string>
+    <string name="health_connect_syncing">Connecting to Health Connect...</string>
+    <string name="health_connect_synced">Successfully synced %1$d steps &amp; %2$d active kcal</string>
+    <string name="health_connect_permission_needed">Health Connect permission is required to read steps and active calories</string>
+    <string name="health_connect_not_available">Google Health Connect is not available on this device</string>
+    <string name="label_yesterday">Yesterday</string>
 </resources>

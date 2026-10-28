@@ -281,22 +281,6 @@ fun HomeContent(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            CoachInsightCard(
-                tipText = coachingTip,
-                isGenerating = isGeneratingTip,
-                provider = activeProvider,
-                onRefreshClick = onRefreshTip
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            MissionSection(
-                userGoal = summary.userGoal,
-                missions = missions
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
-
             NutritionSection(
                 calories = calories,
                 protein = protein,
@@ -305,15 +289,7 @@ fun HomeContent(
                 water = water
             )
 
-            val remainingCalories = (nutrition.goalCalories - nutrition.calories).coerceAtLeast(0)
-            if (remainingCalories > 100 && summary.status != DailyLogStatus.COMPLETED) {
-                Spacer(modifier = Modifier.height(20.dp))
-                NutriChefCard(
-                    remainingCalories = remainingCalories,
-                    onOpenNutriChef = onOpenNutriChef
-                )
-            }
-
+            Spacer(modifier = Modifier.height(20.dp))
 
             IntakeSection(
                 breakfastCalories = summary.breakfastList.sumOf { it.calories },
@@ -330,6 +306,31 @@ fun HomeContent(
                     }
                 },
                 onSyncHealthConnect = onSyncHealthConnect
+            )
+
+            val remainingCalories = (nutrition.goalCalories - nutrition.calories).coerceAtLeast(0)
+            if (remainingCalories > 100 && summary.status != DailyLogStatus.COMPLETED) {
+                Spacer(modifier = Modifier.height(20.dp))
+                NutriChefCard(
+                    remainingCalories = remainingCalories,
+                    onOpenNutriChef = onOpenNutriChef
+                )
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            CoachInsightCard(
+                tipText = coachingTip,
+                isGenerating = isGeneratingTip,
+                provider = activeProvider,
+                onRefreshClick = onRefreshTip
+            )
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            MissionSection(
+                userGoal = summary.userGoal,
+                missions = missions
             )
         }
 

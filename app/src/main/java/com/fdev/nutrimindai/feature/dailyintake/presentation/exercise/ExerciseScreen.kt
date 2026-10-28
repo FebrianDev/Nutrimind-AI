@@ -634,7 +634,7 @@ fun HealthConnectSyncBanner(
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "Sinkronkan langkah & kalori aktif dari Smartwatch",
+                        text = stringResource(R.string.health_connect_sync_subtitle),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

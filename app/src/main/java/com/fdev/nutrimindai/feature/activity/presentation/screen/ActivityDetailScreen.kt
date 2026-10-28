@@ -26,6 +26,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.fdev.nutrimindai.feature.home.presentation.components.CompleteConfirmationDialog
+import com.fdev.nutrimindai.feature.home.presentation.components.ReopenConfirmationDialog
 import com.fdev.nutrimindai.feature.progress.presentation.components.ShareSummaryBottomSheet
 import com.fdev.nutrimindai.feature.progress.presentation.screen.AISummarySection
 import com.fdev.nutrimindai.R
@@ -76,6 +78,8 @@ private fun ActivityDetailContent(
 ) {
     val isDraft = data.status.equals("Draft", ignoreCase = true)
     var showShareSheet by remember { mutableStateOf(false) }
+    var showCompleteDialog by remember { mutableStateOf(false) }
+    var showReopenDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -116,6 +120,67 @@ private fun ActivityDetailContent(
                     }
                 }
             )
+        },
+        bottomBar = {
+            if (data.isToday) {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.background,
+                    tonalElevation = 6.dp,
+                    shadowElevation = 8.dp
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .navigationBarsPadding()
+                            .padding(horizontal = 16.dp, vertical = 12.dp)
+                    ) {
+                        if (isDraft) {
+                            Button(
+                                onClick = { showCompleteDialog = true },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = LightSuccess)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center,
+                                    modifier = Modifier.padding(vertical = 8.dp)
+                                ) {
+                                    Icon(Icons.Default.CheckCircle, contentDescription = null)
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                        Text(text = stringResource(R.string.btn_complete_today), fontWeight = FontWeight.Bold)
+                                        Text(text = stringResource(R.string.complete_today_desc), fontSize = 10.sp)
+                                    }
+                                }
+                            }
+                        } else {
+                            OutlinedButton(
+                                onClick = { showReopenDialog = true },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp),
+                                border = ButtonDefaults.outlinedButtonBorder().copy(width = 0.5.dp),
+                                colors = ButtonDefaults.outlinedButtonColors(containerColor = MaterialTheme.colorScheme.surface)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center,
+                                    modifier = Modifier.padding(vertical = 8.dp)
+                                ) {
+                                    Icon(Icons.Default.Edit, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface)
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = stringResource(R.string.home_btn_reopen_journal),
+                                        color = MaterialTheme.colorScheme.onSurface,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     ) { paddingValues ->
         Column(
@@ -138,72 +203,56 @@ private fun ActivityDetailContent(
 
             DailyScoreCard(score = data.healthScore)
 
-            if (data.isToday && isDraft) {
+            // Only show AI Evaluation & Share summary if the day is Completed
+            if (!isDraft) {
+                // Meta AI Daily Clinical Evaluation
+                AISummarySection(summary = data.aiSummary)
+
+                // Share Summary Card Button
                 Button(
-                    onClick = onCompleteTodayClick,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = LightSuccess)
+                    onClick = { showShareSheet = true },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    ) {
-                        Icon(Icons.Default.CheckCircle, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(text = stringResource(R.string.btn_complete_today), fontWeight = FontWeight.Bold)
-                            Text(text = stringResource(R.string.complete_today_desc), fontSize = 10.sp)
-                        }
-                    }
+                    Icon(
+                        imageVector = Icons.Default.Share,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(R.string.share_summary_btn),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
-            } else if (data.isToday && !isDraft) {
-                OutlinedButton(
-                    onClick = onReopenTodayClick,
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    border = ButtonDefaults.outlinedButtonBorder().copy(width = 0.5.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    ) {
-                        Icon(Icons.Default.Edit, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = stringResource(R.string.home_btn_reopen_journal), color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
-                    }
-                }
-            }
-
-            // Meta AI Daily Clinical Evaluation
-            AISummarySection(summary = data.aiSummary)
-
-            // Share Summary Card Button
-            Button(
-                onClick = { showShareSheet = true },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Share,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = stringResource(R.string.share_summary_btn),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold
-                )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
         }
+    }
+
+    if (showCompleteDialog) {
+        CompleteConfirmationDialog(
+            onDismissRequest = { showCompleteDialog = false },
+            onConfirm = {
+                showCompleteDialog = false
+                onCompleteTodayClick()
+            }
+        )
+    }
+
+    if (showReopenDialog) {
+        ReopenConfirmationDialog(
+            onDismissRequest = { showReopenDialog = false },
+            onConfirm = {
+                showReopenDialog = false
+                onReopenTodayClick()
+            }
+        )
     }
 
     if (showShareSheet) {

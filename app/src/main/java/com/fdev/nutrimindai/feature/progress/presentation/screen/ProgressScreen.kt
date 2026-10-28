@@ -1,8 +1,19 @@
 package com.fdev.nutrimindai.feature.progress.presentation.screen
 
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -10,16 +21,56 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.AdsClick
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Celebration
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.LocalFireDepartment
+import androidx.compose.material.icons.filled.PictureAsPdf
+import androidx.compose.material.icons.filled.Scale
+import androidx.compose.material.icons.filled.SmartToy
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material.icons.rounded.AutoAwesome
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DatePickerDefaults
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DateRangePicker
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDateRangePickerState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -28,12 +79,14 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fdev.nutrimindai.R
-import com.fdev.nutrimindai.core.designsystem.*
+import com.fdev.nutrimindai.core.designsystem.LightSuccess
+import com.fdev.nutrimindai.core.designsystem.NutritionCalories
+import com.fdev.nutrimindai.core.designsystem.NutritionExercise
+import com.fdev.nutrimindai.core.designsystem.NutritionProtein
+import com.fdev.nutrimindai.core.designsystem.NutritionWater
 import com.fdev.nutrimindai.core.util.AdaptiveCalibrationResult
-import com.fdev.nutrimindai.feature.progress.presentation.components.ProgressTrendChart
-import androidx.compose.ui.platform.LocalContext
-import android.widget.Toast
 import com.fdev.nutrimindai.core.util.NutritionPdfReportGenerator
+import com.fdev.nutrimindai.feature.progress.presentation.components.ProgressTrendChart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -55,7 +108,8 @@ fun ProgressScreen(
     var showCustomDatePicker by remember { mutableStateOf(false) }
     var showLogWeightDialog by remember { mutableStateOf(false) }
 
-    val currentFilter = (uiState as? ProgressUiState.Success)?.data?.selectedFilter ?: DateRangeFilter.Last7Days
+    val currentFilter =
+        (uiState as? ProgressUiState.Success)?.data?.selectedFilter ?: DateRangeFilter.Last7Days
     val filterLabel = currentFilter.getLabel()
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -72,14 +126,18 @@ fun ProgressScreen(
                             NutritionPdfReportGenerator.generateReport(
                                 context = context,
                                 data = successData,
-                                userName = "Pengguna Nutrimind"
+                                userName = successData.userName
                             )
                         }
                         isExportingPdf = false
                         if (file != null) {
                             NutritionPdfReportGenerator.sharePdf(context, file)
                         } else {
-                            Toast.makeText(context, context.getString(R.string.export_pdf_error), Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.export_pdf_error),
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     }
                 }
@@ -95,6 +153,7 @@ fun ProgressScreen(
                     CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                 }
             }
+
             is ProgressUiState.Error -> {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -106,6 +165,7 @@ fun ProgressScreen(
                     )
                 }
             }
+
             is ProgressUiState.Empty -> {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -118,6 +178,7 @@ fun ProgressScreen(
                     )
                 }
             }
+
             is ProgressUiState.Success -> {
                 ProgressContent(
                     data = state.data,
@@ -200,6 +261,7 @@ private fun ProgressContent(
             trendPoints = data.weeklyTrendPoints,
             onDetailClick = onNavigateToTrendDetail
         )
+
         AIInsightCard(insightText = data.aiInsight)
     }
 }
@@ -224,6 +286,9 @@ fun ProgressHeader(
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold
             )
+
+            Spacer(Modifier.height(4.dp))
+
             Text(
                 text = stringResource(R.string.progress_subtitle),
                 style = MaterialTheme.typography.bodyMedium,
@@ -231,9 +296,9 @@ fun ProgressHeader(
             )
         }
 
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
             Surface(
                 onClick = onExportPdfClick,
@@ -415,7 +480,10 @@ fun GoalProgressCard(
                             Surface(
                                 color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f),
                                 shape = RoundedCornerShape(8.dp),
-                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
+                                border = BorderStroke(
+                                    1.dp,
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+                                )
                             ) {
                                 Row(
                                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
@@ -471,7 +539,8 @@ fun GoalProgressCard(
                             text = stringResource(
                                 R.string.label_last_actual,
                                 goalData.lastActualWeightKg,
-                                goalData.lastActualWeightDate ?: stringResource(R.string.label_earlier)
+                                goalData.lastActualWeightDate
+                                    ?: stringResource(R.string.label_earlier)
                             ),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -484,7 +553,13 @@ fun GoalProgressCard(
                                 stringResource(R.string.label_from_caloric_surplus)
                             }
                             Text(
-                                text = "$prefix${String.format(Locale.US, "%.1f", goalData.projectedDeltaKg)} kg $explanation",
+                                text = "$prefix${
+                                    String.format(
+                                        Locale.US,
+                                        "%.1f",
+                                        goalData.projectedDeltaKg
+                                    )
+                                } kg $explanation",
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.SemiBold,
                                 color = if (goalData.projectedDeltaKg < 0) LightSuccess else MaterialTheme.colorScheme.primary
@@ -730,12 +805,21 @@ fun TrendSection(
         }
     }
 
+    val selectedMetricLabel = when (selectedMetric) {
+        "Calories" -> stringResource(R.string.home_label_calories)
+        "Protein" -> stringResource(R.string.label_protein)
+        "Water" -> stringResource(R.string.label_water)
+        "Weight" -> stringResource(R.string.label_weight)
+        "Exercise" -> stringResource(R.string.label_activity)
+        else -> selectedMetric
+    }
+
     val unit = when (selectedMetric) {
-        "Calories" -> "kcal"
-        "Protein" -> "g"
-        "Water" -> "L"
-        "Weight" -> "kg"
-        "Exercise" -> "min"
+        "Calories" -> stringResource(R.string.unit_kcal)
+        "Protein" -> stringResource(R.string.unit_grams)
+        "Water" -> stringResource(R.string.unit_liters)
+        "Weight" -> stringResource(R.string.unit_kg)
+        "Exercise" -> stringResource(R.string.unit_minutes)
         else -> ""
     }
 
@@ -754,6 +838,18 @@ fun TrendSection(
         "Exercise" -> NutritionExercise
         else -> MaterialTheme.colorScheme.primary
     }
+
+    val activePoints = dataPoints.filter { it > 0f }
+    val percentChangeStr = if (activePoints.size >= 2) {
+        val half = (activePoints.size / 2).coerceAtLeast(1)
+        val firstHalfAvg = activePoints.take(half).average()
+        val secondHalfAvg = activePoints.takeLast(half).average()
+        if (firstHalfAvg > 0) {
+            val diff = ((secondHalfAvg - firstHalfAvg) / firstHalfAvg) * 100.0
+            val prefix = if (diff >= 0) "+" else ""
+            "$prefix${String.format(Locale.US, "%.1f", diff)}%"
+        } else "+0%"
+    } else "+0%"
 
     Card(
         onClick = { onDetailClick(selectedMetric) },
@@ -814,7 +910,7 @@ fun TrendSection(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = selectedMetric,
+                                    text = selectedMetricLabel,
                                     style = MaterialTheme.typography.labelMedium
                                 )
                                 Icon(
@@ -829,8 +925,16 @@ fun TrendSection(
                             onDismissRequest = { expanded = false }
                         ) {
                             metrics.forEach { metric ->
+                                val label = when (metric) {
+                                    "Calories" -> stringResource(R.string.home_label_calories)
+                                    "Protein" -> stringResource(R.string.label_protein)
+                                    "Water" -> stringResource(R.string.label_water)
+                                    "Weight" -> stringResource(R.string.label_weight)
+                                    "Exercise" -> stringResource(R.string.label_activity)
+                                    else -> metric
+                                }
                                 DropdownMenuItem(
-                                    text = { Text(metric) },
+                                    text = { Text(label) },
                                     onClick = {
                                         selectedMetric = metric
                                         expanded = false
@@ -849,7 +953,7 @@ fun TrendSection(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "+5%",
+                                text = percentChangeStr,
                                 style = MaterialTheme.typography.labelSmall,
                                 color = LightSuccess,
                                 fontWeight = FontWeight.Bold
@@ -1011,8 +1115,13 @@ fun DailyReviewItem(data: DailyReviewData, onClick: () -> Unit) {
             }
 
             Column(modifier = Modifier.weight(1f)) {
+                val displayDay = when (data.day) {
+                    "Today" -> stringResource(R.string.activity_detail_today)
+                    "Yesterday" -> stringResource(R.string.label_yesterday)
+                    else -> data.day
+                }
                 Text(
-                    text = data.day,
+                    text = displayDay,
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold
                 )
@@ -1030,8 +1139,15 @@ fun DailyReviewItem(data: DailyReviewData, onClick: () -> Unit) {
                     fontWeight = FontWeight.Bold,
                     color = data.color
                 )
+                val statusLabel = when (data.status) {
+                    "Excellent" -> stringResource(R.string.status_excellent)
+                    "Good" -> stringResource(R.string.status_good)
+                    "Fair" -> stringResource(R.string.status_fair)
+                    "Needs Attention" -> stringResource(R.string.status_needs_attention)
+                    else -> data.status
+                }
                 Text(
-                    text = data.status,
+                    text = statusLabel,
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -1091,11 +1207,15 @@ fun DateFilterBottomSheet(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp),
                     colors = CardDefaults.outlinedCardColors(
-                        containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f) else MaterialTheme.colorScheme.surface
+                        containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(
+                            alpha = 0.4f
+                        ) else MaterialTheme.colorScheme.surface
                     ),
                     border = CardDefaults.outlinedCardBorder().copy(
                         width = if (isSelected) 1.5.dp else 0.5.dp,
-                        brush = if (isSelected) androidx.compose.ui.graphics.SolidColor(MaterialTheme.colorScheme.primary) else CardDefaults.outlinedCardBorder().brush
+                        brush = if (isSelected) androidx.compose.ui.graphics.SolidColor(
+                            MaterialTheme.colorScheme.primary
+                        ) else CardDefaults.outlinedCardBorder().brush
                     )
                 ) {
                     Row(
@@ -1133,7 +1253,9 @@ fun DateFilterBottomSheet(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(14.dp),
                 colors = CardDefaults.outlinedCardColors(
-                    containerColor = if (isCustom) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f) else MaterialTheme.colorScheme.surface
+                    containerColor = if (isCustom) MaterialTheme.colorScheme.primaryContainer.copy(
+                        alpha = 0.4f
+                    ) else MaterialTheme.colorScheme.surface
                 ),
                 border = CardDefaults.outlinedCardBorder().copy(
                     width = if (isCustom) 1.5.dp else 0.5.dp,
@@ -1258,7 +1380,11 @@ fun LogWeightDialog(
                         modifier = Modifier.size(20.dp)
                     )
                 }
-                Text(stringResource(R.string.dialog_log_weight_title), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleLarge)
+                Text(
+                    stringResource(R.string.dialog_log_weight_title),
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleLarge
+                )
             }
         },
         text = {
@@ -1279,8 +1405,21 @@ fun LogWeightDialog(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     singleLine = true,
                     isError = errorMessage != null,
-                    supportingText = errorMessage?.let { { Text(it, color = MaterialTheme.colorScheme.error) } },
-                    trailingIcon = { Text(stringResource(R.string.unit_kg), fontWeight = FontWeight.Bold, modifier = Modifier.padding(end = 12.dp)) },
+                    supportingText = errorMessage?.let {
+                        {
+                            Text(
+                                it,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    },
+                    trailingIcon = {
+                        Text(
+                            stringResource(R.string.unit_kg),
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(end = 12.dp)
+                        )
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(14.dp)
                 )
@@ -1425,7 +1564,9 @@ fun CalibrationResultDialog(
                 )
                 Surface(
                     shape = RoundedCornerShape(8.dp),
-                    color = if (result.isAccurate) LightSuccess.copy(alpha = 0.15f) else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
+                    color = if (result.isAccurate) LightSuccess.copy(alpha = 0.15f) else MaterialTheme.colorScheme.primaryContainer.copy(
+                        alpha = 0.6f
+                    )
                 ) {
                     Text(
                         text = result.title,
@@ -1450,7 +1591,11 @@ fun CalibrationResultDialog(
                     Card(
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(
+                                alpha = 0.5f
+                            )
+                        )
                     ) {
                         Column(
                             modifier = Modifier.padding(10.dp),
@@ -1474,7 +1619,11 @@ fun CalibrationResultDialog(
                     Card(
                         modifier = Modifier.weight(1f),
                         shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(
+                                alpha = 0.5f
+                            )
+                        )
                     ) {
                         Column(
                             modifier = Modifier.padding(10.dp),
