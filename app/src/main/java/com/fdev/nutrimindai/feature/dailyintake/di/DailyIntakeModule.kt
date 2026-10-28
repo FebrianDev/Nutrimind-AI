@@ -57,4 +57,10 @@ abstract class DailyIntakeModule {
     abstract fun bindExerciseRepository(
         impl: ExerciseRepositoryImpl
     ): ExerciseRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindBarcodeFoodRepository(
+        impl: com.fdev.nutrimindai.feature.dailyintake.data.repository.BarcodeFoodRepositoryImpl
+    ): com.fdev.nutrimindai.feature.dailyintake.domain.repository.BarcodeFoodRepository
 }

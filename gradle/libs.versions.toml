@@ -32,6 +32,8 @@ coroutinesTest = "1.10.1"
 mockito = "5.14.2"
 mockitoKotlin = "5.4.0"
 revenuecat = "8.12.0"
+mlkitBarcode = "17.3.0"
+healthConnect = "1.1.0-alpha11"
 
 
 
@@ -87,6 +89,8 @@ kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-cor
 mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }
 mockito-kotlin = { group = "org.mockito.kotlin", name = "mockito-kotlin", version.ref = "mockitoKotlin" }
 revenuecat-purchases = { group = "com.revenuecat.purchases", name = "purchases", version.ref = "revenuecat" }
+google-mlkit-barcode-scanning = { group = "com.google.mlkit", name = "barcode-scanning", version.ref = "mlkitBarcode" }
+androidx-health-connect = { group = "androidx.health.connect", name = "connect-client", version.ref = "healthConnect" }
 
 
 

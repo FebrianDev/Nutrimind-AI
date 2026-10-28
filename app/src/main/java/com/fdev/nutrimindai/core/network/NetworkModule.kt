@@ -61,4 +61,28 @@ object NetworkModule {
         .client(okHttpClient)
         .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
         .build()
+
+    @Provides
+    @Singleton
+    fun provideOpenFoodFactsApi(
+        json: Json
+    ): com.fdev.nutrimindai.feature.dailyintake.data.remote.api.OpenFoodFactsApi {
+        val client = OkHttpClient.Builder()
+            .addInterceptor { chain ->
+                val request = chain.request().newBuilder()
+                    .header("User-Agent", "NutrimindAI-Android/1.0 (contact@fdev.com)")
+                    .build()
+                chain.proceed(request)
+            }
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .readTimeout(15, TimeUnit.SECONDS)
+            .build()
+
+        return Retrofit.Builder()
+            .baseUrl("https://world.openfoodfacts.org/")
+            .client(client)
+            .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+            .build()
+            .create(com.fdev.nutrimindai.feature.dailyintake.data.remote.api.OpenFoodFactsApi::class.java)
+    }
 }

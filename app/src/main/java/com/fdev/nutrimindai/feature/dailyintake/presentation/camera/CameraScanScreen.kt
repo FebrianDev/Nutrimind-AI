@@ -13,6 +13,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
@@ -20,6 +21,7 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.*
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Image
@@ -64,6 +66,7 @@ import timber.log.Timber
 fun CameraScanScreen(
     mealType: String,
     launchGalleryDirectly: Boolean = false,
+    initialMode: String? = null,
     viewModel: CameraScanViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit
 ) {
@@ -71,6 +74,13 @@ fun CameraScanScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val torchEnabled by viewModel.torchEnabled.collectAsStateWithLifecycle()
+    val scanMode by viewModel.scanMode.collectAsStateWithLifecycle()
+
+    LaunchedEffect(initialMode) {
+        if (initialMode == "BARCODE") {
+            viewModel.setScanMode(ScanMode.BARCODE)
+        }
+    }
 
     var hasCameraPermission by remember {
         mutableStateOf(
@@ -125,14 +135,26 @@ fun CameraScanScreen(
     val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
     var camera by remember { mutableStateOf<Camera?>(null) }
     val imageCapture = remember { ImageCapture.Builder().build() }
+    val barcodeAnalyzer = remember {
+        BarcodeAnalyzer { barcode ->
+            viewModel.onBarcodeScanned(barcode)
+        }
+    }
+    val imageAnalysis = remember {
+        ImageAnalysis.Builder()
+            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+            .build()
+    }
+
+    LaunchedEffect(scanMode, uiState) {
+        barcodeAnalyzer.isScanningEnabled = (scanMode == ScanMode.BARCODE && uiState !is CameraScanUiState.Analyzing)
+    }
 
     LaunchedEffect(torchEnabled) {
         camera?.cameraControl?.enableTorch(torchEnabled)
     }
 
-
-
-    // If food image has been recognized by AI, navigate to full Recognized Food Result Screen
+    // If food image has been recognized by AI or barcode scanned, navigate to full Recognized Food Result Screen
     if (uiState is CameraScanUiState.Recognized) {
         val recognizedState = uiState as CameraScanUiState.Recognized
         RecognizedFoodScreen(
@@ -150,7 +172,7 @@ fun CameraScanScreen(
                     carbsText = carb,
                     fatText = fat,
                     fiberText = fib,
-                    source = FoodSource.CAMERA,
+                    source = if (scanMode == ScanMode.BARCODE) FoodSource.BARCODE else FoodSource.CAMERA,
                     onSuccess = onNavigateBack
                 )
             },
@@ -213,6 +235,17 @@ fun CameraScanScreen(
                     onOpenGallery = { galleryLauncher.launch("image/*") }
                 )
             } else {
+                val infiniteTransition = rememberInfiniteTransition(label = "laserTransition")
+                val laserFraction by infiniteTransition.animateFloat(
+                    initialValue = 0.05f,
+                    targetValue = 0.95f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(durationMillis = 1500, easing = LinearEasing),
+                        repeatMode = RepeatMode.Reverse
+                    ),
+                    label = "laserFraction"
+                )
+
                 AndroidView(
                     factory = { ctx ->
                         val previewView = PreviewView(ctx)
@@ -228,7 +261,10 @@ fun CameraScanScreen(
                                     lifecycleOwner,
                                     cameraSelector,
                                     preview,
-                                    imageCapture
+                                    imageCapture,
+                                    imageAnalysis.apply {
+                                        setAnalyzer(ContextCompat.getMainExecutor(ctx), barcodeAnalyzer)
+                                    }
                                 )
                             } catch (exc: Exception) {
                                 Timber.e(exc, "Use case binding failed")
@@ -239,26 +275,104 @@ fun CameraScanScreen(
                     modifier = Modifier.fillMaxSize()
                 )
 
-
-                // Viewfinder framing overlay
-                Box(
+                // Top Mode Toggle Pill (Food AI vs Barcode)
+                Row(
                     modifier = Modifier
-                        .size(280.dp)
-                        .align(Alignment.Center)
-                        .border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(24.dp))
+                        .align(Alignment.TopCenter)
+                        .padding(top = 16.dp)
+                        .background(Color.Black.copy(alpha = 0.6f), RoundedCornerShape(24.dp))
+                        .padding(4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Text(
-                        text = stringResource(R.string.scan_frame_meal_hint),
-                        color = Color.White.copy(alpha = 0.8f),
-                        style = MaterialTheme.typography.labelSmall,
-                        modifier = Modifier
-                            .align(Alignment.TopCenter)
-                            .padding(top = 12.dp)
-                            .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
-                            .padding(horizontal = 12.dp, vertical = 4.dp)
-                    )
+                    Surface(
+                        onClick = { viewModel.setScanMode(ScanMode.FOOD_AI) },
+                        shape = RoundedCornerShape(20.dp),
+                        color = if (scanMode == ScanMode.FOOD_AI) MaterialTheme.colorScheme.primary else Color.Transparent
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(Icons.Default.Restaurant, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                            Text(
+                                text = stringResource(R.string.scan_mode_food_ai),
+                                color = Color.White,
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = if (scanMode == ScanMode.FOOD_AI) FontWeight.Bold else FontWeight.Normal
+                            )
+                        }
+                    }
+                    Surface(
+                        onClick = { viewModel.setScanMode(ScanMode.BARCODE) },
+                        shape = RoundedCornerShape(20.dp),
+                        color = if (scanMode == ScanMode.BARCODE) Color(0xFF00BCD4) else Color.Transparent
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(Icons.Default.QrCodeScanner, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                            Text(
+                                text = stringResource(R.string.scan_mode_barcode),
+                                color = Color.White,
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = if (scanMode == ScanMode.BARCODE) FontWeight.Bold else FontWeight.Normal
+                            )
+                        }
+                    }
                 }
 
+                // Viewfinder Framing Overlay
+                if (scanMode == ScanMode.BARCODE) {
+                    Box(
+                        modifier = Modifier
+                            .width(300.dp)
+                            .height(180.dp)
+                            .align(Alignment.Center)
+                            .border(2.dp, Color(0xFF00BCD4), RoundedCornerShape(16.dp))
+                    ) {
+                        // Animated Scanning Laser Line
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(2.dp)
+                                .align(Alignment.TopCenter)
+                                .offset(y = 180.dp * laserFraction)
+                                .background(Color(0xFF00BCD4))
+                        )
+
+                        Text(
+                            text = stringResource(R.string.scan_barcode_hint),
+                            color = Color.White.copy(alpha = 0.9f),
+                            style = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .padding(bottom = 8.dp)
+                                .background(Color.Black.copy(alpha = 0.6f), RoundedCornerShape(12.dp))
+                                .padding(horizontal = 12.dp, vertical = 4.dp)
+                        )
+                    }
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .size(280.dp)
+                            .align(Alignment.Center)
+                            .border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(24.dp))
+                    ) {
+                        Text(
+                            text = stringResource(R.string.scan_frame_meal_hint),
+                            color = Color.White.copy(alpha = 0.8f),
+                            style = MaterialTheme.typography.labelSmall,
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .padding(top = 12.dp)
+                                .background(Color.Black.copy(alpha = 0.5f), RoundedCornerShape(12.dp))
+                                .padding(horizontal = 12.dp, vertical = 4.dp)
+                        )
+                    }
+                }
 
                 // Camera Bottom Control Bar
                 Row(
@@ -284,7 +398,7 @@ fun CameraScanScreen(
                         )
                     }
 
-                    // Main Capture Button
+                    // Main Capture Button (Photo for AI, Manual capture fallback for Barcode)
                     Box(
                         modifier = Modifier
                             .size(72.dp)
@@ -306,10 +420,10 @@ fun CameraScanScreen(
                             modifier = Modifier
                                 .size(58.dp)
                                 .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primary)
+                                .background(if (scanMode == ScanMode.BARCODE) Color(0xFF00BCD4) else MaterialTheme.colorScheme.primary)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.CameraAlt,
+                                imageVector = if (scanMode == ScanMode.BARCODE) Icons.Default.QrCodeScanner else Icons.Default.CameraAlt,
                                 contentDescription = stringResource(R.string.scan_capture_desc),
                                 tint = Color.White,
                                 modifier = Modifier
@@ -350,12 +464,16 @@ fun CameraScanScreen(
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         CircularProgressIndicator(
-                            color = MaterialTheme.colorScheme.primary,
+                            color = if (scanMode == ScanMode.BARCODE) Color(0xFF00BCD4) else MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(64.dp)
                         )
                         Spacer(modifier = Modifier.height(24.dp))
                         Text(
-                            text = stringResource(R.string.scan_analyzing_food),
+                            text = if (scanMode == ScanMode.BARCODE) {
+                                stringResource(R.string.scan_barcode_searching)
+                            } else {
+                                stringResource(R.string.scan_analyzing_food)
+                            },
                             color = Color.White,
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold

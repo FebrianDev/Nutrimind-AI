@@ -11,6 +11,7 @@ import com.fdev.nutrimindai.feature.dailyintake.domain.model.Food
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.FoodSource
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.Intake
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.MealType
+import com.fdev.nutrimindai.feature.dailyintake.domain.repository.BarcodeFoodRepository
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.DailyLogRepository
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.FoodRepository
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.IntakeRepository
@@ -28,13 +29,19 @@ import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
 
+enum class ScanMode {
+    FOOD_AI,
+    BARCODE
+}
+
 @HiltViewModel
 class CameraScanViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val aiRepository: AiRepository,
     private val intakeRepository: IntakeRepository,
     private val dailyLogRepository: DailyLogRepository,
-    private val foodRepository: FoodRepository
+    private val foodRepository: FoodRepository,
+    private val barcodeFoodRepository: BarcodeFoodRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<CameraScanUiState>(CameraScanUiState.Idle)
@@ -42,6 +49,9 @@ class CameraScanViewModel @Inject constructor(
 
     private val _torchEnabled = MutableStateFlow(false)
     val torchEnabled: StateFlow<Boolean> = _torchEnabled.asStateFlow()
+
+    private val _scanMode = MutableStateFlow(ScanMode.FOOD_AI)
+    val scanMode: StateFlow<ScanMode> = _scanMode.asStateFlow()
 
     private var currentBitmap: Bitmap? = null
 
@@ -52,9 +62,30 @@ class CameraScanViewModel @Inject constructor(
         _torchEnabled.value = !_torchEnabled.value
     }
 
+    fun setScanMode(mode: ScanMode) {
+        _scanMode.value = mode
+        resetState()
+    }
+
     fun resetState() {
         _uiState.value = CameraScanUiState.Idle
         currentBitmap = null
+    }
+
+    fun onBarcodeScanned(barcode: String) {
+        if (_uiState.value is CameraScanUiState.Analyzing) return
+        viewModelScope.launch {
+            _uiState.value = CameraScanUiState.Analyzing
+            val result = barcodeFoodRepository.getFoodByBarcode(barcode)
+            result.onSuccess { recognized ->
+                _uiState.value = CameraScanUiState.Recognized(recognized, null)
+            }.onFailure { error ->
+                Timber.e(error, "Failed to analyze barcode product")
+                _uiState.value = CameraScanUiState.Error(
+                    error.message ?: "Produk barcode tidak ditemukan di database. Silakan coba pindai kembali atau tambahkan manual."
+                )
+            }
+        }
     }
 
     fun analyzeImage(bitmap: Bitmap) {
