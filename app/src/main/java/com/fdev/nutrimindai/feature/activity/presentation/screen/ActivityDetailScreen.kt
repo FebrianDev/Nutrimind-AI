@@ -17,12 +17,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.fdev.nutrimindai.feature.progress.presentation.components.ShareSummaryBottomSheet
+import com.fdev.nutrimindai.feature.progress.presentation.screen.AISummarySection
 import com.fdev.nutrimindai.R
 import com.fdev.nutrimindai.core.designsystem.*
 import java.util.Locale
@@ -70,6 +75,7 @@ private fun ActivityDetailContent(
     onReopenTodayClick: () -> Unit
 ) {
     val isDraft = data.status.equals("Draft", ignoreCase = true)
+    var showShareSheet by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -128,9 +134,34 @@ private fun ActivityDetailContent(
                 CompletedBanner()
             }
 
-            TimelineSection(items = data.timelineItems)
-
             DailyScoreCard(score = data.healthScore)
+
+            // Meta AI Daily Clinical Evaluation
+            AISummarySection(summary = data.aiSummary)
+
+            // Share Summary Card Button
+            Button(
+                onClick = { showShareSheet = true },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Share,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.share_summary_btn),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            TimelineSection(items = data.timelineItems)
 
             if (data.isToday && isDraft) {
                 Button(
@@ -173,6 +204,13 @@ private fun ActivityDetailContent(
 
             Spacer(modifier = Modifier.height(16.dp))
         }
+    }
+
+    if (showShareSheet) {
+        ShareSummaryBottomSheet(
+            detail = data.toDailyReviewDetailData(),
+            onDismiss = { showShareSheet = false }
+        )
     }
 }
 

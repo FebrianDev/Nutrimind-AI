@@ -11,6 +11,8 @@ import com.fdev.nutrimindai.feature.dailyintake.domain.repository.ExerciseReposi
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.IntakeRepository
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.WaterRepository
 import com.fdev.nutrimindai.feature.profile.domain.repository.ProfileRepository
+import com.fdev.nutrimindai.core.ai.AiRepository
+import com.fdev.nutrimindai.feature.progress.presentation.screen.DailyReviewDetailData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -41,12 +43,46 @@ data class ActivityDetailData(
     val isToday: Boolean,
     val status: String,
     val totalCalories: Int,
+    val targetCalories: Int = 2200,
     val totalProtein: Double,
+    val targetProtein: Double = 140.0,
+    val totalCarbs: Double = 0.0,
+    val targetCarbs: Double = 250.0,
+    val totalFat: Double = 0.0,
+    val targetFat: Double = 65.0,
     val totalWaterMl: Int,
+    val targetWaterMl: Int = 2500,
     val exerciseCalories: Int,
+    val exerciseMinutes: Int = 0,
+    val targetExerciseMinutes: Int = 30,
     val healthScore: Int,
-    val timelineItems: List<ActivityTimelineItemData>
-)
+    val aiSummary: String = "",
+    val timelineItems: List<ActivityTimelineItemData>,
+    val userName: String = "User"
+) {
+    fun toDailyReviewDetailData(): DailyReviewDetailData {
+        return DailyReviewDetailData(
+            dateStr = dateStr,
+            displayDate = displayDate,
+            userName = userName,
+            score = healthScore,
+            status = if (healthScore >= 90) "Excellent" else if (healthScore >= 75) "Good" else if (healthScore >= 60) "Fair" else "Needs Attention",
+            calories = totalCalories,
+            targetCalories = targetCalories,
+            protein = totalProtein,
+            targetProtein = targetProtein,
+            carbs = totalCarbs,
+            targetCarbs = targetCarbs,
+            fat = totalFat,
+            targetFat = targetFat,
+            water = totalWaterMl,
+            targetWater = targetWaterMl,
+            exerciseMinutes = exerciseMinutes,
+            targetExerciseMinutes = targetExerciseMinutes,
+            aiSummary = aiSummary
+        )
+    }
+}
 
 sealed class ActivityDetailUiState {
     data object Loading : ActivityDetailUiState()
@@ -61,7 +97,8 @@ class ActivityDetailViewModel @Inject constructor(
     private val intakeRepository: IntakeRepository,
     private val waterRepository: WaterRepository,
     private val exerciseRepository: ExerciseRepository,
-    private val profileRepository: ProfileRepository
+    private val profileRepository: ProfileRepository,
+    private val aiRepository: AiRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<ActivityDetailUiState>(ActivityDetailUiState.Loading)
@@ -109,6 +146,8 @@ class ActivityDetailViewModel @Inject constructor(
 
                     val totalCalories = intakes.sumOf { it.calories }
                     val totalProtein = intakes.sumOf { it.protein }
+                    val totalCarbs = intakes.sumOf { it.carbs }
+                    val totalFat = intakes.sumOf { it.fat }
                     val totalWater = waters.sumOf { it.amountMl }
                     val exerciseCalories = exercises.sumOf { it.caloriesBurned }
                     val exerciseMinutes = exercises.sumOf { it.durationMinute }
@@ -116,8 +155,10 @@ class ActivityDetailViewModel @Inject constructor(
                     val parsedDate = runCatching { isoDateFormat.parse(targetDate) }.getOrNull()
                     val displayDate = if (parsedDate != null) displayDateFormat.format(parsedDate) else targetDate
 
-                    val targetCal = com.fdev.nutrimindai.feature.dailyintake.domain.model.NutritionSummary.DEFAULT_GOAL_CALORIES
+                    val targetCal = profile?.dailyCalories ?: com.fdev.nutrimindai.feature.dailyintake.domain.model.NutritionSummary.DEFAULT_GOAL_CALORIES
                     val targetProtein = profile?.dailyProtein?.toDouble() ?: 140.0
+                    val targetCarbs = profile?.dailyCarbs?.toDouble() ?: 250.0
+                    val targetFat = profile?.dailyFat?.toDouble() ?: 65.0
                     val targetWater = com.fdev.nutrimindai.core.util.NutritionCalculator.calculateDynamicWaterTarget(
                         weightKg = profile?.currentWeight ?: 70f,
                         exerciseMinutes = exerciseMinutes
@@ -126,7 +167,7 @@ class ActivityDetailViewModel @Inject constructor(
 
                     val score = com.fdev.nutrimindai.core.util.NutritionCalculator.calculateHealthScore(
                         cals = totalCalories,
-                        targetCal = profile?.dailyCalories ?: targetCal,
+                        targetCal = targetCal,
                         protein = totalProtein,
                         targetProtein = targetProtein,
                         water = totalWater,
@@ -134,6 +175,43 @@ class ActivityDetailViewModel @Inject constructor(
                         exerciseMin = exerciseMinutes,
                         targetExerciseMin = targetExercise
                     )
+
+                    val existingAiSummary = dailyLog?.aiSummary
+                    val finalAiSummary = when {
+                        !existingAiSummary.isNullOrBlank() -> existingAiSummary
+                        dailyLog?.status == DailyLogStatus.COMPLETED -> {
+                            val fallback = "Great job completing your daily journal! Your nutritional intake has been successfully logged."
+                            try {
+                                val generated = aiRepository.generateDailyReviewSummary(
+                                    userGoal = profile?.goal?.name ?: "Maintain Weight",
+                                    score = score,
+                                    calories = totalCalories,
+                                    targetCalories = targetCal,
+                                    protein = totalProtein,
+                                    targetProtein = targetProtein,
+                                    carbs = totalCarbs,
+                                    targetCarbs = targetCarbs,
+                                    fat = totalFat,
+                                    targetFat = targetFat,
+                                    waterMl = totalWater,
+                                    targetWaterMl = targetWater,
+                                    exerciseMinutes = exerciseMinutes,
+                                    targetExerciseMinutes = targetExercise,
+                                    fallbackSummary = fallback
+                                )
+                                dailyLogRepository.saveAiSummary(dailyLogId, generated)
+                                generated
+                            } catch (e: Exception) {
+                                fallback
+                            }
+                        }
+                        totalCalories > 0 -> {
+                            "Daily journal is in progress. Complete your day to generate a personalized Meta AI dietitian evaluation."
+                        }
+                        else -> {
+                            "No meals logged yet today. Track your breakfast, lunch, or dinner to receive AI nutritional evaluation."
+                        }
+                    }
 
                     val timelineItems = mutableListOf<ActivityTimelineItemData>()
                     val isLocked = dailyLog?.status == DailyLogStatus.COMPLETED
@@ -215,11 +293,22 @@ class ActivityDetailViewModel @Inject constructor(
                         isToday = isToday,
                         status = statusText,
                         totalCalories = totalCalories,
+                        targetCalories = targetCal,
                         totalProtein = totalProtein,
+                        targetProtein = targetProtein,
+                        totalCarbs = totalCarbs,
+                        targetCarbs = targetCarbs,
+                        totalFat = totalFat,
+                        targetFat = targetFat,
                         totalWaterMl = totalWater,
+                        targetWaterMl = targetWater,
                         exerciseCalories = exerciseCalories,
+                        exerciseMinutes = exerciseMinutes,
+                        targetExerciseMinutes = targetExercise,
                         healthScore = score,
-                        timelineItems = timelineItems
+                        aiSummary = finalAiSummary,
+                        timelineItems = timelineItems,
+                        userName = profile?.name ?: "User"
                     )
                 }.collect { detailData ->
                     _uiState.value = ActivityDetailUiState.Success(detailData)

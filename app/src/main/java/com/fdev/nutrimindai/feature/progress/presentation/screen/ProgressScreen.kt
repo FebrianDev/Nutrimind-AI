@@ -43,7 +43,7 @@ import java.util.Locale
 @Composable
 fun ProgressScreen(
     viewModel: ProgressViewModel = hiltViewModel(),
-    onNavigateToDailyReview: (String) -> Unit,
+    onNavigateToDailyReview: (String) -> Unit = {},
     onNavigateToTrendDetail: (String) -> Unit,
     onNavigateToGoalSettings: () -> Unit
 ) {
@@ -173,7 +173,7 @@ fun ProgressScreen(
 @Composable
 private fun ProgressContent(
     data: ProgressData,
-    onNavigateToDailyReview: (String) -> Unit,
+    onNavigateToDailyReview: (String) -> Unit = {},
     onNavigateToTrendDetail: (String) -> Unit,
     onNavigateToGoalSettings: () -> Unit,
     onLogWeightClick: () -> Unit
@@ -201,11 +201,6 @@ private fun ProgressContent(
             onDetailClick = onNavigateToTrendDetail
         )
         AIInsightCard(insightText = data.aiInsight)
-        DailyReviewSection(
-            reviews = data.dailyReviews,
-            onSeeAllClick = {},
-            onItemClick = onNavigateToDailyReview
-        )
     }
 }
 

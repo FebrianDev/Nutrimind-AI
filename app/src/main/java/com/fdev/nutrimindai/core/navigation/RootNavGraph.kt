@@ -20,7 +20,6 @@ import com.fdev.nutrimindai.feature.auth.presentation.register.RegisterScreen
 import com.fdev.nutrimindai.feature.onboarding.presentation.navigation.onboardingScreen
 import com.fdev.nutrimindai.feature.dailyintake.presentation.navigation.dailyIntakeGraph
 import com.fdev.nutrimindai.feature.home.presentation.navigation.homeScreen
-import com.fdev.nutrimindai.feature.progress.presentation.screen.DailyReviewScreen
 import com.fdev.nutrimindai.feature.progress.presentation.screen.ProgressScreen
 import com.fdev.nutrimindai.feature.progress.presentation.screen.TrendDetailScreen
 import com.fdev.nutrimindai.feature.profile.presentation.screen.GoalSettingsScreen
@@ -125,7 +124,7 @@ fun RootNavGraph(
                     navController.navigate(NavigationDestination.Exercise)
                 },
                 onNavigateToDailyReview = { date ->
-                    navController.navigate(NavigationDestination.DailyReview(date))
+                    navController.navigate(NavigationDestination.ActivityDetail(date))
                 }
             )
 
@@ -167,9 +166,6 @@ fun RootNavGraph(
             // --- Progress & Analytics Tab ---
             composable<NavigationDestination.Tracking> {
                 ProgressScreen(
-                    onNavigateToDailyReview = { date ->
-                        navController.navigate(NavigationDestination.DailyReview(date))
-                    },
                     onNavigateToTrendDetail = { metric ->
                         navController.navigate(NavigationDestination.TrendDetail(metric))
                     },
@@ -180,7 +176,7 @@ fun RootNavGraph(
             }
             composable<NavigationDestination.DailyReview> { backStackEntry ->
                 val route = backStackEntry.toRoute<NavigationDestination.DailyReview>()
-                DailyReviewScreen(
+                ActivityDetailScreen(
                     date = route.date,
                     onBackClick = { navController.popBackStack() }
                 )
