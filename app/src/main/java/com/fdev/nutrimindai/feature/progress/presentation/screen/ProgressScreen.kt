@@ -11,6 +11,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,7 +29,14 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fdev.nutrimindai.R
 import com.fdev.nutrimindai.core.designsystem.*
+import com.fdev.nutrimindai.core.util.AdaptiveCalibrationResult
 import com.fdev.nutrimindai.feature.progress.presentation.components.ProgressTrendChart
+import androidx.compose.ui.platform.LocalContext
+import android.widget.Toast
+import com.fdev.nutrimindai.core.util.NutritionPdfReportGenerator
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -40,6 +48,9 @@ fun ProgressScreen(
     onNavigateToGoalSettings: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    var isExportingPdf by remember { mutableStateOf(false) }
     var showDateFilterSheet by remember { mutableStateOf(false) }
     var showCustomDatePicker by remember { mutableStateOf(false) }
     var showLogWeightDialog by remember { mutableStateOf(false) }
@@ -50,7 +61,29 @@ fun ProgressScreen(
     Column(modifier = Modifier.fillMaxSize()) {
         ProgressHeader(
             selectedFilterLabel = filterLabel,
-            onCalendarClick = { showDateFilterSheet = true }
+            onCalendarClick = { showDateFilterSheet = true },
+            isExportingPdf = isExportingPdf,
+            onExportPdfClick = {
+                val successData = (uiState as? ProgressUiState.Success)?.data
+                if (successData != null) {
+                    coroutineScope.launch {
+                        isExportingPdf = true
+                        val file = withContext(Dispatchers.IO) {
+                            NutritionPdfReportGenerator.generateReport(
+                                context = context,
+                                data = successData,
+                                userName = "Pengguna Nutrimind"
+                            )
+                        }
+                        isExportingPdf = false
+                        if (file != null) {
+                            NutritionPdfReportGenerator.sharePdf(context, file)
+                        } else {
+                            Toast.makeText(context, context.getString(R.string.export_pdf_error), Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            }
         )
 
         when (val state = uiState) {
@@ -127,6 +160,14 @@ fun ProgressScreen(
             }
         )
     }
+
+    val calibrationFeedback by viewModel.calibrationFeedback.collectAsStateWithLifecycle()
+    calibrationFeedback?.let { feedback ->
+        CalibrationResultDialog(
+            result = feedback,
+            onDismiss = { viewModel.dismissCalibrationFeedback() }
+        )
+    }
 }
 
 @Composable
@@ -149,6 +190,11 @@ private fun ProgressContent(
             onEditGoalClick = onNavigateToGoalSettings,
             onLogWeightClick = onLogWeightClick
         )
+        if (data.goalData.needsCalibrationPrompt) {
+            WeeklyCalibrationBannerCard(
+                onCalibrateClick = onLogWeightClick
+            )
+        }
         WeeklySummarySection(data = data)
         TrendSection(
             trendPoints = data.weeklyTrendPoints,
@@ -166,7 +212,9 @@ private fun ProgressContent(
 @Composable
 fun ProgressHeader(
     selectedFilterLabel: String,
-    onCalendarClick: () -> Unit
+    onCalendarClick: () -> Unit,
+    isExportingPdf: Boolean = false,
+    onExportPdfClick: () -> Unit = {}
 ) {
     Row(
         modifier = Modifier
@@ -188,29 +236,73 @@ fun ProgressHeader(
             )
         }
 
-        Surface(
-            onClick = onCalendarClick,
-            shape = RoundedCornerShape(12.dp),
-            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            Surface(
+                onClick = onExportPdfClick,
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f)),
+                enabled = !isExportingPdf
             ) {
-                Icon(
-                    imageVector = Icons.Default.CalendarMonth,
-                    contentDescription = stringResource(R.string.progress_cd_calendar_filter),
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(18.dp)
-                )
-                Text(
-                    text = selectedFilterLabel,
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.primary
-                )
+                Box(
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isExportingPdf) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    } else {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.PictureAsPdf,
+                                contentDescription = stringResource(R.string.cd_export_pdf),
+                                tint = MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Text(
+                                text = stringResource(R.string.btn_export_pdf),
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                        }
+                    }
+                }
+            }
+
+            Surface(
+                onClick = onCalendarClick,
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CalendarMonth,
+                        contentDescription = stringResource(R.string.progress_cd_calendar_filter),
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Text(
+                        text = selectedFilterLabel,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
         }
     }
@@ -313,17 +405,109 @@ fun GoalProgressCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
-                    Text(
-                        text = String.format(Locale.US, "%.1f kg", goalData.currentWeightKg),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = stringResource(R.string.label_current),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = String.format(Locale.US, "%.1f kg", goalData.currentWeightKg),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                        if (goalData.isUsingProjection) {
+                            Surface(
+                                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f),
+                                shape = RoundedCornerShape(8.dp),
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(3.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.AutoAwesome,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(12.dp)
+                                    )
+                                    Text(
+                                        text = stringResource(R.string.label_ai_projected),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        fontSize = 11.sp
+                                    )
+                                }
+                            }
+                        } else {
+                            Surface(
+                                color = LightSuccess.copy(alpha = 0.15f),
+                                shape = RoundedCornerShape(8.dp),
+                                border = BorderStroke(1.dp, LightSuccess.copy(alpha = 0.3f))
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(3.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Check,
+                                        contentDescription = null,
+                                        tint = LightSuccess,
+                                        modifier = Modifier.size(12.dp)
+                                    )
+                                    Text(
+                                        text = stringResource(R.string.label_scale_verified),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        fontWeight = FontWeight.Bold,
+                                        color = LightSuccess,
+                                        fontSize = 11.sp
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    if (goalData.isUsingProjection && goalData.lastActualWeightDate != null) {
+                        Text(
+                            text = stringResource(
+                                R.string.label_last_actual,
+                                goalData.lastActualWeightKg,
+                                goalData.lastActualWeightDate ?: stringResource(R.string.label_earlier)
+                            ),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        if (goalData.projectedDeltaKg != 0f) {
+                            val prefix = if (goalData.projectedDeltaKg > 0) "+" else ""
+                            val explanation = if (goalData.projectedDeltaKg < 0) {
+                                stringResource(R.string.label_from_caloric_balance)
+                            } else {
+                                stringResource(R.string.label_from_caloric_surplus)
+                            }
+                            Text(
+                                text = "$prefix${String.format(Locale.US, "%.1f", goalData.projectedDeltaKg)} kg $explanation",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = if (goalData.projectedDeltaKg < 0) LightSuccess else MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    } else if (!goalData.isUsingProjection) {
+                        Text(
+                            text = stringResource(R.string.label_scale_verified_today),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = LightSuccess
+                        )
+                    } else {
+                        Text(
+                            text = stringResource(R.string.label_current),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
 
                 Icon(
@@ -358,7 +542,14 @@ fun GoalProgressCard(
                     modifier = Modifier.size(18.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(stringResource(R.string.dialog_log_weight_title), fontWeight = FontWeight.Bold)
+                Text(
+                    text = if (goalData.isUsingProjection) {
+                        stringResource(R.string.label_calibrate_scale)
+                    } else {
+                        stringResource(R.string.label_update_scale)
+                    },
+                    fontWeight = FontWeight.Bold
+                )
             }
 
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
@@ -686,6 +877,7 @@ fun TrendSection(
                 labels = labels,
                 unit = unit,
                 lineColor = lineColor,
+                pointTypes = if (selectedMetric == "Weight") trendPoints.map { it.isActualWeight } else null,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(160.dp)
@@ -1077,7 +1269,7 @@ fun LogWeightDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                 Text(
-                    text = stringResource(R.string.progress_weigh_in_desc),
+                    text = stringResource(R.string.desc_calibrate_dialog),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -1131,5 +1323,225 @@ fun LogWeightDialog(
         }
     )
 }
+
+@Composable
+fun WeeklyCalibrationBannerCard(
+    onCalibrateClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
+        ),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
+    ) {
+        Column(
+            modifier = Modifier.padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Surface(
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                    modifier = Modifier.size(36.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Default.Celebration,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+                Text(
+                    text = stringResource(R.string.card_weekly_calibration_title),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+
+            Text(
+                text = stringResource(R.string.card_weekly_calibration_desc),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                lineHeight = 18.sp
+            )
+
+            Button(
+                onClick = onCalibrateClick,
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Scale,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.btn_calibrate_now),
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun CalibrationResultDialog(
+    result: AdaptiveCalibrationResult,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            Button(
+                onClick = onDismiss,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(14.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.btn_understand),
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        },
+        title = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = result.statusEmoji,
+                    fontSize = 40.sp
+                )
+                Text(
+                    text = stringResource(R.string.dialog_calibration_result_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = if (result.isAccurate) LightSuccess.copy(alpha = 0.15f) else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
+                ) {
+                    Text(
+                        text = result.title,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = if (result.isAccurate) LightSuccess else MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                    )
+                }
+            }
+        },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                // Metric comparison row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Card(
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(10.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = stringResource(R.string.label_scale_reading),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = String.format(Locale.US, "%.1f kg", result.actualWeight),
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = LightSuccess
+                            )
+                        }
+                    }
+
+                    Card(
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(10.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = stringResource(R.string.label_ai_prior_projection),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = String.format(Locale.US, "%.1f kg", result.projectedWeight),
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
+
+                // Deviation indicator
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(R.string.label_deviation),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    val devSign = if (result.deviationKg > 0) "+" else ""
+                    Text(
+                        text = "$devSign${String.format(Locale.US, "%.1f kg", result.deviationKg)}",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = if (result.isAccurate) LightSuccess else MaterialTheme.colorScheme.primary
+                    )
+                }
+
+                // Feedback card
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = result.feedbackMessage,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        lineHeight = 18.sp,
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
+            }
+        },
+        shape = RoundedCornerShape(24.dp)
+    )
+}
+
 
 
