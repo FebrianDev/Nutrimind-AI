@@ -24,6 +24,7 @@ import com.fdev.nutrimindai.feature.progress.data.local.entity.WeightLogEntity
 import com.fdev.nutrimindai.core.model.Goal
 import com.fdev.nutrimindai.core.util.NutritionCalculator
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -131,10 +132,7 @@ class HomeViewModel @Inject constructor(
         get() = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
 
     init {
-        viewModelScope.launch {
-            demoDataSeeder.seedIfNeeded()
-            startObservingDateAndData()
-        }
+        startObservingDateAndData()
     }
 
     fun checkDateAndReloadIfNeeded() {
@@ -279,7 +277,10 @@ class HomeViewModel @Inject constructor(
                     refreshCoachingTip(force = false)
                 }
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
+            Timber.e(e, "Error loading home data")
             _uiState.value = HomeUiState.Error(e.message ?: "Unknown error")
         }
     }
