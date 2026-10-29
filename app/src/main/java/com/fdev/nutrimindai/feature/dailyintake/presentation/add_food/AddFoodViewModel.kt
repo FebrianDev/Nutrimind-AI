@@ -12,6 +12,7 @@ import com.fdev.nutrimindai.feature.dailyintake.domain.repository.FoodRepository
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.IntakeRepository
 import com.fdev.nutrimindai.core.ai.AiRepository
 import com.fdev.nutrimindai.core.ai.FoodRecognitionResult
+import com.fdev.nutrimindai.core.sync.SyncManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,7 +41,8 @@ class AddFoodViewModel @Inject constructor(
     private val intakeRepository: IntakeRepository,
     private val dailyLogRepository: DailyLogRepository,
     private val foodRepository: FoodRepository,
-    private val aiRepository: AiRepository
+    private val aiRepository: AiRepository,
+    private val syncManager: SyncManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<AddFoodUiState>(AddFoodUiState.Idle)
@@ -173,6 +175,7 @@ class AddFoodViewModel @Inject constructor(
                 )
 
                 intakeRepository.addIntake(intake)
+                syncManager.triggerManualSync()
 
                 // Also save custom manual entry into food catalog so it can be searched later
                 if (foodSource == FoodSource.MANUAL) {

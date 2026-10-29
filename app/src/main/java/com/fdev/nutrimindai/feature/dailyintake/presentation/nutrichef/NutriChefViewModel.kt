@@ -10,6 +10,7 @@ import com.fdev.nutrimindai.feature.dailyintake.domain.model.SmartRecipe
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.DailyLogRepository
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.IntakeRepository
 import com.fdev.nutrimindai.feature.profile.domain.repository.ProfileRepository
+import com.fdev.nutrimindai.core.sync.SyncManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -47,7 +48,8 @@ class NutriChefViewModel @Inject constructor(
     private val aiRepository: AiRepository,
     private val intakeRepository: IntakeRepository,
     private val dailyLogRepository: DailyLogRepository,
-    private val profileRepository: ProfileRepository
+    private val profileRepository: ProfileRepository,
+    private val syncManager: SyncManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(NutriChefUiState())
@@ -177,6 +179,7 @@ class NutriChefViewModel @Inject constructor(
                 )
 
                 intakeRepository.addIntake(intake)
+                syncManager.triggerManualSync()
                 _events.emit(NutriChefEvent.MealLoggedSuccess(recipe.title))
                 onComplete()
             } catch (e: Exception) {

@@ -15,6 +15,7 @@ import com.fdev.nutrimindai.feature.dailyintake.domain.repository.BarcodeFoodRep
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.DailyLogRepository
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.FoodRepository
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.IntakeRepository
+import com.fdev.nutrimindai.core.sync.SyncManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -41,7 +42,8 @@ class CameraScanViewModel @Inject constructor(
     private val intakeRepository: IntakeRepository,
     private val dailyLogRepository: DailyLogRepository,
     private val foodRepository: FoodRepository,
-    private val barcodeFoodRepository: BarcodeFoodRepository
+    private val barcodeFoodRepository: BarcodeFoodRepository,
+    private val syncManager: SyncManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<CameraScanUiState>(CameraScanUiState.Idle)
@@ -166,6 +168,7 @@ class CameraScanViewModel @Inject constructor(
                 )
 
                 intakeRepository.addIntake(intake)
+                syncManager.triggerManualSync()
 
                 // Also save AI-recognized food into the local food catalog for future searchability
                 foodRepository.insertFood(

@@ -2,6 +2,7 @@ package com.fdev.nutrimindai.feature.dailyintake.presentation.water
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.fdev.nutrimindai.core.sync.SyncManager
 import com.fdev.nutrimindai.core.util.NutritionCalculator
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.DailyLogStatus
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.Water
@@ -37,7 +38,8 @@ class WaterViewModel @Inject constructor(
     private val waterRepository: WaterRepository,
     private val dailyLogRepository: DailyLogRepository,
     private val exerciseRepository: ExerciseRepository,
-    private val profileRepository: ProfileRepository
+    private val profileRepository: ProfileRepository,
+    private val syncManager: SyncManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<WaterUiState>(WaterUiState.Loading)
@@ -98,6 +100,7 @@ class WaterViewModel @Inject constructor(
                     time = timeString
                 )
                 waterRepository.addWater(water)
+                syncManager.triggerManualSync()
             } catch (e: Exception) {
                 _uiState.value = WaterUiState.Error(e.message ?: "Failed to record water intake.")
             }
@@ -110,6 +113,7 @@ class WaterViewModel @Inject constructor(
             viewModelScope.launch {
                 try {
                     waterRepository.deleteWater(water)
+                    syncManager.triggerManualSync()
                 } catch (e: Exception) {
                     _uiState.value = WaterUiState.Error(e.message ?: "Failed to delete water record.")
                 }

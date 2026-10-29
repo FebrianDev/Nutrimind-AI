@@ -10,6 +10,7 @@ import com.fdev.nutrimindai.feature.dailyintake.domain.repository.ExerciseReposi
 import com.fdev.nutrimindai.feature.profile.domain.repository.ProfileRepository
 import com.fdev.nutrimindai.core.health.HealthConnectManager
 import com.fdev.nutrimindai.core.health.HealthMetrics
+import com.fdev.nutrimindai.core.sync.SyncManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -45,7 +46,8 @@ class ExerciseViewModel @Inject constructor(
     private val exerciseRepository: ExerciseRepository,
     private val dailyLogRepository: DailyLogRepository,
     private val profileRepository: ProfileRepository,
-    private val healthConnectManager: HealthConnectManager
+    private val healthConnectManager: HealthConnectManager,
+    private val syncManager: SyncManager
 ) : ViewModel() {
 
     val isHealthConnectAvailable: Boolean
@@ -91,6 +93,7 @@ class ExerciseViewModel @Inject constructor(
                             note = "Synced from Google Health Connect (${metrics.steps} steps)"
                         )
                     )
+                    syncManager.triggerManualSync()
                     onResult("Successfully synced ${metrics.steps} steps & ${metrics.activeCalories} kcal!")
                 } else {
                     onResult("Health Connect: No steps or active calorie data logged today.")
@@ -196,6 +199,7 @@ class ExerciseViewModel @Inject constructor(
                 )
 
                 exerciseRepository.addExercise(exercise)
+                syncManager.triggerManualSync()
                 _addExerciseUiState.value = AddExerciseUiState.Success
                 onSuccess()
             } catch (e: Exception) {
@@ -210,6 +214,7 @@ class ExerciseViewModel @Inject constructor(
             viewModelScope.launch {
                 try {
                     exerciseRepository.deleteExercise(exercise)
+                    syncManager.triggerManualSync()
                 } catch (e: Exception) {
                     _uiState.value = ExerciseUiState.Error(e.message ?: "Failed to delete exercise.")
                 }

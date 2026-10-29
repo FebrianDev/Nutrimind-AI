@@ -19,6 +19,7 @@ import com.fdev.nutrimindai.feature.profile.domain.repository.ProfileRepository
 import com.fdev.nutrimindai.core.model.Goal
 import com.fdev.nutrimindai.core.util.AdaptiveCalibrationResult
 import com.fdev.nutrimindai.core.util.NutritionCalculator
+import com.fdev.nutrimindai.core.sync.SyncManager
 import com.fdev.nutrimindai.feature.progress.data.local.entity.WeightLogEntity
 import com.fdev.nutrimindai.feature.progress.domain.repository.WeightLogRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -119,7 +120,8 @@ class ProgressViewModel @Inject constructor(
     private val waterRepository: WaterRepository,
     private val exerciseRepository: ExerciseRepository,
     private val profileRepository: ProfileRepository,
-    private val weightLogRepository: WeightLogRepository
+    private val weightLogRepository: WeightLogRepository,
+    private val syncManager: SyncManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<ProgressUiState>(ProgressUiState.Loading)
@@ -192,6 +194,7 @@ class ProgressViewModel @Inject constructor(
                     profileRepository.updateProfile(updatedProfile)
                 }
 
+                syncManager.triggerManualSync()
                 onSuccess()
             } catch (e: Exception) {
                 _uiState.value = ProgressUiState.Error(e.message ?: "Failed to log weight")

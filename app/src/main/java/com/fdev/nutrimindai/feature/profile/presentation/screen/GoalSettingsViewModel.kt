@@ -2,6 +2,7 @@ package com.fdev.nutrimindai.feature.profile.presentation.screen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.fdev.nutrimindai.core.sync.SyncManager
 import com.fdev.nutrimindai.feature.profile.data.local.entity.ProfileEntity
 import com.fdev.nutrimindai.feature.profile.domain.repository.ProfileRepository
 import com.fdev.nutrimindai.core.model.ActivityLevel
@@ -132,7 +133,8 @@ data class GoalSettingsUiState(
 @HiltViewModel
 class GoalSettingsViewModel @Inject constructor(
     private val profileRepository: ProfileRepository,
-    private val weightLogRepository: WeightLogRepository
+    private val weightLogRepository: WeightLogRepository,
+    private val syncManager: SyncManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(GoalSettingsUiState())
@@ -310,6 +312,8 @@ class GoalSettingsViewModel @Inject constructor(
                     weightKg = currentWeight,
                     note = "Updated from Goal Settings"
                 )
+
+                syncManager.triggerManualSync()
 
                 _uiState.value = _uiState.value.copy(isSaving = false)
                 _saveSuccessEvent.emit(Unit)

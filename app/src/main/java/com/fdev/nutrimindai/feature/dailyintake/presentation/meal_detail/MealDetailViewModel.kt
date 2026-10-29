@@ -3,6 +3,7 @@ package com.fdev.nutrimindai.feature.dailyintake.presentation.meal_detail
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.fdev.nutrimindai.core.sync.SyncManager
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.DailyLogStatus
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.Intake
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.DailyLogRepository
@@ -39,7 +40,8 @@ sealed interface MealDetailUiState {
 class MealDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val intakeRepository: IntakeRepository,
-    private val dailyLogRepository: DailyLogRepository
+    private val dailyLogRepository: DailyLogRepository,
+    private val syncManager: SyncManager
 ) : ViewModel() {
 
     val mealType: String = checkNotNull(savedStateHandle["mealType"])
@@ -91,6 +93,7 @@ class MealDetailViewModel @Inject constructor(
             viewModelScope.launch {
                 try {
                     intakeRepository.deleteIntake(intake)
+                    syncManager.triggerManualSync()
                     intake.imagePath?.let { path ->
                         try {
                             val file = File(path)

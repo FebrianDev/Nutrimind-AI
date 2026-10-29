@@ -250,6 +250,8 @@ class ProfileViewModel @Inject constructor(
                     weightKg = weight,
                     note = "Updated from Profile"
                 )
+
+                syncManager.triggerManualSync()
             } catch (e: Exception) {
                 Timber.e(e, "Error updating personal info")
             }
