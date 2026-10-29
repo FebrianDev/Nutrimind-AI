@@ -82,6 +82,64 @@ kotlin {
     jvmToolchain(17)
 }
 
+val dbVersion = 13
+
+androidComponents {
+    onVariants { variant ->
+        val variantName = variant.name
+        val taskName = "generate${variantName.replaceFirstChar { it.uppercase() }}DbVersion"
+
+        val generateTask = tasks.register(
+            taskName,
+            GenerateDbVersionTask::class.java
+        ) {
+            outputDir.set(
+                layout.buildDirectory.dir(
+                    "generated/source/dbversion/$variantName"
+                )
+            )
+            this.dbVersionValue.set(dbVersion)
+        }
+
+        variant.sources.kotlin?.addGeneratedSourceDirectory(
+            generateTask,
+            GenerateDbVersionTask::outputDir
+        )
+
+        variant.sources.java?.addGeneratedSourceDirectory(
+            generateTask,
+            GenerateDbVersionTask::outputDir
+        )
+    }
+}
+
+tasks.named("preBuild").configure {
+    dependsOn(tasks.matching { it.name.endsWith("DbVersion") })
+}
+
+abstract class GenerateDbVersionTask : DefaultTask() {
+    @get:OutputDirectory
+    abstract val outputDir: DirectoryProperty
+
+    @get:Input
+    abstract val dbVersionValue: Property<Int>
+
+    @TaskAction
+    fun generate() {
+        val dir = outputDir.get().asFile
+        dir.mkdirs()
+        val version = dbVersionValue.get()
+
+        File(dir, "DbVersion.kt").writeText(
+            """
+            package com.fdev.nutrimindai.core.database
+
+            const val DB_VERSION = $version
+            """.trimIndent()
+        )
+    }
+}
+
 room {
     schemaDirectory("$projectDir/schemas")
 }
@@ -142,6 +200,7 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.mockito.core)
     testImplementation(libs.mockito.kotlin)
+    testImplementation("org.xerial:sqlite-jdbc:3.45.1.0")
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

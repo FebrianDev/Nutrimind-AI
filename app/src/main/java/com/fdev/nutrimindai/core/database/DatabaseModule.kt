@@ -23,7 +23,10 @@ object DatabaseModule {
             context,
             NutriMindDatabase::class.java,
             DATABASE_NAME
-        ).fallbackToDestructiveMigration(true).build()
+        )
+        .createFromAsset("database/nutrimind.db")
+        .fallbackToDestructiveMigration(true)
+        .build()
     }
 
     @Provides
