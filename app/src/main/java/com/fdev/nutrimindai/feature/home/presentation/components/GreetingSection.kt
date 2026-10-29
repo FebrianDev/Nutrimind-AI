@@ -1,12 +1,9 @@
 package com.fdev.nutrimindai.feature.home.presentation.components
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.CalendarToday
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -20,11 +17,15 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.fdev.nutrimindai.R
 import com.fdev.nutrimindai.core.designsystem.component.UserAvatar
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun GreetingSection(
     userName: String,
     modifier: Modifier = Modifier,
+    date: String? = null,
     userPhotoUrl: String? = null
 ) {
     val morningGreeting = stringResource(R.string.home_greeting_morning)
@@ -40,35 +41,79 @@ fun GreetingSection(
         }
     }
 
+    val formattedDate = remember(date) {
+        try {
+            if (!date.isNullOrBlank()) {
+                val parsed = SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(date)
+                if (parsed != null) {
+                    val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+                    val dayMonth = SimpleDateFormat("EEE, d MMM", Locale.getDefault()).format(parsed)
+                    if (date == todayStr) "Today • $dayMonth" else dayMonth
+                } else {
+                    val dayMonth = SimpleDateFormat("EEE, d MMM", Locale.getDefault()).format(Date())
+                    "Today • $dayMonth"
+                }
+            } else {
+                val dayMonth = SimpleDateFormat("EEE, d MMM", Locale.getDefault()).format(Date())
+                "Today • $dayMonth"
+            }
+        } catch (_: Exception) {
+            val dayMonth = SimpleDateFormat("EEE, d MMM", Locale.getDefault()).format(Date())
+            "Today • $dayMonth"
+        }
+    }
+
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = buildAnnotatedString {
-                withStyle(
-                    SpanStyle(
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.75f)
-                    )
-                ) {
-                    append("$greeting, ")
-                }
-                withStyle(
-                    SpanStyle(
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                ) {
-                    append(userName)
-                }
-            },
-            style = MaterialTheme.typography.titleMedium,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f, fill = false)
-        )
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            Text(
+                text = buildAnnotatedString {
+                    withStyle(
+                        SpanStyle(
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.75f)
+                        )
+                    ) {
+                        append("$greeting, ")
+                    }
+                    withStyle(
+                        SpanStyle(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    ) {
+                        append(userName)
+                    }
+                },
+                style = MaterialTheme.typography.titleMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.CalendarToday,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(12.dp)
+                )
+                Text(
+                    text = formattedDate,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+        }
 
         Spacer(modifier = Modifier.width(12.dp))
 
