@@ -28,7 +28,6 @@ fun NutritionSection(
     protein: NutritionData,
     carbs: NutritionData,
     fat: NutritionData,
-    water: NutritionData,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -51,7 +50,7 @@ fun NutritionSection(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(18.dp)
+                .padding(16.dp)
         ) {
             // Header with Icon Circle & Badge
             Row(
@@ -187,15 +186,14 @@ fun NutritionSection(
                     }
                 }
 
-                // Macros and Water List on the Right
+                // Macronutrients List on the Right (Protein, Carbs, Fat)
                 Column(
                     modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
                     NutritionItem(data = protein, icon = Icons.Rounded.Egg, color = Color(0xFF5C6BC0))
                     NutritionItem(data = carbs, icon = Icons.Rounded.BakeryDining, color = Color(0xFFFFA000))
                     NutritionItem(data = fat, icon = Icons.Rounded.LocalFireDepartment, color = Color(0xFFF44336))
-                    NutritionItem(data = water, icon = Icons.Rounded.WaterDrop, color = Color(0xFF03A9F4))
                 }
             }
         }

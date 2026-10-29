@@ -282,12 +282,6 @@ fun HomeContent(
         nutrition.goalFat,
         stringResource(R.string.unit_grams)
     )
-    val water = NutritionData(
-        stringResource(R.string.label_water),
-        nutrition.water,
-        nutrition.goalWater,
-        stringResource(R.string.unit_ml)
-    )
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -303,7 +297,7 @@ fun HomeContent(
                 date = summary.date
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             MissionSection(
                 userGoal = summary.userGoal,
@@ -316,8 +310,7 @@ fun HomeContent(
                 calories = calories,
                 protein = protein,
                 carbs = carbs,
-                fat = fat,
-                water = water
+                fat = fat
             )
 
             Spacer(modifier = Modifier.height(16.dp))

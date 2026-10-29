@@ -95,7 +95,7 @@ fun IntakeSection(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(18.dp)
+                .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
             // Header with Icon Circle, Title & Badge, and Sync Watch Button
             Row(
@@ -186,7 +186,7 @@ fun IntakeSection(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             // Grid 3 Columns, 2 Rows
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

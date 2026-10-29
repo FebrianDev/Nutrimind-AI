@@ -537,7 +537,7 @@
     <string name="coach_btn_clear">Clear</string>
     <string name="coach_dialog_select_engine_title">Select AI Engine</string>
     <string name="coach_btn_dismiss">Dismiss</string>
-    <string name="coach_input_placeholder">Ask NutriCoach about calories, meals, fitness...</string>
+    <string name="coach_input_placeholder">Ask NutriCoach</string>
     <string name="coach_welcome_desc">Your intelligent personal nutrition &amp; wellness coach connected directly to today\'s food diary, hydration, and workouts. Ask anything!</string>
     <string name="coach_quick_questions_header">Get started with quick questions:</string>
     <string name="coach_thinking_status">NutriCoach is thinking</string>
