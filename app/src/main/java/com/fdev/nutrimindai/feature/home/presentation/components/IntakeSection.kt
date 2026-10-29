@@ -32,6 +32,8 @@ fun IntakeSection(
     exerciseSummary: String,
     onMealClick: (String) -> Unit,
     modifier: Modifier = Modifier,
+    isWaterLogged: Boolean = false,
+    isExerciseLogged: Boolean = false,
     onSyncHealthConnect: (() -> Unit)? = null
 ) {
     val notLoggedText = stringResource(R.string.home_intake_not_logged)
@@ -41,36 +43,42 @@ fun IntakeSection(
             id = "Breakfast",
             title = stringResource(R.string.home_intake_breakfast),
             summary = if (breakfastCalories > 0) stringResource(R.string.home_intake_kcal_val, breakfastCalories) else notLoggedText,
+            isLogged = breakfastCalories > 0,
             icon = Icons.Rounded.FreeBreakfast
         ),
         IntakeItemData(
             id = "Lunch",
             title = stringResource(R.string.home_intake_lunch),
             summary = if (lunchCalories > 0) stringResource(R.string.home_intake_kcal_val, lunchCalories) else notLoggedText,
+            isLogged = lunchCalories > 0,
             icon = Icons.Rounded.LunchDining
         ),
         IntakeItemData(
             id = "Dinner",
             title = stringResource(R.string.home_intake_dinner),
             summary = if (dinnerCalories > 0) stringResource(R.string.home_intake_kcal_val, dinnerCalories) else notLoggedText,
+            isLogged = dinnerCalories > 0,
             icon = Icons.Rounded.DinnerDining
         ),
         IntakeItemData(
             id = "Others",
             title = stringResource(R.string.home_intake_others),
             summary = if (othersCalories > 0) stringResource(R.string.home_intake_kcal_val, othersCalories) else notLoggedText,
+            isLogged = othersCalories > 0,
             icon = Icons.Rounded.Restaurant
         ),
         IntakeItemData(
             id = "Water",
             title = stringResource(R.string.home_intake_water),
             summary = waterSummary,
+            isLogged = isWaterLogged,
             icon = Icons.Rounded.WaterDrop
         ),
         IntakeItemData(
             id = "Exercise",
             title = stringResource(R.string.home_intake_exercise),
             summary = exerciseSummary,
+            isLogged = isExerciseLogged,
             icon = Icons.AutoMirrored.Rounded.DirectionsRun
         )
     )
@@ -195,6 +203,7 @@ fun IntakeSection(
                                     title = item.title,
                                     summary = item.summary,
                                     icon = item.icon,
+                                    isLogged = item.isLogged,
                                     onClick = { onMealClick(item.id) },
                                     modifier = Modifier.weight(1f)
                                 )
@@ -213,5 +222,6 @@ private data class IntakeItemData(
     val id: String,
     val title: String,
     val summary: String,
-    val icon: ImageVector
+    val icon: ImageVector,
+    val isLogged: Boolean = false
 )

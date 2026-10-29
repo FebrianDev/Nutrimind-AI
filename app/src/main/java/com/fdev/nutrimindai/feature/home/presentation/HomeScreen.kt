@@ -299,7 +299,8 @@ fun HomeContent(
         ) {
             GreetingSection(
                 userName = summary.userName,
-                userPhotoUrl = summary.userPhotoUrl
+                userPhotoUrl = summary.userPhotoUrl,
+                date = summary.date
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -328,6 +329,8 @@ fun HomeContent(
                 othersCalories = summary.othersList.sumOf { it.calories },
                 waterSummary = formatWaterSummary(nutrition.water, nutrition.goalWater),
                 exerciseSummary = formatExerciseSummary(summary.exerciseList.sumOf { it.durationMinute }),
+                isWaterLogged = summary.waterTotalMl > 0,
+                isExerciseLogged = summary.exerciseList.isNotEmpty(),
                 onMealClick = { mealType ->
                     when (mealType) {
                         "Water" -> onNavigateToWater()
