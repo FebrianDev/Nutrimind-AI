@@ -893,4 +893,6 @@
     <string name="home_missions_dialog_desc">Daily habit missions designed for your health goal.</string>
     <string name="home_nutrition_badge">Daily Target</string>
     <string name="home_intake_badge">Daily Tracker</string>
+    <string name="home_calories_remaining">%1$,d kcal left</string>
+    <string name="home_calories_over">%1$,d kcal over</string>
 </resources>

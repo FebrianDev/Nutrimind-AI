@@ -123,34 +123,67 @@ fun NutritionSection(
                 // Circular Calorie Progress on the Left
                 Box(
                     contentAlignment = Alignment.Center,
-                    modifier = Modifier.size(136.dp)
+                    modifier = Modifier.size(138.dp)
                 ) {
                     val progress = if (calories.target > 0) {
                         (calories.current.toFloat() / calories.target).coerceIn(0f, 1f)
                     } else 0f
+                    val remainingCalories = calories.target - calories.current
+                    val isOverBudget = remainingCalories < 0
+                    val progressColor = if (isOverBudget) {
+                        Color(0xFFE57373)
+                    } else {
+                        Color(0xFF4CAF50)
+                    }
+
                     CircularProgressIndicator(
                         progress = { progress },
                         modifier = Modifier.fillMaxSize(),
                         strokeWidth = 11.dp,
-                        color = Color(0xFF4CAF50), // Green for calories progress
+                        color = progressColor,
                         trackColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
                         strokeCap = StrokeCap.Round
                     )
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
                         Text(
                             text = String.format(java.util.Locale.US, "%,d", calories.current),
-                            style = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.ExtraBold)
+                            style = MaterialTheme.typography.titleLarge.copy(
+                                fontWeight = FontWeight.ExtraBold,
+                                fontSize = 20.sp
+                            ),
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = stringResource(R.string.home_nutrition_target_kcal, calories.target),
-                            style = MaterialTheme.typography.bodySmall,
+                            text = "/ ${String.format(java.util.Locale.US, "%,d", calories.target)} kcal",
+                            style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        Text(
-                            text = "${(progress * 100).toInt()}%",
-                            style = MaterialTheme.typography.labelLarge.copy(fontWeight = FontWeight.Bold),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Spacer(modifier = Modifier.height(3.dp))
+                        Surface(
+                            color = if (isOverBudget) {
+                                MaterialTheme.colorScheme.error.copy(alpha = 0.15f)
+                            } else {
+                                Color(0xFF4CAF50).copy(alpha = 0.15f)
+                            },
+                            shape = RoundedCornerShape(4.dp)
+                        ) {
+                            Text(
+                                text = if (isOverBudget) {
+                                    stringResource(R.string.home_calories_over, kotlin.math.abs(remainingCalories))
+                                } else {
+                                    stringResource(R.string.home_calories_remaining, remainingCalories)
+                                },
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                color = if (isOverBudget) MaterialTheme.colorScheme.error else Color(0xFF4CAF50),
+                                modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                            )
+                        }
                     }
                 }
 
