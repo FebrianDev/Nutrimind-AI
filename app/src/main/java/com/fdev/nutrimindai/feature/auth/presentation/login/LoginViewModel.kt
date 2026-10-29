@@ -9,9 +9,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import com.fdev.nutrimindai.core.database.DB_VERSION
 import com.fdev.nutrimindai.core.sync.FirestoreSyncRepository
 import timber.log.Timber
 
@@ -63,6 +63,7 @@ class LoginViewModel @Inject constructor(
                 onSuccess = {
                     try {
                         firestoreSyncRepository.downloadAndRestoreUserData()
+                        preferenceManager.setSavedDbVersion(DB_VERSION)
                     } catch (e: Exception) {
                         Timber.e(e, "Failed to pull user data from Firestore on login")
                     }

@@ -13,6 +13,7 @@ import com.fdev.nutrimindai.core.util.Constants.PREFERENCES_NAME
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import java.io.IOException
 import javax.inject.Inject
@@ -74,6 +75,7 @@ class PreferenceManager @Inject constructor(
         val QUICK_LOG_WATER_AMOUNT = intPreferencesKey("reminder_quick_log_water_amount")
 
         val ACTIVE_AI_PROVIDER = stringPreferencesKey("active_ai_provider")
+        val DB_VERSION = intPreferencesKey("saved_db_version")
     }
 
     val isOnboardingCompleted: Flow<Boolean> = dataStore.data
@@ -109,6 +111,28 @@ class PreferenceManager @Inject constructor(
     suspend fun setDemoSeeded(seeded: Boolean) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.DEMO_SEEDED] = seeded
+        }
+    }
+
+    val savedDbVersion: Flow<Int?> = dataStore.data
+        .catch { exception ->
+            if (exception is IOException) {
+                emit(emptyPreferences())
+            } else {
+                throw exception
+            }
+        }
+        .map { preferences ->
+            preferences[PreferencesKeys.DB_VERSION]
+        }
+
+    suspend fun getSavedDbVersion(): Int? {
+        return dataStore.data.firstOrNull()?.get(PreferencesKeys.DB_VERSION)
+    }
+
+    suspend fun setSavedDbVersion(version: Int) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.DB_VERSION] = version
         }
     }
 

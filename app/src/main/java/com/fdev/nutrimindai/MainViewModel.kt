@@ -15,6 +15,7 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 
+import com.fdev.nutrimindai.core.database.DB_VERSION
 import com.fdev.nutrimindai.core.datastore.AppThemeMode
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
@@ -64,11 +65,23 @@ class MainViewModel @Inject constructor(
             if (!isLoggedIn) {
                 _startDestination.value = NavigationDestination.Login
             } else {
+                val savedVersion = preferenceManager.getSavedDbVersion()
+                if (savedVersion != DB_VERSION) {
+                    try {
+                        Timber.d("Database version changed ($savedVersion -> $DB_VERSION). Syncing data from Firestore...")
+                        firestoreSyncRepository.downloadAndRestoreUserData()
+                        preferenceManager.setSavedDbVersion(DB_VERSION)
+                    } catch (e: Exception) {
+                        Timber.e(e, "Failed to download user data on DB version change")
+                    }
+                }
+
                 var profile = profileRepository.getProfileDirect()
                 if (profile == null) {
                     try {
                         firestoreSyncRepository.downloadAndRestoreUserData()
                         profile = profileRepository.getProfileDirect()
+                        preferenceManager.setSavedDbVersion(DB_VERSION)
                     } catch (e: Exception) {
                         Timber.e(e, "Failed to download user data on start")
                     }
