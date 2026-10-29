@@ -59,6 +59,17 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun loginWithGoogle(idToken: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val credential = com.google.firebase.auth.GoogleAuthProvider.getCredential(idToken, null)
+            firebaseAuth.signInWithCredential(credential).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Timber.e(e, "AuthRepository: Google sign in failed")
+            Result.failure(Exception(mapAuthError(e)))
+        }
+    }
+
 
     override suspend fun sendPasswordReset(email: String): Result<Unit> = withContext(Dispatchers.IO) {
         try {

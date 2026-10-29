@@ -1,7 +1,7 @@
 package com.fdev.nutrimindai.feature.auth.presentation.login
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -15,7 +15,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Spa
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
@@ -24,20 +23,23 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusDirection
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import coil.compose.rememberAsyncImagePainter
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.res.stringResource
-import com.fdev.nutrimindai.R
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.fdev.nutrimindai.R
+import com.fdev.nutrimindai.feature.auth.presentation.AuthGoogleHelper
+import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(
@@ -54,6 +56,8 @@ fun LoginScreen(
     var showForgotPasswordDialog by remember { mutableStateOf(false) }
     var resetStatusMessage by remember { mutableStateOf<String?>(null) }
 
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
     val scrollState = rememberScrollState()
 
@@ -87,23 +91,15 @@ fun LoginScreen(
                 // Brand Header Badge
                 Box(
                     modifier = Modifier
-                        .size(76.dp)
-                        .clip(CircleShape)
-                        .background(
-                            Brush.linearGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.primary,
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.75f)
-                                )
-                            )
-                        ),
+                        .size(80.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Spa,
+                    Image(
+                        painter = rememberAsyncImagePainter(R.drawable.logo_nutrimind),
                         contentDescription = stringResource(R.string.auth_logo_desc),
-                        tint = Color.White,
-                        modifier = Modifier.size(42.dp)
+                        modifier = Modifier.size(68.dp)
                     )
                 }
 
@@ -284,6 +280,51 @@ fun LoginScreen(
                 }
 
                 Spacer(modifier = Modifier.height(20.dp))
+
+                // Google Sign-In Button
+                OutlinedButton(
+                    onClick = {
+                        focusManager.clearFocus()
+                        AuthGoogleHelper.performGoogleSignIn(
+                            context = context,
+                            coroutineScope = coroutineScope,
+                            onIdTokenReceived = { idToken ->
+                                viewModel.loginWithGoogle(idToken, onNavigateToHome, onNavigateToOnboarding)
+                            },
+                            onOAuthSuccess = {
+                                viewModel.handleGoogleAuthSuccess(onNavigateToHome, onNavigateToOnboarding)
+                            },
+                            onError = { errorMsg ->
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar(errorMsg)
+                                }
+                            }
+                        )
+                    },
+                    enabled = uiState !is LoginUiState.Loading,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_google),
+                        contentDescription = null,
+                        tint = Color.Unspecified,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text(
+                        text = stringResource(R.string.auth_sign_in_google),
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
 
                 // Guest Mode / Anonymous Button
                 OutlinedButton(

@@ -2,17 +2,25 @@ package com.fdev.nutrimindai.feature.auth.presentation.register
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.fdev.nutrimindai.core.database.DB_VERSION
+import com.fdev.nutrimindai.core.datastore.PreferenceManager
+import com.fdev.nutrimindai.core.sync.FirestoreSyncRepository
 import com.fdev.nutrimindai.feature.auth.domain.repository.AuthRepository
+import com.fdev.nutrimindai.feature.profile.domain.repository.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val preferenceManager: PreferenceManager,
+    private val profileRepository: ProfileRepository,
+    private val firestoreSyncRepository: FirestoreSyncRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<RegisterUiState>(RegisterUiState.Idle)
@@ -27,9 +35,6 @@ class RegisterViewModel @Inject constructor(
     private val _password = MutableStateFlow("")
     val password: StateFlow<String> = _password.asStateFlow()
 
-    private val _confirmPassword = MutableStateFlow("")
-    val confirmPassword: StateFlow<String> = _confirmPassword.asStateFlow()
-
     fun onNameChange(newName: String) {
         _name.value = newName
     }
@@ -42,15 +47,10 @@ class RegisterViewModel @Inject constructor(
         _password.value = newPassword
     }
 
-    fun onConfirmPasswordChange(newConfirmPassword: String) {
-        _confirmPassword.value = newConfirmPassword
-    }
-
     fun register(onNavigateToOnboarding: () -> Unit) {
         val currentName = _name.value.trim()
         val currentEmail = _email.value.trim()
         val currentPassword = _password.value
-        val currentConfirm = _confirmPassword.value
 
         if (currentName.isBlank()) {
             _uiState.value = RegisterUiState.Error("Please enter your full name.")
@@ -62,10 +62,6 @@ class RegisterViewModel @Inject constructor(
         }
         if (currentPassword.length < 6) {
             _uiState.value = RegisterUiState.Error("Password must be at least 6 characters.")
-            return
-        }
-        if (currentPassword != currentConfirm) {
-            _uiState.value = RegisterUiState.Error("Passwords do not match.")
             return
         }
 
@@ -83,6 +79,53 @@ class RegisterViewModel @Inject constructor(
             )
         }
     }
+
+    fun loginWithGoogle(
+        idToken: String,
+        onNavigateToHome: () -> Unit,
+        onNavigateToOnboarding: () -> Unit
+    ) {
+        viewModelScope.launch {
+            _uiState.value = RegisterUiState.Loading
+            val result = authRepository.loginWithGoogle(idToken)
+            result.fold(
+                onSuccess = {
+                    handleGoogleAuthSuccess(onNavigateToHome, onNavigateToOnboarding)
+                },
+                onFailure = { error ->
+                    _uiState.value = RegisterUiState.Error(error.message ?: "Google registration failed. Please try again.")
+                }
+            )
+        }
+    }
+
+    fun handleGoogleAuthSuccess(
+        onNavigateToHome: () -> Unit,
+        onNavigateToOnboarding: () -> Unit
+    ) {
+        viewModelScope.launch {
+            _uiState.value = RegisterUiState.Loading
+            try {
+                firestoreSyncRepository.downloadAndRestoreUserData()
+                preferenceManager.setSavedDbVersion(DB_VERSION)
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to pull user data from Firestore on Google registration")
+            }
+
+            val profile = profileRepository.getProfileDirect()
+            val hasProfile = profile != null
+
+            if (hasProfile) {
+                preferenceManager.setOnboardingCompleted(true)
+                _uiState.value = RegisterUiState.Success
+                onNavigateToHome()
+            } else {
+                _uiState.value = RegisterUiState.Success
+                onNavigateToOnboarding()
+            }
+        }
+    }
+
 
     fun loginAnonymously(onNavigateToOnboarding: () -> Unit) {
         viewModelScope.launch {

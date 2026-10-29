@@ -194,6 +194,10 @@ dependencies {
     implementation(libs.androidx.camera.view)
     implementation(libs.google.mlkit.barcode.scanning)
     implementation(libs.androidx.health.connect)
+    implementation(libs.play.services.auth)
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services)
+    implementation(libs.googleid)
 
 
     testImplementation(libs.junit)

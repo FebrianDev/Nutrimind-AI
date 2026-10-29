@@ -23,6 +23,11 @@ interface AuthRepository {
     suspend fun loginAnonymously(): Result<Unit>
 
     /**
+     * Signs in or registers a user with a Google ID Token.
+     */
+    suspend fun loginWithGoogle(idToken: String): Result<Unit>
+
+    /**
      * Sends password reset email.
      */
     suspend fun sendPasswordReset(email: String): Result<Unit>

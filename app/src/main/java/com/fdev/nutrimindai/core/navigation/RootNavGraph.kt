@@ -97,6 +97,11 @@ fun RootNavGraph(
                         navController.navigate(NavigationDestination.Onboarding) {
                             popUpTo(0) { inclusive = true }
                         }
+                    },
+                    onNavigateToHome = {
+                        navController.navigate(NavigationDestination.Home) {
+                            popUpTo(0) { inclusive = true }
+                        }
                     }
                 )
             }

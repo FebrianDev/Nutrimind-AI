@@ -87,6 +87,52 @@ class LoginViewModel @Inject constructor(
         }
     }
 
+    fun loginWithGoogle(
+        idToken: String,
+        onNavigateToHome: () -> Unit,
+        onNavigateToOnboarding: () -> Unit
+    ) {
+        viewModelScope.launch {
+            _uiState.value = LoginUiState.Loading
+            val result = authRepository.loginWithGoogle(idToken)
+            result.fold(
+                onSuccess = {
+                    handleGoogleAuthSuccess(onNavigateToHome, onNavigateToOnboarding)
+                },
+                onFailure = { error ->
+                    _uiState.value = LoginUiState.Error(error.message ?: "Google login failed. Please try again.")
+                }
+            )
+        }
+    }
+
+    fun handleGoogleAuthSuccess(
+        onNavigateToHome: () -> Unit,
+        onNavigateToOnboarding: () -> Unit
+    ) {
+        viewModelScope.launch {
+            _uiState.value = LoginUiState.Loading
+            try {
+                firestoreSyncRepository.downloadAndRestoreUserData()
+                preferenceManager.setSavedDbVersion(DB_VERSION)
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to pull user data from Firestore on Google login")
+            }
+
+            val profile = profileRepository.getProfileDirect()
+            val hasProfile = profile != null
+
+            if (hasProfile) {
+                preferenceManager.setOnboardingCompleted(true)
+                _uiState.value = LoginUiState.Success(isNewUser = false)
+                onNavigateToHome()
+            } else {
+                _uiState.value = LoginUiState.Success(isNewUser = true)
+                onNavigateToOnboarding()
+            }
+        }
+    }
+
     fun loginAnonymously(onNavigateToOnboarding: () -> Unit) {
         viewModelScope.launch {
             _uiState.value = LoginUiState.Loading
