@@ -103,6 +103,9 @@ class ProfileViewModel @Inject constructor(
     private val _isUploadingPhoto = MutableStateFlow(false)
     val isUploadingPhoto: StateFlow<Boolean> = _isUploadingPhoto.asStateFlow()
 
+    private val _isLoggingOut = MutableStateFlow(false)
+    val isLoggingOut: StateFlow<Boolean> = _isLoggingOut.asStateFlow()
+
 
     private val _accountInfo = MutableStateFlow(
         AccountInfo(
@@ -259,12 +262,11 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun logout(onSuccess: () -> Unit) {
-
         viewModelScope.launch {
+            _isLoggingOut.value = true
             try {
                 // 1. Sign out Firebase Auth & RevenueCat if logged in
                 try {
-
                     FirebaseAuth.getInstance().signOut()
                 } catch (e: Exception) {
                     Timber.e(e, "Sign out error")
@@ -281,12 +283,22 @@ class ProfileViewModel @Inject constructor(
                 // 4. Clear DataStore Preferences (onboarding completed = false)
                 preferenceManager.clearAllPreferences()
 
-                // 5. Trigger callback to navigate to Onboarding / Auth screen
+                // Graceful delay so user sees progress bar complete
+                kotlinx.coroutines.delay(1500)
+
+                // 5. Dismiss loading dialog FIRST so it disappears before navigating
+                _isLoggingOut.value = false
+
+                // Short delay to let the dialog cleanly close from the screen
+                kotlinx.coroutines.delay(150)
+
+                // 6. Trigger navigation after loading dialog is completely dismissed
                 withContext(Dispatchers.Main) {
                     onSuccess()
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Error during logout and data clearing")
+                _isLoggingOut.value = false
             }
         }
     }
