@@ -25,7 +25,6 @@ import androidx.compose.material.icons.filled.AdsClick
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.Celebration
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DateRange
@@ -84,7 +83,6 @@ import com.fdev.nutrimindai.core.designsystem.NutritionCalories
 import com.fdev.nutrimindai.core.designsystem.NutritionExercise
 import com.fdev.nutrimindai.core.designsystem.NutritionProtein
 import com.fdev.nutrimindai.core.designsystem.NutritionWater
-import com.fdev.nutrimindai.core.util.AdaptiveCalibrationResult
 import com.fdev.nutrimindai.core.util.NutritionPdfReportGenerator
 import com.fdev.nutrimindai.feature.progress.presentation.components.ProgressTrendChart
 import kotlinx.coroutines.Dispatchers
@@ -221,14 +219,6 @@ fun ProgressScreen(
             }
         )
     }
-
-    val calibrationFeedback by viewModel.calibrationFeedback.collectAsStateWithLifecycle()
-    calibrationFeedback?.let { feedback ->
-        CalibrationResultDialog(
-            result = feedback,
-            onDismiss = { viewModel.dismissCalibrationFeedback() }
-        )
-    }
 }
 
 @Composable
@@ -251,11 +241,6 @@ private fun ProgressContent(
             onEditGoalClick = onNavigateToGoalSettings,
             onLogWeightClick = onLogWeightClick
         )
-        if (data.goalData.needsCalibrationPrompt) {
-            WeeklyCalibrationBannerCard(
-                onCalibrateClick = onLogWeightClick
-            )
-        }
         WeeklySummarySection(data = data)
         TrendSection(
             trendPoints = data.weeklyTrendPoints,
@@ -614,11 +599,7 @@ fun GoalProgressCard(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = if (goalData.isUsingProjection) {
-                        stringResource(R.string.label_calibrate_scale)
-                    } else {
-                        stringResource(R.string.label_update_scale)
-                    },
+                    text = stringResource(R.string.label_update_scale),
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -1458,235 +1439,3 @@ fun LogWeightDialog(
         }
     )
 }
-
-@Composable
-fun WeeklyCalibrationBannerCard(
-    onCalibrateClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f)
-        ),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
-    ) {
-        Column(
-            modifier = Modifier.padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Surface(
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
-                    modifier = Modifier.size(36.dp)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = Icons.Default.Celebration,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                }
-                Text(
-                    text = stringResource(R.string.card_weekly_calibration_title),
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-
-            Text(
-                text = stringResource(R.string.card_weekly_calibration_desc),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                lineHeight = 18.sp
-            )
-
-            Button(
-                onClick = onCalibrateClick,
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Scale,
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = stringResource(R.string.btn_calibrate_now),
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun CalibrationResultDialog(
-    result: AdaptiveCalibrationResult,
-    onDismiss: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            Button(
-                onClick = onDismiss,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(14.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.btn_understand),
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        },
-        title = {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(
-                    text = result.statusEmoji,
-                    fontSize = 40.sp
-                )
-                Text(
-                    text = stringResource(R.string.dialog_calibration_result_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Surface(
-                    shape = RoundedCornerShape(8.dp),
-                    color = if (result.isAccurate) LightSuccess.copy(alpha = 0.15f) else MaterialTheme.colorScheme.primaryContainer.copy(
-                        alpha = 0.6f
-                    )
-                ) {
-                    Text(
-                        text = result.title,
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = if (result.isAccurate) LightSuccess else MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-                    )
-                }
-            }
-        },
-        text = {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(14.dp)
-            ) {
-                // Metric comparison row
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Card(
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(
-                                alpha = 0.5f
-                            )
-                        )
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(10.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = stringResource(R.string.label_scale_reading),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = String.format(Locale.US, "%.1f kg", result.actualWeight),
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = LightSuccess
-                            )
-                        }
-                    }
-
-                    Card(
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(
-                                alpha = 0.5f
-                            )
-                        )
-                    ) {
-                        Column(
-                            modifier = Modifier.padding(10.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = stringResource(R.string.label_ai_prior_projection),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = String.format(Locale.US, "%.1f kg", result.projectedWeight),
-                                style = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        }
-                    }
-                }
-
-                // Deviation indicator
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 4.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = stringResource(R.string.label_deviation),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    val devSign = if (result.deviationKg > 0) "+" else ""
-                    Text(
-                        text = "$devSign${String.format(Locale.US, "%.1f kg", result.deviationKg)}",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = if (result.isAccurate) LightSuccess else MaterialTheme.colorScheme.primary
-                    )
-                }
-
-                // Feedback card
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = result.feedbackMessage,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        lineHeight = 18.sp,
-                        modifier = Modifier.padding(12.dp)
-                    )
-                }
-            }
-        },
-        shape = RoundedCornerShape(24.dp)
-    )
-}
-
-
-

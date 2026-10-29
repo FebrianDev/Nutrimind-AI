@@ -17,7 +17,6 @@ import com.fdev.nutrimindai.feature.dailyintake.domain.repository.WaterRepositor
 import com.fdev.nutrimindai.feature.profile.data.local.entity.ProfileEntity
 import com.fdev.nutrimindai.feature.profile.domain.repository.ProfileRepository
 import com.fdev.nutrimindai.core.model.Goal
-import com.fdev.nutrimindai.core.util.AdaptiveCalibrationResult
 import com.fdev.nutrimindai.core.util.NutritionCalculator
 import com.fdev.nutrimindai.core.sync.SyncManager
 import com.fdev.nutrimindai.feature.progress.data.local.entity.WeightLogEntity
@@ -130,12 +129,7 @@ class ProgressViewModel @Inject constructor(
     private val _selectedFilter = MutableStateFlow<DateRangeFilter>(DateRangeFilter.Last7Days)
     val selectedFilter: StateFlow<DateRangeFilter> = _selectedFilter.asStateFlow()
 
-    private val _calibrationFeedback = MutableStateFlow<AdaptiveCalibrationResult?>(null)
-    val calibrationFeedback: StateFlow<AdaptiveCalibrationResult?> = _calibrationFeedback.asStateFlow()
 
-    fun dismissCalibrationFeedback() {
-        _calibrationFeedback.value = null
-    }
 
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
     private val dayLabelFormat = SimpleDateFormat("EEE", Locale.getDefault())
@@ -154,16 +148,6 @@ class ProgressViewModel @Inject constructor(
     fun logWeight(weightKg: Float, note: String? = null, onSuccess: () -> Unit = {}) {
         viewModelScope.launch {
             try {
-                // If user was using AI projection, trigger Adaptive Metabolic Calibration evaluation
-                val currentGoalData = (_uiState.value as? ProgressUiState.Success)?.data?.goalData
-                if (currentGoalData != null && currentGoalData.isUsingProjection) {
-                    val feedback = NutritionCalculator.evaluateMetabolicCalibration(
-                        actualWeight = weightKg,
-                        projectedWeight = currentGoalData.currentWeightKg
-                    )
-                    _calibrationFeedback.value = feedback
-                }
-
                 weightLogRepository.logWeight(
                     date = currentDate,
                     weightKg = weightKg,
@@ -546,8 +530,7 @@ class ProgressViewModel @Inject constructor(
                 anchorDate
             }
         }
-
-        val needsCalibrationPrompt = isUsingProjection && diffDays >= 7
+        val needsCalibrationPrompt = false
 
         val metabolicNotice = if (isUsingProjection) {
             if (projectedDelta < 0) {
