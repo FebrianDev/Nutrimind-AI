@@ -1,12 +1,29 @@
 package com.fdev.nutrimindai.feature.home.presentation
 
 import android.content.res.Configuration
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.AutoAwesome
+import androidx.compose.material.icons.rounded.RestaurantMenu
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -17,6 +34,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -29,12 +47,14 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fdev.nutrimindai.R
+import com.fdev.nutrimindai.core.ai.AiProvider
 import com.fdev.nutrimindai.core.designsystem.NutriMindAITheme
+import com.fdev.nutrimindai.core.model.Goal
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.DailyLogStatus
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.DailyMissionItem
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.NutritionSummary
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.TodaySummary
-import com.fdev.nutrimindai.core.ai.AiProvider
+import com.fdev.nutrimindai.feature.dailyintake.presentation.nutrichef.NutriChefBottomSheet
 import com.fdev.nutrimindai.feature.home.presentation.components.CoachInsightCard
 import com.fdev.nutrimindai.feature.home.presentation.components.CompleteConfirmationDialog
 import com.fdev.nutrimindai.feature.home.presentation.components.CompleteTodayButton
@@ -44,18 +64,7 @@ import com.fdev.nutrimindai.feature.home.presentation.components.IntakeSection
 import com.fdev.nutrimindai.feature.home.presentation.components.MissionSection
 import com.fdev.nutrimindai.feature.home.presentation.components.NutritionData
 import com.fdev.nutrimindai.feature.home.presentation.components.NutritionSection
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.AutoAwesome
-import androidx.compose.material.icons.rounded.RestaurantMenu
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Surface
-import androidx.compose.ui.draw.clip
-import com.fdev.nutrimindai.feature.dailyintake.presentation.nutrichef.NutriChefBottomSheet
 import com.fdev.nutrimindai.feature.home.presentation.components.ReopenConfirmationDialog
-import com.fdev.nutrimindai.core.model.Goal
 import kotlinx.coroutines.launch
 import java.util.Locale
 
@@ -79,26 +88,40 @@ fun HomeScreen(
     val context = androidx.compose.ui.platform.LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
-    val healthConnectPermissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
-        contract = androidx.health.connect.client.PermissionController.createRequestPermissionResultContract()
-    ) { granted ->
-        if (viewModel.healthConnectPermissions.all { it in granted }) {
-            viewModel.syncHealthConnect { msg ->
-                android.widget.Toast.makeText(context, msg, android.widget.Toast.LENGTH_SHORT).show()
+    val healthConnectPermissionLauncher =
+        androidx.activity.compose.rememberLauncherForActivityResult(
+            contract = androidx.health.connect.client.PermissionController.createRequestPermissionResultContract()
+        ) { granted ->
+            if (viewModel.healthConnectPermissions.all { it in granted }) {
+                viewModel.syncHealthConnect { msg ->
+                    android.widget.Toast.makeText(context, msg, android.widget.Toast.LENGTH_SHORT)
+                        .show()
+                }
+            } else {
+                android.widget.Toast.makeText(
+                    context,
+                    context.getString(R.string.health_connect_permission_needed),
+                    android.widget.Toast.LENGTH_SHORT
+                ).show()
             }
-        } else {
-            android.widget.Toast.makeText(context, context.getString(R.string.health_connect_permission_needed), android.widget.Toast.LENGTH_SHORT).show()
         }
-    }
 
     val onSyncHealthConnect: () -> Unit = {
         if (!viewModel.isHealthConnectAvailable) {
-            android.widget.Toast.makeText(context, context.getString(R.string.health_connect_not_available), android.widget.Toast.LENGTH_SHORT).show()
+            android.widget.Toast.makeText(
+                context,
+                context.getString(R.string.health_connect_not_available),
+                android.widget.Toast.LENGTH_SHORT
+            ).show()
         } else {
             coroutineScope.launch {
                 if (viewModel.hasHealthConnectPermissions()) {
                     viewModel.syncHealthConnect { msg ->
-                        android.widget.Toast.makeText(context, msg, android.widget.Toast.LENGTH_SHORT).show()
+                        android.widget.Toast.makeText(
+                            context,
+                            msg,
+                            android.widget.Toast.LENGTH_SHORT
+                        ).show()
                     }
                 } else {
                     healthConnectPermissionLauncher.launch(viewModel.healthConnectPermissions)
@@ -279,6 +302,13 @@ fun HomeContent(
                 userPhotoUrl = summary.userPhotoUrl
             )
 
+            Spacer(modifier = Modifier.height(12.dp))
+
+            MissionSection(
+                userGoal = summary.userGoal,
+                missions = missions
+            )
+
             Spacer(modifier = Modifier.height(16.dp))
 
             NutritionSection(
@@ -289,7 +319,7 @@ fun HomeContent(
                 water = water
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             IntakeSection(
                 breakfastCalories = summary.breakfastList.sumOf { it.calories },
@@ -308,16 +338,7 @@ fun HomeContent(
                 onSyncHealthConnect = onSyncHealthConnect
             )
 
-            val remainingCalories = (nutrition.goalCalories - nutrition.calories).coerceAtLeast(0)
-            if (remainingCalories > 100 && summary.status != DailyLogStatus.COMPLETED) {
-                Spacer(modifier = Modifier.height(20.dp))
-                NutriChefCard(
-                    remainingCalories = remainingCalories,
-                    onOpenNutriChef = onOpenNutriChef
-                )
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             CoachInsightCard(
                 tipText = coachingTip,
@@ -326,12 +347,6 @@ fun HomeContent(
                 onRefreshClick = onRefreshTip
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
-
-            MissionSection(
-                userGoal = summary.userGoal,
-                missions = missions
-            )
         }
 
         Box(
@@ -370,14 +385,15 @@ private fun buildGoalDrivenMissions(
     val waterAchieved = nutrition.water >= (waterGoalMl * 0.9).toInt()
     val totalExerciseMin = summary.exerciseList.sumOf { it.durationMinute }
     val exerciseAchieved = totalExerciseMin >= 30
-    val hasVegetables = (summary.breakfastList + summary.lunchList + summary.dinnerList + summary.othersList).any {
-        it.foodName.contains("Vegetable", ignoreCase = true) ||
-            it.foodName.contains("Salad", ignoreCase = true) ||
-            it.foodName.contains("Sayur", ignoreCase = true) ||
-            it.foodName.contains("Spinach", ignoreCase = true) ||
-            it.foodName.contains("Broccoli", ignoreCase = true) ||
-            it.fiber >= 3.0
-    }
+    val hasVegetables =
+        (summary.breakfastList + summary.lunchList + summary.dinnerList + summary.othersList).any {
+            it.foodName.contains("Vegetable", ignoreCase = true) ||
+                    it.foodName.contains("Salad", ignoreCase = true) ||
+                    it.foodName.contains("Sayur", ignoreCase = true) ||
+                    it.foodName.contains("Spinach", ignoreCase = true) ||
+                    it.foodName.contains("Broccoli", ignoreCase = true) ||
+                    it.fiber >= 3.0
+        }
 
     val waterProgressText = stringResource(
         R.string.mission_water_hydration_progress,
@@ -393,29 +409,46 @@ private fun buildGoalDrivenMissions(
     return when (userGoal) {
         Goal.LoseWeight -> {
             val calorieDeficitMet = (nutrition.calories in 500..nutrition.goalCalories) ||
-                (nutrition.calories <= nutrition.goalCalories && (summary.breakfastList.isNotEmpty() || summary.lunchList.isNotEmpty()))
+                    (nutrition.calories <= nutrition.goalCalories && (summary.breakfastList.isNotEmpty() || summary.lunchList.isNotEmpty()))
             val proteinTargetMet = nutrition.protein >= (nutrition.goalProtein * 0.8)
 
             listOf(
                 DailyMissionItem(
                     id = "calorie_deficit",
                     title = stringResource(R.string.mission_calorie_deficit_title),
-                    description = stringResource(R.string.mission_calorie_deficit_desc, nutrition.goalCalories),
-                    currentProgressText = stringResource(R.string.mission_calorie_deficit_progress, nutrition.calories, nutrition.goalCalories),
+                    description = stringResource(
+                        R.string.mission_calorie_deficit_desc,
+                        nutrition.goalCalories
+                    ),
+                    currentProgressText = stringResource(
+                        R.string.mission_calorie_deficit_progress,
+                        nutrition.calories,
+                        nutrition.goalCalories
+                    ),
                     isCompleted = calorieDeficitMet
                 ),
                 DailyMissionItem(
                     id = "water_hydration",
                     title = stringResource(R.string.mission_water_hydration_title),
-                    description = stringResource(R.string.mission_water_hydration_desc, String.format(Locale.US, "%.1f", waterGoalMl / 1000.0)),
+                    description = stringResource(
+                        R.string.mission_water_hydration_desc,
+                        String.format(Locale.US, "%.1f", waterGoalMl / 1000.0)
+                    ),
                     currentProgressText = waterProgressText,
                     isCompleted = waterAchieved
                 ),
                 DailyMissionItem(
                     id = "protein_preservation",
                     title = stringResource(R.string.mission_protein_preservation_title),
-                    description = stringResource(R.string.mission_protein_preservation_desc, nutrition.goalProtein),
-                    currentProgressText = stringResource(R.string.mission_protein_preservation_progress, nutrition.protein.toInt(), nutrition.goalProtein),
+                    description = stringResource(
+                        R.string.mission_protein_preservation_desc,
+                        nutrition.goalProtein
+                    ),
+                    currentProgressText = stringResource(
+                        R.string.mission_protein_preservation_progress,
+                        nutrition.protein.toInt(),
+                        nutrition.goalProtein
+                    ),
                     isCompleted = proteinTargetMet
                 ),
                 DailyMissionItem(
@@ -429,36 +462,60 @@ private fun buildGoalDrivenMissions(
                     id = "vegetables_fiber",
                     title = stringResource(R.string.mission_vegetables_fiber_title),
                     description = stringResource(R.string.mission_vegetables_fiber_desc),
-                    currentProgressText = if (hasVegetables) stringResource(R.string.mission_vegetables_fiber_logged) else stringResource(R.string.mission_vegetables_fiber_add),
+                    currentProgressText = if (hasVegetables) stringResource(R.string.mission_vegetables_fiber_logged) else stringResource(
+                        R.string.mission_vegetables_fiber_add
+                    ),
                     isCompleted = hasVegetables
                 )
             )
         }
+
         Goal.GainWeight -> {
             val calorieSurplusMet = nutrition.calories >= (nutrition.goalCalories * 0.9).toInt()
             val highProteinMet = nutrition.protein >= (nutrition.goalProtein * 0.85)
-            val mainMealsCount = listOf(summary.breakfastList, summary.lunchList, summary.dinnerList).count { it.isNotEmpty() }
+            val mainMealsCount = listOf(
+                summary.breakfastList,
+                summary.lunchList,
+                summary.dinnerList
+            ).count { it.isNotEmpty() }
 
             listOf(
                 DailyMissionItem(
                     id = "calorie_surplus",
                     title = stringResource(R.string.mission_calorie_surplus_title),
-                    description = stringResource(R.string.mission_calorie_surplus_desc, nutrition.goalCalories),
-                    currentProgressText = stringResource(R.string.mission_calorie_deficit_progress, nutrition.calories, nutrition.goalCalories),
+                    description = stringResource(
+                        R.string.mission_calorie_surplus_desc,
+                        nutrition.goalCalories
+                    ),
+                    currentProgressText = stringResource(
+                        R.string.mission_calorie_deficit_progress,
+                        nutrition.calories,
+                        nutrition.goalCalories
+                    ),
                     isCompleted = calorieSurplusMet
                 ),
                 DailyMissionItem(
                     id = "protein_hypertrophy",
                     title = stringResource(R.string.mission_protein_hypertrophy_title),
-                    description = stringResource(R.string.mission_protein_preservation_desc, nutrition.goalProtein),
-                    currentProgressText = stringResource(R.string.mission_protein_preservation_progress, nutrition.protein.toInt(), nutrition.goalProtein),
+                    description = stringResource(
+                        R.string.mission_protein_preservation_desc,
+                        nutrition.goalProtein
+                    ),
+                    currentProgressText = stringResource(
+                        R.string.mission_protein_preservation_progress,
+                        nutrition.protein.toInt(),
+                        nutrition.goalProtein
+                    ),
                     isCompleted = highProteinMet
                 ),
                 DailyMissionItem(
                     id = "main_meals",
                     title = stringResource(R.string.mission_main_meals_title),
                     description = stringResource(R.string.mission_main_meals_desc),
-                    currentProgressText = stringResource(R.string.mission_main_meals_progress, mainMealsCount),
+                    currentProgressText = stringResource(
+                        R.string.mission_main_meals_progress,
+                        mainMealsCount
+                    ),
                     isCompleted = mainMealsCount >= 3
                 ),
                 DailyMissionItem(
@@ -471,37 +528,59 @@ private fun buildGoalDrivenMissions(
                 DailyMissionItem(
                     id = "water_hydration",
                     title = stringResource(R.string.mission_water_recovery_title),
-                    description = stringResource(R.string.mission_water_hydration_desc, String.format(Locale.US, "%.1f", waterGoalMl / 1000.0)),
+                    description = stringResource(
+                        R.string.mission_water_hydration_desc,
+                        String.format(Locale.US, "%.1f", waterGoalMl / 1000.0)
+                    ),
                     currentProgressText = waterProgressText,
                     isCompleted = waterAchieved
                 )
             )
         }
+
         Goal.MaintainWeight -> {
-            val calorieBalanceMet = nutrition.calories in (nutrition.goalCalories - 250)..(nutrition.goalCalories + 250) &&
-                (summary.breakfastList.isNotEmpty() || summary.lunchList.isNotEmpty())
+            val calorieBalanceMet =
+                nutrition.calories in (nutrition.goalCalories - 250)..(nutrition.goalCalories + 250) &&
+                        (summary.breakfastList.isNotEmpty() || summary.lunchList.isNotEmpty())
             val proteinBalancedMet = nutrition.protein >= (nutrition.goalProtein * 0.8)
 
             listOf(
                 DailyMissionItem(
                     id = "calorie_balance",
                     title = stringResource(R.string.mission_calorie_balance_title),
-                    description = stringResource(R.string.mission_calorie_balance_desc, nutrition.goalCalories),
-                    currentProgressText = stringResource(R.string.mission_calorie_deficit_progress, nutrition.calories, nutrition.goalCalories),
+                    description = stringResource(
+                        R.string.mission_calorie_balance_desc,
+                        nutrition.goalCalories
+                    ),
+                    currentProgressText = stringResource(
+                        R.string.mission_calorie_deficit_progress,
+                        nutrition.calories,
+                        nutrition.goalCalories
+                    ),
                     isCompleted = calorieBalanceMet
                 ),
                 DailyMissionItem(
                     id = "water_hydration",
                     title = stringResource(R.string.mission_water_vitality_title),
-                    description = stringResource(R.string.mission_water_hydration_desc, String.format(Locale.US, "%.1f", waterGoalMl / 1000.0)),
+                    description = stringResource(
+                        R.string.mission_water_hydration_desc,
+                        String.format(Locale.US, "%.1f", waterGoalMl / 1000.0)
+                    ),
                     currentProgressText = waterProgressText,
                     isCompleted = waterAchieved
                 ),
                 DailyMissionItem(
                     id = "protein_daily",
                     title = stringResource(R.string.mission_protein_daily_title),
-                    description = stringResource(R.string.mission_protein_preservation_desc, nutrition.goalProtein),
-                    currentProgressText = stringResource(R.string.mission_protein_preservation_progress, nutrition.protein.toInt(), nutrition.goalProtein),
+                    description = stringResource(
+                        R.string.mission_protein_preservation_desc,
+                        nutrition.goalProtein
+                    ),
+                    currentProgressText = stringResource(
+                        R.string.mission_protein_preservation_progress,
+                        nutrition.protein.toInt(),
+                        nutrition.goalProtein
+                    ),
                     isCompleted = proteinBalancedMet
                 ),
                 DailyMissionItem(
@@ -515,7 +594,9 @@ private fun buildGoalDrivenMissions(
                     id = "vegetables_fiber",
                     title = stringResource(R.string.mission_vegetables_greens_title),
                     description = stringResource(R.string.mission_vegetables_greens_desc),
-                    currentProgressText = if (hasVegetables) stringResource(R.string.mission_vegetables_fiber_logged) else stringResource(R.string.mission_vegetables_fiber_add),
+                    currentProgressText = if (hasVegetables) stringResource(R.string.mission_vegetables_fiber_logged) else stringResource(
+                        R.string.mission_vegetables_fiber_add
+                    ),
                     isCompleted = hasVegetables
                 )
             )

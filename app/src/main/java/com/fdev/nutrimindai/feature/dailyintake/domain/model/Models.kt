@@ -91,5 +91,7 @@ data class TodaySummary(
     val waterList: List<Water> = emptyList(),
     val waterTotalMl: Int = 0,
     val exerciseList: List<Exercise> = emptyList(),
-    val nutritionSummary: NutritionSummary = NutritionSummary()
+    val nutritionSummary: NutritionSummary = NutritionSummary(),
+    val currentWeightKg: Float? = null,
+    val isWeightLoggedToday: Boolean = false
 )

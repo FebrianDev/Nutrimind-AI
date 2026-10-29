@@ -5,16 +5,22 @@ import androidx.lifecycle.viewModelScope
 import com.fdev.nutrimindai.core.ai.AiProvider
 import com.fdev.nutrimindai.core.ai.AiRepository
 import com.fdev.nutrimindai.feature.dailyintake.data.seeder.DemoDataSeeder
+import com.fdev.nutrimindai.feature.dailyintake.domain.model.DailyLog
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.DailyLogStatus
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.Exercise
+import com.fdev.nutrimindai.feature.dailyintake.domain.model.Intake
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.MealType
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.NutritionSummary
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.TodaySummary
+import com.fdev.nutrimindai.feature.dailyintake.domain.model.Water
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.DailyLogRepository
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.ExerciseRepository
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.IntakeRepository
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.WaterRepository
 import com.fdev.nutrimindai.feature.profile.domain.repository.ProfileRepository
+import com.fdev.nutrimindai.feature.profile.data.local.entity.ProfileEntity
+import com.fdev.nutrimindai.feature.progress.domain.repository.WeightLogRepository
+import com.fdev.nutrimindai.feature.progress.data.local.entity.WeightLogEntity
 import com.fdev.nutrimindai.core.model.Goal
 import com.fdev.nutrimindai.core.util.NutritionCalculator
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -44,6 +50,7 @@ class HomeViewModel @Inject constructor(
     private val waterRepository: WaterRepository,
     private val exerciseRepository: ExerciseRepository,
     private val profileRepository: ProfileRepository,
+    private val weightLogRepository: WeightLogRepository,
     private val demoDataSeeder: DemoDataSeeder,
     private val aiRepository: AiRepository,
     private val healthConnectManager: com.fdev.nutrimindai.core.health.HealthConnectManager
@@ -197,8 +204,16 @@ class HomeViewModel @Inject constructor(
                 intakeRepository.getIntakesForDailyLog(dailyLogId),
                 waterRepository.getWaterRecordsForDailyLog(dailyLogId),
                 exerciseRepository.getExercisesForDailyLog(dailyLogId),
-                profileRepository.getProfile()
-            ) { dailyLog, intakes, waters, exercises, profile ->
+                profileRepository.getProfile(),
+                weightLogRepository.getWeightLogByDate(dateToLoad)
+            ) { args: Array<Any?> ->
+                val dailyLog = args[0] as DailyLog?
+                val intakes = @Suppress("UNCHECKED_CAST") (args[1] as List<Intake>)
+                val waters = @Suppress("UNCHECKED_CAST") (args[2] as List<Water>)
+                val exercises = @Suppress("UNCHECKED_CAST") (args[3] as List<Exercise>)
+                val profile = args[4] as ProfileEntity?
+                val weightLog = args[5] as WeightLogEntity?
+
                 val status = dailyLog?.status ?: DailyLogStatus.DRAFT
 
                 val breakfast = intakes.filter { it.mealType == MealType.BREAKFAST }
@@ -214,8 +229,11 @@ class HomeViewModel @Inject constructor(
                 val totalFiber = intakes.sumOf { it.fiber }
                 val totalExerciseCalories = exercises.sumOf { it.caloriesBurned }
                 val totalExerciseMinutes = exercises.sumOf { it.durationMinute }
+                val currentWeightKg = weightLog?.weightKg ?: profile?.currentWeight
+                val isWeightLoggedToday = weightLog != null
+
                 val dynamicWaterGoal = NutritionCalculator.calculateDynamicWaterTarget(
-                    weightKg = profile?.currentWeight ?: 70f,
+                    weightKg = currentWeightKg ?: 70f,
                     exerciseMinutes = totalExerciseMinutes
                 )
 
@@ -248,7 +266,9 @@ class HomeViewModel @Inject constructor(
                     waterList = waters,
                     waterTotalMl = totalWater,
                     exerciseList = exercises,
-                    nutritionSummary = nutritionSummary
+                    nutritionSummary = nutritionSummary,
+                    currentWeightKg = currentWeightKg,
+                    isWeightLoggedToday = isWeightLoggedToday
                 )
             }.collect { summary ->
                 _uiState.value = HomeUiState.Success(summary)

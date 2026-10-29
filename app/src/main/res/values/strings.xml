@@ -889,4 +889,8 @@
     <string name="health_connect_permission_needed">Health Connect permission is required to read steps and active calories</string>
     <string name="health_connect_not_available">Google Health Connect is not available on this device</string>
     <string name="label_yesterday">Yesterday</string>
+    <string name="home_missions_tap_to_view">Tap to view missions</string>
+    <string name="home_missions_dialog_desc">Daily habit missions designed for your health goal.</string>
+    <string name="home_nutrition_badge">Daily Target</string>
+    <string name="home_intake_badge">Daily Tracker</string>
 </resources>
