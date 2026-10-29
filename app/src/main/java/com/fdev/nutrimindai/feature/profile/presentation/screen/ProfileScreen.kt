@@ -19,6 +19,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
@@ -433,12 +434,14 @@ private fun ProfileMainContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(scrollState)
-            .padding(horizontal = 20.dp, vertical = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
+            .padding(horizontal = 20.dp)
     ) {
-        // --- Header Title ---
-        Column(modifier = Modifier.fillMaxWidth()) {
+        // --- Header Title (Fixed) ---
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp, bottom = 16.dp)
+        ) {
             Text(
                 text = stringResource(R.string.profile_title),
                 style = MaterialTheme.typography.headlineMedium.copy(
@@ -452,6 +455,16 @@ private fun ProfileMainContent(
                 style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant)
             )
         }
+
+        // --- Scrollable Settings Content ---
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .clipToBounds()
+                .verticalScroll(scrollState),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
 
         // --- User Card ---
         Surface(
@@ -727,6 +740,7 @@ private fun ProfileMainContent(
         }
 
         Spacer(modifier = Modifier.height(16.dp))
+        }
     }
 }
 

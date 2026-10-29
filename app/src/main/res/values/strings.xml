@@ -615,6 +615,7 @@
 
     <!-- Intake Section -->
     <string name="home_todays_intake">Today\'s Intake</string>
+    <string name="home_intake_progress_format">%1$d of %2$d items logged (%3$d%%)</string>
     <string name="home_intake_breakfast">Breakfast</string>
     <string name="home_intake_lunch">Lunch</string>
     <string name="home_intake_dinner">Dinner</string>

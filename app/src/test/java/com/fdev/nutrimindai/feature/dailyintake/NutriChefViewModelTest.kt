@@ -46,6 +46,7 @@ class NutriChefViewModelTest {
     private lateinit var intakeRepository: IntakeRepository
     private lateinit var dailyLogRepository: DailyLogRepository
     private lateinit var profileRepository: ProfileRepository
+    private lateinit var syncManager: com.fdev.nutrimindai.core.sync.SyncManager
     private lateinit var viewModel: NutriChefViewModel
 
     private val sampleRecipe = SmartRecipe(
@@ -88,6 +89,7 @@ class NutriChefViewModelTest {
         intakeRepository = mock()
         dailyLogRepository = mock()
         profileRepository = mock()
+        syncManager = mock()
     }
 
     @After
@@ -122,7 +124,7 @@ class NutriChefViewModelTest {
         whenever(aiRepository.generateSmartRecipes(any(), any(), any(), any(), any(), any()))
             .thenReturn(Result.success(listOf(sampleRecipe)))
 
-        viewModel = NutriChefViewModel(aiRepository, intakeRepository, dailyLogRepository, profileRepository)
+        viewModel = NutriChefViewModel(aiRepository, intakeRepository, dailyLogRepository, profileRepository, syncManager)
         advanceUntilIdle()
 
         val state = viewModel.uiState.value
@@ -142,7 +144,7 @@ class NutriChefViewModelTest {
         whenever(aiRepository.generateSmartRecipes(any(), any(), any(), any(), any(), any()))
             .thenReturn(Result.success(listOf(sampleRecipe)))
 
-        viewModel = NutriChefViewModel(aiRepository, intakeRepository, dailyLogRepository, profileRepository)
+        viewModel = NutriChefViewModel(aiRepository, intakeRepository, dailyLogRepository, profileRepository, syncManager)
         advanceUntilIdle()
 
         var onCompleteCalled = false
@@ -153,6 +155,7 @@ class NutriChefViewModelTest {
 
         val intakeCaptor = argumentCaptor<Intake>()
         verify(intakeRepository).addIntake(intakeCaptor.capture())
+        verify(syncManager).triggerManualSync()
 
         val savedIntake = intakeCaptor.firstValue
         assertEquals("Dada Ayam Panggang Rosemary", savedIntake.foodName)

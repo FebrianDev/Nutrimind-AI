@@ -1,8 +1,7 @@
 package com.fdev.nutrimindai.feature.home.presentation
 
+import android.content.Context
 import android.content.res.Configuration
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,18 +11,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.AutoAwesome
-import androidx.compose.material.icons.rounded.RestaurantMenu
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -34,11 +26,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -84,52 +73,6 @@ fun HomeScreen(
     var showCompleteDialog by remember { mutableStateOf(false) }
     var showReopenDialog by remember { mutableStateOf(false) }
     var showNutriChefBottomSheet by remember { mutableStateOf(false) }
-
-    val context = androidx.compose.ui.platform.LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
-
-    val healthConnectPermissionLauncher =
-        androidx.activity.compose.rememberLauncherForActivityResult(
-            contract = androidx.health.connect.client.PermissionController.createRequestPermissionResultContract()
-        ) { granted ->
-            if (viewModel.healthConnectPermissions.all { it in granted }) {
-                viewModel.syncHealthConnect { msg ->
-                    android.widget.Toast.makeText(context, msg, android.widget.Toast.LENGTH_SHORT)
-                        .show()
-                }
-            } else {
-                android.widget.Toast.makeText(
-                    context,
-                    context.getString(R.string.health_connect_permission_needed),
-                    android.widget.Toast.LENGTH_SHORT
-                ).show()
-            }
-        }
-
-    val onSyncHealthConnect: () -> Unit = {
-        if (!viewModel.isHealthConnectAvailable) {
-            android.widget.Toast.makeText(
-                context,
-                context.getString(R.string.health_connect_not_available),
-                android.widget.Toast.LENGTH_SHORT
-            ).show()
-        } else {
-            coroutineScope.launch {
-                if (viewModel.hasHealthConnectPermissions()) {
-                    viewModel.syncHealthConnect { msg ->
-                        android.widget.Toast.makeText(
-                            context,
-                            msg,
-                            android.widget.Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                } else {
-                    healthConnectPermissionLauncher.launch(viewModel.healthConnectPermissions)
-                }
-            }
-        }
-    }
-
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -228,7 +171,6 @@ fun HomeScreen(
                 onNavigateToExercise = onNavigateToExercise,
                 onNavigateToDailyReview = onNavigateToDailyReview,
                 onOpenNutriChef = { showNutriChefBottomSheet = true },
-                onSyncHealthConnect = onSyncHealthConnect,
                 onCompleteTodayClick = { showCompleteDialog = true },
                 onReopenTodayClick = { showReopenDialog = true }
             )
@@ -248,101 +190,136 @@ fun HomeContent(
     onNavigateToExercise: () -> Unit,
     onNavigateToDailyReview: (String) -> Unit = {},
     onOpenNutriChef: () -> Unit = {},
-    onSyncHealthConnect: (() -> Unit)? = null,
     onCompleteTodayClick: () -> Unit,
     onReopenTodayClick: () -> Unit
 ) {
+    val context = LocalContext.current
     val scrollState = rememberScrollState()
     val nutrition = summary.nutritionSummary
 
-    // Daily missions tailored specifically to user's primary goal & today's intake
-    val missions = buildGoalDrivenMissions(nutrition, summary)
-
-    val calories = NutritionData(
-        stringResource(R.string.home_label_calories),
+    // Daily missions tailored specifically to user's primary goal & today's intake (cached)
+    val missions = remember(
+        summary.userGoal,
         nutrition.calories,
         nutrition.goalCalories,
-        stringResource(R.string.unit_kcal)
-    )
-    val protein = NutritionData(
-        stringResource(R.string.label_protein),
-        nutrition.protein.toInt(),
+        nutrition.protein,
         nutrition.goalProtein,
-        stringResource(R.string.unit_grams)
-    )
-    val carbs = NutritionData(
-        stringResource(R.string.label_carbs),
-        nutrition.carbs.toInt(),
-        nutrition.goalCarbs,
-        stringResource(R.string.unit_grams)
-    )
-    val fat = NutritionData(
-        stringResource(R.string.label_fat),
-        nutrition.fat.toInt(),
-        nutrition.goalFat,
-        stringResource(R.string.unit_grams)
-    )
+        nutrition.water,
+        nutrition.goalWater,
+        summary.breakfastList.size,
+        summary.lunchList.size,
+        summary.dinnerList.size,
+        summary.othersList.size,
+        summary.exerciseList.size
+    ) {
+        buildGoalDrivenMissions(context, nutrition, summary)
+    }
+
+    val calories = remember(nutrition.calories, nutrition.goalCalories) {
+        NutritionData(
+            context.getString(R.string.home_label_calories),
+            nutrition.calories,
+            nutrition.goalCalories,
+            context.getString(R.string.unit_kcal)
+        )
+    }
+    val protein = remember(nutrition.protein, nutrition.goalProtein) {
+        NutritionData(
+            context.getString(R.string.label_protein),
+            nutrition.protein.toInt(),
+            nutrition.goalProtein,
+            context.getString(R.string.unit_grams)
+        )
+    }
+    val carbs = remember(nutrition.carbs, nutrition.goalCarbs) {
+        NutritionData(
+            context.getString(R.string.label_carbs),
+            nutrition.carbs.toInt(),
+            nutrition.goalCarbs,
+            context.getString(R.string.unit_grams)
+        )
+    }
+    val fat = remember(nutrition.fat, nutrition.goalFat) {
+        NutritionData(
+            context.getString(R.string.label_fat),
+            nutrition.fat.toInt(),
+            nutrition.goalFat,
+            context.getString(R.string.unit_grams)
+        )
+    }
+    val waterSummary = remember(nutrition.water, nutrition.goalWater) {
+        formatWaterSummary(context, nutrition.water, nutrition.goalWater)
+    }
+    val exerciseSummary = remember(summary.exerciseList) {
+        formatExerciseSummary(context, summary.exerciseList.sumOf { it.durationMinute })
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(scrollState)
                 .padding(horizontal = 20.dp)
-                .padding(top = 16.dp, bottom = 100.dp)
         ) {
             GreetingSection(
                 userName = summary.userName,
                 userPhotoUrl = summary.userPhotoUrl,
-                date = summary.date
+                date = summary.date,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp, bottom = 16.dp)
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .clipToBounds()
+                    .verticalScroll(scrollState)
+                    .padding(bottom = 100.dp)
+            ) {
+                MissionSection(
+                    userGoal = summary.userGoal,
+                    missions = missions
+                )
 
-            MissionSection(
-                userGoal = summary.userGoal,
-                missions = missions
-            )
+                Spacer(modifier = Modifier.height(16.dp))
 
-            Spacer(modifier = Modifier.height(16.dp))
+                NutritionSection(
+                    calories = calories,
+                    protein = protein,
+                    carbs = carbs,
+                    fat = fat
+                )
 
-            NutritionSection(
-                calories = calories,
-                protein = protein,
-                carbs = carbs,
-                fat = fat
-            )
+                Spacer(modifier = Modifier.height(16.dp))
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            IntakeSection(
-                breakfastCalories = summary.breakfastList.sumOf { it.calories },
-                lunchCalories = summary.lunchList.sumOf { it.calories },
-                dinnerCalories = summary.dinnerList.sumOf { it.calories },
-                othersCalories = summary.othersList.sumOf { it.calories },
-                waterSummary = formatWaterSummary(nutrition.water, nutrition.goalWater),
-                exerciseSummary = formatExerciseSummary(summary.exerciseList.sumOf { it.durationMinute }),
-                isWaterLogged = summary.waterTotalMl > 0,
-                isExerciseLogged = summary.exerciseList.isNotEmpty(),
-                onMealClick = { mealType ->
-                    when (mealType) {
-                        "Water" -> onNavigateToWater()
-                        "Exercise" -> onNavigateToExercise()
-                        else -> onNavigateToMealDetail(mealType)
+                IntakeSection(
+                    breakfastCalories = summary.breakfastList.sumOf { it.calories },
+                    lunchCalories = summary.lunchList.sumOf { it.calories },
+                    dinnerCalories = summary.dinnerList.sumOf { it.calories },
+                    othersCalories = summary.othersList.sumOf { it.calories },
+                    waterSummary = waterSummary,
+                    exerciseSummary = exerciseSummary,
+                    isWaterLogged = summary.waterTotalMl > 0,
+                    isExerciseLogged = summary.exerciseList.isNotEmpty(),
+                    onMealClick = { mealType ->
+                        when (mealType) {
+                            "Water" -> onNavigateToWater()
+                            "Exercise" -> onNavigateToExercise()
+                            else -> onNavigateToMealDetail(mealType)
+                        }
                     }
-                },
-                onSyncHealthConnect = onSyncHealthConnect
-            )
+                )
 
-            Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
-            CoachInsightCard(
-                tipText = coachingTip,
-                isGenerating = isGeneratingTip,
-                provider = activeProvider,
-                onRefreshClick = onRefreshTip
-            )
-
+                CoachInsightCard(
+                    tipText = coachingTip,
+                    isGenerating = isGeneratingTip,
+                    provider = activeProvider,
+                    onRefreshClick = onRefreshTip
+                )
+            }
         }
 
         Box(
@@ -371,8 +348,8 @@ fun HomeContent(
     }
 }
 
-@Composable
 private fun buildGoalDrivenMissions(
+    context: Context,
     nutrition: NutritionSummary,
     summary: TodaySummary
 ): List<DailyMissionItem> {
@@ -391,15 +368,15 @@ private fun buildGoalDrivenMissions(
                     it.fiber >= 3.0
         }
 
-    val waterProgressText = stringResource(
+    val waterProgressText = context.getString(
         R.string.mission_water_hydration_progress,
         String.format(Locale.US, "%.1f", nutrition.water / 1000.0),
         String.format(Locale.US, "%.1f", waterGoalMl / 1000.0)
     )
     val exerciseProgressText = if (totalExerciseMin > 0) {
-        stringResource(R.string.mission_exercise_burn_progress, totalExerciseMin)
+        context.getString(R.string.mission_exercise_burn_progress, totalExerciseMin)
     } else {
-        stringResource(R.string.mission_exercise_burn_progress_zero)
+        context.getString(R.string.mission_exercise_burn_progress_zero)
     }
 
     return when (userGoal) {
@@ -411,12 +388,12 @@ private fun buildGoalDrivenMissions(
             listOf(
                 DailyMissionItem(
                     id = "calorie_deficit",
-                    title = stringResource(R.string.mission_calorie_deficit_title),
-                    description = stringResource(
+                    title = context.getString(R.string.mission_calorie_deficit_title),
+                    description = context.getString(
                         R.string.mission_calorie_deficit_desc,
                         nutrition.goalCalories
                     ),
-                    currentProgressText = stringResource(
+                    currentProgressText = context.getString(
                         R.string.mission_calorie_deficit_progress,
                         nutrition.calories,
                         nutrition.goalCalories
@@ -425,8 +402,8 @@ private fun buildGoalDrivenMissions(
                 ),
                 DailyMissionItem(
                     id = "water_hydration",
-                    title = stringResource(R.string.mission_water_hydration_title),
-                    description = stringResource(
+                    title = context.getString(R.string.mission_water_hydration_title),
+                    description = context.getString(
                         R.string.mission_water_hydration_desc,
                         String.format(Locale.US, "%.1f", waterGoalMl / 1000.0)
                     ),
@@ -435,12 +412,12 @@ private fun buildGoalDrivenMissions(
                 ),
                 DailyMissionItem(
                     id = "protein_preservation",
-                    title = stringResource(R.string.mission_protein_preservation_title),
-                    description = stringResource(
+                    title = context.getString(R.string.mission_protein_preservation_title),
+                    description = context.getString(
                         R.string.mission_protein_preservation_desc,
                         nutrition.goalProtein
                     ),
-                    currentProgressText = stringResource(
+                    currentProgressText = context.getString(
                         R.string.mission_protein_preservation_progress,
                         nutrition.protein.toInt(),
                         nutrition.goalProtein
@@ -449,16 +426,16 @@ private fun buildGoalDrivenMissions(
                 ),
                 DailyMissionItem(
                     id = "exercise_burn",
-                    title = stringResource(R.string.mission_exercise_burn_title),
-                    description = stringResource(R.string.mission_exercise_burn_desc),
+                    title = context.getString(R.string.mission_exercise_burn_title),
+                    description = context.getString(R.string.mission_exercise_burn_desc),
                     currentProgressText = exerciseProgressText,
                     isCompleted = exerciseAchieved
                 ),
                 DailyMissionItem(
                     id = "vegetables_fiber",
-                    title = stringResource(R.string.mission_vegetables_fiber_title),
-                    description = stringResource(R.string.mission_vegetables_fiber_desc),
-                    currentProgressText = if (hasVegetables) stringResource(R.string.mission_vegetables_fiber_logged) else stringResource(
+                    title = context.getString(R.string.mission_vegetables_fiber_title),
+                    description = context.getString(R.string.mission_vegetables_fiber_desc),
+                    currentProgressText = if (hasVegetables) context.getString(R.string.mission_vegetables_fiber_logged) else context.getString(
                         R.string.mission_vegetables_fiber_add
                     ),
                     isCompleted = hasVegetables
@@ -478,12 +455,12 @@ private fun buildGoalDrivenMissions(
             listOf(
                 DailyMissionItem(
                     id = "calorie_surplus",
-                    title = stringResource(R.string.mission_calorie_surplus_title),
-                    description = stringResource(
+                    title = context.getString(R.string.mission_calorie_surplus_title),
+                    description = context.getString(
                         R.string.mission_calorie_surplus_desc,
                         nutrition.goalCalories
                     ),
-                    currentProgressText = stringResource(
+                    currentProgressText = context.getString(
                         R.string.mission_calorie_deficit_progress,
                         nutrition.calories,
                         nutrition.goalCalories
@@ -492,12 +469,12 @@ private fun buildGoalDrivenMissions(
                 ),
                 DailyMissionItem(
                     id = "protein_hypertrophy",
-                    title = stringResource(R.string.mission_protein_hypertrophy_title),
-                    description = stringResource(
+                    title = context.getString(R.string.mission_protein_hypertrophy_title),
+                    description = context.getString(
                         R.string.mission_protein_preservation_desc,
                         nutrition.goalProtein
                     ),
-                    currentProgressText = stringResource(
+                    currentProgressText = context.getString(
                         R.string.mission_protein_preservation_progress,
                         nutrition.protein.toInt(),
                         nutrition.goalProtein
@@ -506,9 +483,9 @@ private fun buildGoalDrivenMissions(
                 ),
                 DailyMissionItem(
                     id = "main_meals",
-                    title = stringResource(R.string.mission_main_meals_title),
-                    description = stringResource(R.string.mission_main_meals_desc),
-                    currentProgressText = stringResource(
+                    title = context.getString(R.string.mission_main_meals_title),
+                    description = context.getString(R.string.mission_main_meals_desc),
+                    currentProgressText = context.getString(
                         R.string.mission_main_meals_progress,
                         mainMealsCount
                     ),
@@ -516,15 +493,15 @@ private fun buildGoalDrivenMissions(
                 ),
                 DailyMissionItem(
                     id = "exercise_strength",
-                    title = stringResource(R.string.mission_exercise_strength_title),
-                    description = stringResource(R.string.mission_exercise_strength_desc),
+                    title = context.getString(R.string.mission_exercise_strength_title),
+                    description = context.getString(R.string.mission_exercise_strength_desc),
                     currentProgressText = exerciseProgressText,
                     isCompleted = exerciseAchieved
                 ),
                 DailyMissionItem(
                     id = "water_hydration",
-                    title = stringResource(R.string.mission_water_recovery_title),
-                    description = stringResource(
+                    title = context.getString(R.string.mission_water_recovery_title),
+                    description = context.getString(
                         R.string.mission_water_hydration_desc,
                         String.format(Locale.US, "%.1f", waterGoalMl / 1000.0)
                     ),
@@ -543,12 +520,12 @@ private fun buildGoalDrivenMissions(
             listOf(
                 DailyMissionItem(
                     id = "calorie_balance",
-                    title = stringResource(R.string.mission_calorie_balance_title),
-                    description = stringResource(
+                    title = context.getString(R.string.mission_calorie_balance_title),
+                    description = context.getString(
                         R.string.mission_calorie_balance_desc,
                         nutrition.goalCalories
                     ),
-                    currentProgressText = stringResource(
+                    currentProgressText = context.getString(
                         R.string.mission_calorie_deficit_progress,
                         nutrition.calories,
                         nutrition.goalCalories
@@ -557,8 +534,8 @@ private fun buildGoalDrivenMissions(
                 ),
                 DailyMissionItem(
                     id = "water_hydration",
-                    title = stringResource(R.string.mission_water_vitality_title),
-                    description = stringResource(
+                    title = context.getString(R.string.mission_water_vitality_title),
+                    description = context.getString(
                         R.string.mission_water_hydration_desc,
                         String.format(Locale.US, "%.1f", waterGoalMl / 1000.0)
                     ),
@@ -567,12 +544,12 @@ private fun buildGoalDrivenMissions(
                 ),
                 DailyMissionItem(
                     id = "protein_daily",
-                    title = stringResource(R.string.mission_protein_daily_title),
-                    description = stringResource(
+                    title = context.getString(R.string.mission_protein_daily_title),
+                    description = context.getString(
                         R.string.mission_protein_preservation_desc,
                         nutrition.goalProtein
                     ),
-                    currentProgressText = stringResource(
+                    currentProgressText = context.getString(
                         R.string.mission_protein_preservation_progress,
                         nutrition.protein.toInt(),
                         nutrition.goalProtein
@@ -581,16 +558,16 @@ private fun buildGoalDrivenMissions(
                 ),
                 DailyMissionItem(
                     id = "exercise_daily",
-                    title = stringResource(R.string.mission_exercise_daily_title),
-                    description = stringResource(R.string.mission_exercise_daily_desc),
+                    title = context.getString(R.string.mission_exercise_daily_title),
+                    description = context.getString(R.string.mission_exercise_daily_desc),
                     currentProgressText = exerciseProgressText,
                     isCompleted = exerciseAchieved
                 ),
                 DailyMissionItem(
                     id = "vegetables_fiber",
-                    title = stringResource(R.string.mission_vegetables_greens_title),
-                    description = stringResource(R.string.mission_vegetables_greens_desc),
-                    currentProgressText = if (hasVegetables) stringResource(R.string.mission_vegetables_fiber_logged) else stringResource(
+                    title = context.getString(R.string.mission_vegetables_greens_title),
+                    description = context.getString(R.string.mission_vegetables_greens_desc),
+                    currentProgressText = if (hasVegetables) context.getString(R.string.mission_vegetables_fiber_logged) else context.getString(
                         R.string.mission_vegetables_fiber_add
                     ),
                     isCompleted = hasVegetables
@@ -600,112 +577,21 @@ private fun buildGoalDrivenMissions(
     }
 }
 
-@Composable
-private fun formatWaterSummary(currentMl: Int, goalMl: Int): String {
+private fun formatWaterSummary(context: Context, currentMl: Int, goalMl: Int): String {
     val currentL = currentMl / 1000.0
     val goalL = goalMl / 1000.0
-    return stringResource(
+    return context.getString(
         R.string.home_intake_water_format,
         String.format(Locale.US, "%.1f", currentL),
         String.format(Locale.US, "%.1f", goalL)
     )
 }
 
-@Composable
-private fun formatExerciseSummary(totalMinutes: Int): String {
+private fun formatExerciseSummary(context: Context, totalMinutes: Int): String {
     return if (totalMinutes > 0) {
-        stringResource(R.string.home_intake_exercise_format, totalMinutes)
+        context.getString(R.string.home_intake_exercise_format, totalMinutes)
     } else {
-        stringResource(R.string.home_intake_not_logged)
-    }
-}
-
-/**
- * NutriChefCard prompts the user with remaining calorie budget recommendations
- * and invites them to open the AI Chef recipe generator.
- *
- * @param remainingCalories The remaining daily calorie budget for the user.
- * @param onOpenNutriChef Callback invoked when the card or button is tapped.
- */
-@Composable
-fun NutriChefCard(
-    remainingCalories: Int,
-    onOpenNutriChef: () -> Unit
-) {
-    Surface(
-        onClick = onOpenNutriChef,
-        shape = RoundedCornerShape(18.dp),
-        color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(
-                modifier = Modifier.weight(1f),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .clip(CircleShape)
-                        .background(
-                            Brush.linearGradient(
-                                listOf(Color(0xFFFF9800), Color(0xFFFF5722))
-                            )
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Rounded.RestaurantMenu,
-                        contentDescription = stringResource(R.string.nutrichef_title),
-                        tint = Color.White,
-                        modifier = Modifier.size(22.dp)
-                    )
-                }
-
-                Column {
-                    Text(
-                        text = stringResource(R.string.nutrichef_card_title),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = stringResource(R.string.nutrichef_card_desc, remainingCalories),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-
-            Surface(
-                shape = RoundedCornerShape(10.dp),
-                color = MaterialTheme.colorScheme.primaryContainer
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Rounded.AutoAwesome,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(14.dp)
-                    )
-                    Text(
-                        text = stringResource(R.string.nutrichef_btn_generate),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-        }
+        context.getString(R.string.home_intake_not_logged)
     }
 }
 
