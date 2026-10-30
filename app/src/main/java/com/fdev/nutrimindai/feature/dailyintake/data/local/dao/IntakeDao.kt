@@ -11,6 +11,15 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface IntakeDao {
+    @Query("SELECT * FROM intake ORDER BY createdAt DESC")
+    fun getAllIntakes(): Flow<List<IntakeEntity>>
+
+    @Query("SELECT * FROM intake WHERE dailyLogId IN (:dailyLogIds) ORDER BY createdAt DESC")
+    fun getIntakesForDailyLogs(dailyLogIds: List<Long>): Flow<List<IntakeEntity>>
+
+    @Query("SELECT * FROM intake WHERE dailyLogId IN (:dailyLogIds) ORDER BY createdAt DESC")
+    suspend fun getIntakesForDailyLogsDirect(dailyLogIds: List<Long>): List<IntakeEntity>
+
     @Query("SELECT * FROM intake WHERE dailyLogId = :dailyLogId ORDER BY createdAt DESC")
     fun getIntakesForDailyLog(dailyLogId: Long): Flow<List<IntakeEntity>>
 
@@ -22,6 +31,9 @@ interface IntakeDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertIntake(intake: IntakeEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertIntakes(intakes: List<IntakeEntity>)
 
     @Update
     suspend fun updateIntake(intake: IntakeEntity)

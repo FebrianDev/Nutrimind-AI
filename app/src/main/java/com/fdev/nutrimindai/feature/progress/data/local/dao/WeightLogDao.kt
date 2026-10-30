@@ -31,6 +31,9 @@ interface WeightLogDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertWeightLog(log: WeightLogEntity): Long
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertWeightLogs(logs: List<WeightLogEntity>)
+
     @Query("DELETE FROM weight_log_table WHERE id = :id")
     suspend fun deleteWeightLog(id: Long)
 

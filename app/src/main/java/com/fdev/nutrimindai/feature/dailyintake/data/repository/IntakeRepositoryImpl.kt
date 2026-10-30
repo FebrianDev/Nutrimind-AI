@@ -7,6 +7,7 @@ import com.fdev.nutrimindai.feature.dailyintake.data.mapper.toEntity
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.Intake
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.IntakeRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
@@ -14,6 +15,19 @@ class IntakeRepositoryImpl @Inject constructor(
     private val localDataSource: LocalIntakeDataSource,
     private val preferenceManager: PreferenceManager
 ) : IntakeRepository {
+
+    override fun getAllIntakes(): Flow<List<Intake>> {
+        return localDataSource.getAllIntakes().map { list -> list.map { it.toDomain() } }
+    }
+
+    override fun getIntakesForDailyLogs(dailyLogIds: List<Long>): Flow<List<Intake>> {
+        if (dailyLogIds.isEmpty()) return flowOf(emptyList())
+        return localDataSource.getIntakesForDailyLogs(dailyLogIds).map { list -> list.map { it.toDomain() } }
+    }
+
+    override suspend fun getIntakesForDailyLogsDirect(dailyLogIds: List<Long>): List<Intake> {
+        return localDataSource.getIntakesForDailyLogsDirect(dailyLogIds).map { it.toDomain() }
+    }
 
     override fun getIntakesForDailyLog(dailyLogId: Long): Flow<List<Intake>> {
         return localDataSource.getIntakesForDailyLog(dailyLogId).map { list -> list.map { it.toDomain() } }

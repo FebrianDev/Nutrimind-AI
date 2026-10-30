@@ -8,6 +8,15 @@ import javax.inject.Inject
 class LocalExerciseDataSource @Inject constructor(
     private val dao: ExerciseDao
 ) {
+    fun getAllExercises(): Flow<List<ExerciseEntity>> =
+        dao.getAllExercises()
+
+    fun getExercisesForDailyLogs(dailyLogIds: List<Long>): Flow<List<ExerciseEntity>> =
+        dao.getExercisesForDailyLogs(dailyLogIds)
+
+    suspend fun getExercisesForDailyLogsDirect(dailyLogIds: List<Long>): List<ExerciseEntity> =
+        if (dailyLogIds.isEmpty()) emptyList() else dao.getExercisesForDailyLogsDirect(dailyLogIds)
+
     fun getExercisesForDailyLog(dailyLogId: Long): Flow<List<ExerciseEntity>> =
         dao.getExercisesForDailyLog(dailyLogId)
 

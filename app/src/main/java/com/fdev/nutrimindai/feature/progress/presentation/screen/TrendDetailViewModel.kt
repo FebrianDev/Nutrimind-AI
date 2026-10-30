@@ -87,7 +87,26 @@ class TrendDetailViewModel @Inject constructor(
 
                 val profile = profileRepository.getProfileDirect()
                 val logs = dailyLogRepository.getDailyLogsBetweenDatesDirect(startDate, endDate)
+                val logByDate = logs.associateBy { it.date }
+                val logIds = logs.map { it.id }
+
+                val intakesByLogId = if (metric != "Water" && metric != "Exercise") {
+                    intakeRepository.getIntakesForDailyLogsDirect(logIds).groupBy { it.dailyLogId }
+                } else {
+                    emptyMap()
+                }
+                val watersByLogId = if (metric == "Water") {
+                    waterRepository.getWaterRecordsForDailyLogsDirect(logIds).groupBy { it.dailyLogId }
+                } else {
+                    emptyMap()
+                }
+                val exercisesByLogId = if (metric == "Exercise" || metric == "Weight") {
+                    exerciseRepository.getExercisesForDailyLogsDirect(logIds).groupBy { it.dailyLogId }
+                } else {
+                    emptyMap()
+                }
                 val weightLogs = if (metric == "Weight") weightLogRepository.getAllWeightLogsDirect() else emptyList()
+                val weightByDate = if (metric == "Weight") weightLogs.associateBy { it.date } else emptyMap()
 
                 val dayLabelFormat = if (dayCount <= 7) SimpleDateFormat("EEE", Locale.getDefault()) else SimpleDateFormat("dd/MM", Locale.getDefault())
 
@@ -101,75 +120,103 @@ class TrendDetailViewModel @Inject constructor(
                 var lowestVal = Float.MAX_VALUE
                 var lowestLabel = "-"
 
+                // Pre-initialize anchor weight & running balance for O(N) weight projection
+                val initialAnchorLog = if (metric == "Weight") {
+                    weightLogs.filter { it.date < startDate }.maxByOrNull { it.date }
+                } else null
+                var currentAnchorWeight = initialAnchorLog?.weightKg ?: profile?.currentWeight ?: 70.0f
+                var currentAnchorDate = initialAnchorLog?.date ?: ""
+                var runningNetBalance = 0.0
+
+                // If initialAnchorDate is before startDate, accumulate any logs between initialAnchorDate and startDate
+                if (metric == "Weight" && currentAnchorDate.isNotBlank() && profile != null) {
+                    val tdee = com.fdev.nutrimindai.core.util.NutritionCalculator.calculateTdee(
+                        profile.age,
+                        profile.gender,
+                        profile.height,
+                        currentAnchorWeight,
+                        profile.activityLevel
+                    )
+                    for (bLog in logs) {
+                        if (bLog.date > currentAnchorDate && bLog.date < startDate) {
+                            val c = intakesByLogId[bLog.id].orEmpty().sumOf { it.calories }
+                            val ex = exercisesByLogId[bLog.id].orEmpty().sumOf { it.caloriesBurned }
+                            if (c > 0) {
+                                runningNetBalance += (c - (tdee + ex))
+                            }
+                        }
+                    }
+                }
+
                 for (i in 0 until dayCount) {
                     val dateStr = dateFormat.format(dayCal.time)
                     val label = dayLabelFormat.format(dayCal.time)
                     labels.add(label)
 
-                    val log = logs.find { it.date == dateStr }
+                    val log = logByDate[dateStr]
                     var valForDay = 0f
 
                     when (metric) {
                         "Calories" -> {
                             if (log != null) {
-                                val intakes = intakeRepository.getIntakesForDailyLogDirect(log.id)
+                                val intakes = intakesByLogId[log.id].orEmpty()
                                 valForDay = intakes.sumOf { it.calories }.toFloat()
                             }
                         }
                         "Protein" -> {
                             if (log != null) {
-                                val intakes = intakeRepository.getIntakesForDailyLogDirect(log.id)
+                                val intakes = intakesByLogId[log.id].orEmpty()
                                 valForDay = intakes.sumOf { it.protein }.toFloat()
                             }
                         }
                         "Water" -> {
                             if (log != null) {
-                                val waters = waterRepository.getWaterRecordsForDailyLogDirect(log.id)
+                                val waters = watersByLogId[log.id].orEmpty()
                                 valForDay = waters.sumOf { it.amountMl } / 1000f
                             }
                         }
                         "Weight" -> {
-                            val loggedForDay = weightLogs.find { it.date == dateStr }?.weightKg
+                            val loggedForDay = weightByDate[dateStr]?.weightKg
                             pointTypes.add(loggedForDay != null)
-                            valForDay = if (loggedForDay != null) {
-                                loggedForDay
+                            if (loggedForDay != null) {
+                                currentAnchorWeight = loggedForDay
+                                currentAnchorDate = dateStr
+                                runningNetBalance = 0.0
+                                valForDay = loggedForDay
                             } else {
-                                val anchorLog = weightLogs.filter { it.date <= dateStr }.lastOrNull()
-                                val anchorWeight = anchorLog?.weightKg ?: profile?.currentWeight ?: 70.0f
-                                val anchorDate = anchorLog?.date ?: ""
-                                if (anchorDate.isNotBlank() && dateStr > anchorDate && profile != null) {
-                                    val tdee = com.fdev.nutrimindai.core.util.NutritionCalculator.calculateTdee(
-                                        profile.age,
-                                        profile.gender,
-                                        profile.height,
-                                        anchorWeight,
-                                        profile.activityLevel
-                                    )
-                                    var netBal = 0.0
-                                    val betweenLogs = logs.filter { it.date > anchorDate && it.date <= dateStr }
-                                    for (bLog in betweenLogs) {
-                                        val intakes = intakeRepository.getIntakesForDailyLogDirect(bLog.id)
-                                        val c = intakes.sumOf { it.calories }
-                                        val ex = exerciseRepository.getExercisesForDailyLogDirect(bLog.id).sumOf { it.caloriesBurned }
+                                if (currentAnchorDate.isNotBlank() && dateStr > currentAnchorDate && profile != null) {
+                                    if (log != null) {
+                                        val c = intakesByLogId[log.id].orEmpty().sumOf { it.calories }
+                                        val ex = exercisesByLogId[log.id].orEmpty().sumOf { it.caloriesBurned }
                                         if (c > 0) {
-                                            netBal += (c - (tdee + ex))
+                                            val tdee = com.fdev.nutrimindai.core.util.NutritionCalculator.calculateTdee(
+                                                profile.age,
+                                                profile.gender,
+                                                profile.height,
+                                                currentAnchorWeight,
+                                                profile.activityLevel
+                                            )
+                                            runningNetBalance += (c - (tdee + ex))
                                         }
                                     }
-                                    com.fdev.nutrimindai.core.util.NutritionCalculator.calculateProjectedWeight(anchorWeight, netBal)
+                                    valForDay = com.fdev.nutrimindai.core.util.NutritionCalculator.calculateProjectedWeight(
+                                        currentAnchorWeight,
+                                        runningNetBalance
+                                    )
                                 } else {
-                                    anchorWeight
+                                    valForDay = currentAnchorWeight
                                 }
                             }
                         }
                         "Exercise" -> {
                             if (log != null) {
-                                val exercises = exerciseRepository.getExercisesForDailyLogDirect(log.id)
+                                val exercises = exercisesByLogId[log.id].orEmpty()
                                 valForDay = exercises.sumOf { it.durationMinute }.toFloat()
                             }
                         }
                         else -> {
                             if (log != null) {
-                                val intakes = intakeRepository.getIntakesForDailyLogDirect(log.id)
+                                val intakes = intakesByLogId[log.id].orEmpty()
                                 valForDay = intakes.sumOf { it.calories }.toFloat()
                             }
                         }

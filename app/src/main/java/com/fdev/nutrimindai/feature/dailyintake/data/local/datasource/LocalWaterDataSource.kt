@@ -8,6 +8,15 @@ import javax.inject.Inject
 class LocalWaterDataSource @Inject constructor(
     private val dao: WaterDao
 ) {
+    fun getAllWaterRecords(): Flow<List<WaterEntity>> =
+        dao.getAllWaterRecords()
+
+    fun getWaterRecordsForDailyLogs(dailyLogIds: List<Long>): Flow<List<WaterEntity>> =
+        dao.getWaterRecordsForDailyLogs(dailyLogIds)
+
+    suspend fun getWaterRecordsForDailyLogsDirect(dailyLogIds: List<Long>): List<WaterEntity> =
+        if (dailyLogIds.isEmpty()) emptyList() else dao.getWaterRecordsForDailyLogsDirect(dailyLogIds)
+
     fun getWaterRecordsForDailyLog(dailyLogId: Long): Flow<List<WaterEntity>> =
         dao.getWaterRecordsForDailyLog(dailyLogId)
 

@@ -10,6 +10,15 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ExerciseDao {
+    @Query("SELECT * FROM exercise ORDER BY createdAt DESC")
+    fun getAllExercises(): Flow<List<ExerciseEntity>>
+
+    @Query("SELECT * FROM exercise WHERE dailyLogId IN (:dailyLogIds) ORDER BY createdAt DESC")
+    fun getExercisesForDailyLogs(dailyLogIds: List<Long>): Flow<List<ExerciseEntity>>
+
+    @Query("SELECT * FROM exercise WHERE dailyLogId IN (:dailyLogIds) ORDER BY createdAt DESC")
+    suspend fun getExercisesForDailyLogsDirect(dailyLogIds: List<Long>): List<ExerciseEntity>
+
     @Query("SELECT * FROM exercise WHERE dailyLogId = :dailyLogId ORDER BY createdAt DESC")
     fun getExercisesForDailyLog(dailyLogId: Long): Flow<List<ExerciseEntity>>
 
@@ -21,6 +30,9 @@ interface ExerciseDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertExercise(exercise: ExerciseEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertExercises(exercises: List<ExerciseEntity>)
 
     @Delete
     suspend fun deleteExercise(exercise: ExerciseEntity)

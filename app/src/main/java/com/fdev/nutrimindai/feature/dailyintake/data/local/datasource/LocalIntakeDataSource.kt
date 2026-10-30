@@ -8,6 +8,15 @@ import javax.inject.Inject
 class LocalIntakeDataSource @Inject constructor(
     private val dao: IntakeDao
 ) {
+    fun getAllIntakes(): Flow<List<IntakeEntity>> =
+        dao.getAllIntakes()
+
+    fun getIntakesForDailyLogs(dailyLogIds: List<Long>): Flow<List<IntakeEntity>> =
+        dao.getIntakesForDailyLogs(dailyLogIds)
+
+    suspend fun getIntakesForDailyLogsDirect(dailyLogIds: List<Long>): List<IntakeEntity> =
+        if (dailyLogIds.isEmpty()) emptyList() else dao.getIntakesForDailyLogsDirect(dailyLogIds)
+
     fun getIntakesForDailyLog(dailyLogId: Long): Flow<List<IntakeEntity>> =
         dao.getIntakesForDailyLog(dailyLogId)
 

@@ -7,6 +7,7 @@ import com.fdev.nutrimindai.feature.dailyintake.data.mapper.toEntity
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.Exercise
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.ExerciseRepository
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
@@ -14,6 +15,19 @@ class ExerciseRepositoryImpl @Inject constructor(
     private val localDataSource: LocalExerciseDataSource,
     private val preferenceManager: PreferenceManager
 ) : ExerciseRepository {
+
+    override fun getAllExercises(): Flow<List<Exercise>> {
+        return localDataSource.getAllExercises().map { list -> list.map { it.toDomain() } }
+    }
+
+    override fun getExercisesForDailyLogs(dailyLogIds: List<Long>): Flow<List<Exercise>> {
+        if (dailyLogIds.isEmpty()) return flowOf(emptyList())
+        return localDataSource.getExercisesForDailyLogs(dailyLogIds).map { list -> list.map { it.toDomain() } }
+    }
+
+    override suspend fun getExercisesForDailyLogsDirect(dailyLogIds: List<Long>): List<Exercise> {
+        return localDataSource.getExercisesForDailyLogsDirect(dailyLogIds).map { it.toDomain() }
+    }
 
     override fun getExercisesForDailyLog(dailyLogId: Long): Flow<List<Exercise>> {
         return localDataSource.getExercisesForDailyLog(dailyLogId).map { list -> list.map { it.toDomain() } }

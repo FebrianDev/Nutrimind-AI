@@ -22,6 +22,7 @@ import com.fdev.nutrimindai.core.sync.SyncManager
 import com.fdev.nutrimindai.feature.progress.data.local.entity.WeightLogEntity
 import com.fdev.nutrimindai.feature.progress.domain.repository.WeightLogRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,6 +30,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -253,25 +255,36 @@ class ProgressViewModel @Inject constructor(
                     }.flatMapLatest { (profile, info) ->
                         val (rangeLogs, weightLogs, calendarInfo) = info
                         val (calendars, rangeLabel) = calendarInfo
-                        val dayFlows = calendars.map { cal ->
-                            val dateStr = dateFormat.format(cal.time)
-                            val log = rangeLogs.find { it.date == dateStr }
-                            if (log != null) {
-                                combine(
-                                    intakeRepository.getIntakesForDailyLog(log.id),
-                                    waterRepository.getWaterRecordsForDailyLog(log.id),
-                                    exerciseRepository.getExercisesForDailyLog(log.id)
-                                ) { intakes, waters, exercises ->
-                                    DayRecord(dateStr, cal, log, intakes, waters, exercises)
-                                }
-                            } else {
-                                flowOf(DayRecord(dateStr, cal, null, emptyList(), emptyList(), emptyList()))
-                            }
-                        }
+                        val logByDate = rangeLogs.associateBy { it.date }
+                        val logIds = rangeLogs.map { it.id }
 
-                        combine(dayFlows) { dayRecords ->
-                            buildProgressData(profile, dayRecords.toList(), weightLogs, rangeLabel, filter)
-                        }
+                        combine(
+                            intakeRepository.getIntakesForDailyLogs(logIds),
+                            waterRepository.getWaterRecordsForDailyLogs(logIds),
+                            exerciseRepository.getExercisesForDailyLogs(logIds)
+                        ) { allIntakes, allWaters, allExercises ->
+                            val intakesByLogId = allIntakes.groupBy { it.dailyLogId }
+                            val watersByLogId = allWaters.groupBy { it.dailyLogId }
+                            val exercisesByLogId = allExercises.groupBy { it.dailyLogId }
+
+                            val dayRecords = calendars.map { cal ->
+                                val dateStr = dateFormat.format(cal.time)
+                                val log = logByDate[dateStr]
+                                if (log != null) {
+                                    DayRecord(
+                                        dateStr = dateStr,
+                                        calendar = cal,
+                                        dailyLog = log,
+                                        intakes = intakesByLogId[log.id].orEmpty(),
+                                        waters = watersByLogId[log.id].orEmpty(),
+                                        exercises = exercisesByLogId[log.id].orEmpty()
+                                    )
+                                } else {
+                                    DayRecord(dateStr, cal, null, emptyList(), emptyList(), emptyList())
+                                }
+                            }
+                            buildProgressData(profile, dayRecords, weightLogs, rangeLabel, filter)
+                        }.flowOn(Dispatchers.Default)
                     }
                 }.collect { progressData ->
                     _uiState.value = ProgressUiState.Success(progressData)
@@ -321,6 +334,13 @@ class ProgressViewModel @Inject constructor(
         } else 2200.0
 
         val shortDatePattern = SimpleDateFormat("dd/MM", Locale.getDefault())
+        val weightByDate = weightLogs.associateBy { it.date }
+        val firstDateStr = dayRecords.firstOrNull()?.dateStr ?: ""
+        var lastKnownActualWeight = weightLogs
+            .filter { it.date < firstDateStr }
+            .maxByOrNull { it.date }
+            ?.weightKg ?: anchorWeight
+        var runningNetUpToDay = 0.0
 
         for (i in dayRecords.indices) {
             val record = dayRecords[i]
@@ -343,27 +363,19 @@ class ProgressViewModel @Inject constructor(
             }
             totalWaterSum += water
 
-            val loggedWeightForDay = weightLogs.find { it.date == record.dateStr }?.weightKg
+            if (anchorDate.isNotBlank() && record.dateStr > anchorDate && cals > 0) {
+                runningNetUpToDay += (cals - (userTdee + exerciseCalories))
+            }
+
+            val loggedWeightForDay = weightByDate[record.dateStr]?.weightKg
             val isActual = loggedWeightForDay != null
-            val actualWeight = if (isActual) {
-                loggedWeightForDay!!
+            val actualWeight = if (loggedWeightForDay != null) {
+                lastKnownActualWeight = loggedWeightForDay
+                loggedWeightForDay
+            } else if (anchorDate.isNotBlank() && record.dateStr > anchorDate) {
+                NutritionCalculator.calculateProjectedWeight(anchorWeight, runningNetUpToDay)
             } else {
-                if (anchorDate.isNotBlank() && record.dateStr > anchorDate) {
-                    var netUpToDay = 0.0
-                    for (prev in dayRecords) {
-                        if (prev.dateStr > anchorDate && prev.dateStr <= record.dateStr) {
-                            val c = prev.intakes.sumOf { it.calories }
-                            val ex = prev.exercises.sumOf { it.caloriesBurned }
-                            if (c > 0) {
-                                netUpToDay += (c - (userTdee + ex))
-                            }
-                        }
-                    }
-                    NutritionCalculator.calculateProjectedWeight(anchorWeight, netUpToDay)
-                } else {
-                    weightLogs.filter { it.date <= record.dateStr }.lastOrNull()?.weightKg
-                        ?: anchorWeight
-                }
+                lastKnownActualWeight
             }
 
             trendPoints.add(
@@ -410,7 +422,6 @@ class ProgressViewModel @Inject constructor(
             }
 
             reviews.add(
-                0,
                 DailyReviewData(
                     day = dayTitle,
                     date = record.dateStr,
@@ -461,7 +472,7 @@ class ProgressViewModel @Inject constructor(
             missionPercent = missionPercent,
             weekRange = periodRangeLabel,
             weeklyTrendPoints = trendPoints,
-            dailyReviews = reviews,
+            dailyReviews = reviews.asReversed(),
             aiInsight = aiInsight,
             selectedFilter = filter,
             userName = userName
