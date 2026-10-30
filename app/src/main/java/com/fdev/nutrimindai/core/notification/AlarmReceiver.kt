@@ -15,7 +15,6 @@ import com.fdev.nutrimindai.feature.profile.domain.repository.ProfileRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.text.SimpleDateFormat
@@ -107,7 +106,7 @@ class AlarmReceiver : BroadcastReceiver() {
         val waterRecords = waterRepository.getWaterRecordsForDailyLogDirect(dailyLogId)
         val totalWater = waterRecords.sumOf { it.amountMl }
 
-        val settings = preferenceManager.reminderSettings.first()
+        val settings = preferenceManager.getReminderSettingsDirect()
 
         notificationHelper.showWaterLoggedConfirmation(
             addedMl = amountMl,
@@ -130,7 +129,7 @@ class AlarmReceiver : BroadcastReceiver() {
         val mealIntakes = intakes.filter { it.mealType.name.equals(mealType, ignoreCase = true) }
         val isAlreadyLogged = mealIntakes.isNotEmpty()
 
-        val settings = preferenceManager.reminderSettings.first()
+        val settings = preferenceManager.getReminderSettingsDirect()
 
         val (title, message, notifId, reqCode) = if (isAlreadyLogged) {
             val foodSummary = mealIntakes.joinToString(", ") { it.foodName }.take(40)
@@ -248,7 +247,7 @@ class AlarmReceiver : BroadcastReceiver() {
             waterRepository.getWaterRecordsForDailyLogDirect(dailyLogId).sumOf { it.amountMl }
         } else 0
 
-        val settings = preferenceManager.reminderSettings.first()
+        val settings = preferenceManager.getReminderSettingsDirect()
 
         if (currentWater >= targetWater && settings.smartSkipIfLogged) {
             Timber.d("AlarmReceiver: Water target reached ($currentWater >= $targetWater ml) and smartSkipIfLogged is true. Skipping notification.")
@@ -304,7 +303,7 @@ class AlarmReceiver : BroadcastReceiver() {
         )
 
         // Reschedule for next day
-        val settings = preferenceManager.reminderSettings.first()
+        val settings = preferenceManager.getReminderSettingsDirect()
         if (settings.dailyReviewEnabled) {
             reminderScheduler.scheduleDailyAlarm(
                 timeString = settings.dailyReviewTime,

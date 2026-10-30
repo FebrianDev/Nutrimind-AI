@@ -12,10 +12,17 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.fdev.nutrimindai.core.util.Constants.PREFERENCES_NAME
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -50,6 +57,7 @@ class PreferenceManager @Inject constructor(
     @param:ApplicationContext private val context: Context
 ) {
     private val dataStore = context.dataStore
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private object PreferencesKeys {
         val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
@@ -81,7 +89,7 @@ class PreferenceManager @Inject constructor(
         val PENDING_CLOUD_RESET = booleanPreferencesKey("pending_cloud_reset")
     }
 
-    val isOnboardingCompleted: Flow<Boolean> = dataStore.data
+    private val safePreferencesFlow: Flow<Preferences> = dataStore.data
         .catch { exception ->
             if (exception is IOException) {
                 emit(emptyPreferences())
@@ -89,9 +97,44 @@ class PreferenceManager @Inject constructor(
                 throw exception
             }
         }
+
+    // In-memory cache keeping the latest Preferences snapshot in RAM
+    private val cachedPreferences: StateFlow<Preferences?> = safePreferencesFlow
+        .stateIn(
+            scope = scope,
+            started = SharingStarted.Eagerly,
+            initialValue = null
+        )
+
+    private suspend fun getSnapshot(): Preferences {
+        return cachedPreferences.value ?: safePreferencesFlow.firstOrNull() ?: emptyPreferences()
+    }
+
+    private fun Preferences.toReminderSettings(): ReminderSettings {
+        val intervalMinutes = this[PreferencesKeys.WATER_INTERVAL_MINUTES] ?: 120
+        return ReminderSettings(
+            breakfastEnabled = this[PreferencesKeys.BREAKFAST_ENABLED] ?: true,
+            breakfastTime = this[PreferencesKeys.BREAKFAST_TIME] ?: "07:30",
+            lunchEnabled = this[PreferencesKeys.LUNCH_ENABLED] ?: true,
+            lunchTime = this[PreferencesKeys.LUNCH_TIME] ?: "12:30",
+            dinnerEnabled = this[PreferencesKeys.DINNER_ENABLED] ?: true,
+            dinnerTime = this[PreferencesKeys.DINNER_TIME] ?: "19:00",
+            waterEnabled = this[PreferencesKeys.WATER_ENABLED] ?: true,
+            waterIntervalHours = intervalMinutes / 60.0f,
+            waterStartTime = this[PreferencesKeys.WATER_START_TIME] ?: "08:00",
+            waterEndTime = this[PreferencesKeys.WATER_END_TIME] ?: "21:00",
+            dailyReviewEnabled = this[PreferencesKeys.DAILY_REVIEW_ENABLED] ?: true,
+            dailyReviewTime = this[PreferencesKeys.DAILY_REVIEW_TIME] ?: "21:30",
+            smartSkipIfLogged = this[PreferencesKeys.SMART_SKIP_IF_LOGGED] ?: true,
+            quickLogWaterAmountMl = this[PreferencesKeys.QUICK_LOG_WATER_AMOUNT] ?: 250
+        )
+    }
+
+    val isOnboardingCompleted: Flow<Boolean> = safePreferencesFlow
         .map { preferences ->
             preferences[PreferencesKeys.ONBOARDING_COMPLETED] ?: false
         }
+        .distinctUntilChanged()
 
     suspend fun setOnboardingCompleted(completed: Boolean) {
         dataStore.edit { preferences ->
@@ -99,17 +142,11 @@ class PreferenceManager @Inject constructor(
         }
     }
 
-    val isDemoSeeded: Flow<Boolean> = dataStore.data
-        .catch { exception ->
-            if (exception is IOException) {
-                emit(emptyPreferences())
-            } else {
-                throw exception
-            }
-        }
+    val isDemoSeeded: Flow<Boolean> = safePreferencesFlow
         .map { preferences ->
             preferences[PreferencesKeys.DEMO_SEEDED] ?: false
         }
+        .distinctUntilChanged()
 
     suspend fun setDemoSeeded(seeded: Boolean) {
         dataStore.edit { preferences ->
@@ -117,20 +154,14 @@ class PreferenceManager @Inject constructor(
         }
     }
 
-    val savedDbVersion: Flow<Int?> = dataStore.data
-        .catch { exception ->
-            if (exception is IOException) {
-                emit(emptyPreferences())
-            } else {
-                throw exception
-            }
-        }
+    val savedDbVersion: Flow<Int?> = safePreferencesFlow
         .map { preferences ->
             preferences[PreferencesKeys.DB_VERSION]
         }
+        .distinctUntilChanged()
 
     suspend fun getSavedDbVersion(): Int? {
-        return dataStore.data.firstOrNull()?.get(PreferencesKeys.DB_VERSION)
+        return getSnapshot()[PreferencesKeys.DB_VERSION]
     }
 
     suspend fun setSavedDbVersion(version: Int) {
@@ -139,8 +170,15 @@ class PreferenceManager @Inject constructor(
         }
     }
 
+    suspend fun setOnboardingAndDbVersion(completed: Boolean, version: Int) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.ONBOARDING_COMPLETED] = completed
+            preferences[PreferencesKeys.DB_VERSION] = version
+        }
+    }
+
     suspend fun getPendingCloudDeletions(): Set<String> {
-        return dataStore.data.firstOrNull()?.get(PreferencesKeys.PENDING_CLOUD_DELETIONS) ?: emptySet()
+        return getSnapshot()[PreferencesKeys.PENDING_CLOUD_DELETIONS] ?: emptySet()
     }
 
     suspend fun queueCloudDeletion(collection: String, documentIds: List<String>) {
@@ -165,7 +203,7 @@ class PreferenceManager @Inject constructor(
     }
 
     suspend fun isPendingCloudReset(): Boolean {
-        return dataStore.data.firstOrNull()?.get(PreferencesKeys.PENDING_CLOUD_RESET) ?: false
+        return getSnapshot()[PreferencesKeys.PENDING_CLOUD_RESET] ?: false
     }
 
     suspend fun setPendingCloudReset(pending: Boolean) {
@@ -179,33 +217,33 @@ class PreferenceManager @Inject constructor(
 
     // --- Reminder Flows & Setters ---
 
-    val reminderSettings: Flow<ReminderSettings> = dataStore.data
-        .catch { exception ->
-            if (exception is IOException) {
-                emit(emptyPreferences())
-            } else {
-                throw exception
-            }
+    val reminderSettings: Flow<ReminderSettings> = safePreferencesFlow
+        .map { preferences -> preferences.toReminderSettings() }
+        .distinctUntilChanged()
+
+    suspend fun getReminderSettingsDirect(): ReminderSettings {
+        return getSnapshot().toReminderSettings()
+    }
+
+    suspend fun updateAllReminderSettings(settings: ReminderSettings) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.BREAKFAST_ENABLED] = settings.breakfastEnabled
+            preferences[PreferencesKeys.BREAKFAST_TIME] = settings.breakfastTime
+            preferences[PreferencesKeys.LUNCH_ENABLED] = settings.lunchEnabled
+            preferences[PreferencesKeys.LUNCH_TIME] = settings.lunchTime
+            preferences[PreferencesKeys.DINNER_ENABLED] = settings.dinnerEnabled
+            preferences[PreferencesKeys.DINNER_TIME] = settings.dinnerTime
+            preferences[PreferencesKeys.WATER_ENABLED] = settings.waterEnabled
+            preferences[PreferencesKeys.WATER_INTERVAL_MINUTES] =
+                (settings.waterIntervalHours * 60).toInt().coerceAtLeast(30)
+            preferences[PreferencesKeys.WATER_START_TIME] = settings.waterStartTime
+            preferences[PreferencesKeys.WATER_END_TIME] = settings.waterEndTime
+            preferences[PreferencesKeys.DAILY_REVIEW_ENABLED] = settings.dailyReviewEnabled
+            preferences[PreferencesKeys.DAILY_REVIEW_TIME] = settings.dailyReviewTime
+            preferences[PreferencesKeys.SMART_SKIP_IF_LOGGED] = settings.smartSkipIfLogged
+            preferences[PreferencesKeys.QUICK_LOG_WATER_AMOUNT] = settings.quickLogWaterAmountMl
         }
-        .map { preferences ->
-            val intervalMinutes = preferences[PreferencesKeys.WATER_INTERVAL_MINUTES] ?: 120
-            ReminderSettings(
-                breakfastEnabled = preferences[PreferencesKeys.BREAKFAST_ENABLED] ?: true,
-                breakfastTime = preferences[PreferencesKeys.BREAKFAST_TIME] ?: "07:30",
-                lunchEnabled = preferences[PreferencesKeys.LUNCH_ENABLED] ?: true,
-                lunchTime = preferences[PreferencesKeys.LUNCH_TIME] ?: "12:30",
-                dinnerEnabled = preferences[PreferencesKeys.DINNER_ENABLED] ?: true,
-                dinnerTime = preferences[PreferencesKeys.DINNER_TIME] ?: "19:00",
-                waterEnabled = preferences[PreferencesKeys.WATER_ENABLED] ?: true,
-                waterIntervalHours = intervalMinutes / 60.0f,
-                waterStartTime = preferences[PreferencesKeys.WATER_START_TIME] ?: "08:00",
-                waterEndTime = preferences[PreferencesKeys.WATER_END_TIME] ?: "21:00",
-                dailyReviewEnabled = preferences[PreferencesKeys.DAILY_REVIEW_ENABLED] ?: true,
-                dailyReviewTime = preferences[PreferencesKeys.DAILY_REVIEW_TIME] ?: "21:30",
-                smartSkipIfLogged = preferences[PreferencesKeys.SMART_SKIP_IF_LOGGED] ?: true,
-                quickLogWaterAmountMl = preferences[PreferencesKeys.QUICK_LOG_WATER_AMOUNT] ?: 250
-            )
-        }
+    }
 
     suspend fun updateBreakfastReminder(enabled: Boolean, time: String) {
         dataStore.edit { preferences ->
@@ -262,17 +300,11 @@ class PreferenceManager @Inject constructor(
         }
     }
 
-    val activeAiProvider: Flow<String?> = dataStore.data
-        .catch { exception ->
-            if (exception is IOException) {
-                emit(emptyPreferences())
-            } else {
-                throw exception
-            }
-        }
+    val activeAiProvider: Flow<String?> = safePreferencesFlow
         .map { preferences ->
             preferences[PreferencesKeys.ACTIVE_AI_PROVIDER]
         }
+        .distinctUntilChanged()
 
     suspend fun setActiveAiProvider(providerName: String) {
         dataStore.edit { preferences ->
@@ -280,14 +312,7 @@ class PreferenceManager @Inject constructor(
         }
     }
 
-    val themeMode: Flow<AppThemeMode> = dataStore.data
-        .catch { exception ->
-            if (exception is IOException) {
-                emit(emptyPreferences())
-            } else {
-                throw exception
-            }
-        }
+    val themeMode: Flow<AppThemeMode> = safePreferencesFlow
         .map { preferences ->
             val modeStr = preferences[PreferencesKeys.THEME_MODE] ?: AppThemeMode.SYSTEM.name
             try {
@@ -296,6 +321,7 @@ class PreferenceManager @Inject constructor(
                 AppThemeMode.SYSTEM
             }
         }
+        .distinctUntilChanged()
 
     suspend fun setThemeMode(mode: AppThemeMode) {
         dataStore.edit { preferences ->

@@ -11,7 +11,6 @@ import com.fdev.nutrimindai.core.datastore.ReminderSettings
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.Calendar
@@ -46,7 +45,7 @@ class ReminderScheduler @Inject constructor(
 
     suspend fun rescheduleAllActiveRemindersSuspend() {
         try {
-            val settings = preferenceManager.reminderSettings.first()
+            val settings = preferenceManager.getReminderSettingsDirect()
             applyReminderSettings(settings)
             Timber.d("All active reminders successfully rescheduled.")
         } catch (e: Exception) {
