@@ -17,8 +17,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import java.io.File
-import java.text.SimpleDateFormat
-import java.util.Date
+import java.time.LocalDate
 import java.util.Locale
 import javax.inject.Inject
 import timber.log.Timber
@@ -55,7 +54,7 @@ class MealDetailViewModel @Inject constructor(
     private var loadJob: Job? = null
 
     private val currentDate: String
-        get() = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        get() = LocalDate.now().toString()
 
     init {
         loadMealDetails()

@@ -18,8 +18,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 import javax.inject.Inject
 
@@ -50,8 +51,9 @@ class WaterViewModel @Inject constructor(
     private var lastLoadedDate: String = ""
     private var loadJob: Job? = null
 
+    private val timeFormatter = DateTimeFormatter.ofPattern("HH:mm", Locale.getDefault())
     private val currentDate: String
-        get() = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        get() = LocalDate.now().toString()
 
     init {
         loadWater()
@@ -109,7 +111,7 @@ class WaterViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val dailyLogId = dailyLogRepository.getOrCreateDailyLog(currentDate)
-                val timeString = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
+                val timeString = LocalTime.now().format(timeFormatter)
                 val water = Water(
                     id = 0,
                     dailyLogId = dailyLogId,

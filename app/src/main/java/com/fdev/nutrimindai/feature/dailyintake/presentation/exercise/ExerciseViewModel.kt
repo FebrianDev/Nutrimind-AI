@@ -19,9 +19,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.time.LocalDate
 import javax.inject.Inject
 
 sealed interface ExerciseUiState {
@@ -117,7 +115,7 @@ class ExerciseViewModel @Inject constructor(
     private var loadJob: Job? = null
 
     private val currentDate: String
-        get() = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        get() = LocalDate.now().toString()
 
     var userWeight: Float = MetExerciseCalculator.DEFAULT_WEIGHT_KG
         private set

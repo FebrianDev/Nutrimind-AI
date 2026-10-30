@@ -21,8 +21,10 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 import javax.inject.Inject
 import kotlin.math.abs
@@ -108,10 +110,10 @@ class ActivityDetailViewModel @Inject constructor(
 
     private val generatingAiSummaryForLogIds = mutableSetOf<Long>()
 
-    private val isoDateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-    private val displayDateFormat = SimpleDateFormat("MMMM dd, yyyy", Locale.getDefault())
+    private val displayDateFormatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy", Locale.getDefault())
+    private val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.getDefault())
     private val currentDate: String
-        get() = isoDateFormat.format(Date())
+        get() = LocalDate.now().toString()
 
     val targetDate: String
 
@@ -128,8 +130,7 @@ class ActivityDetailViewModel @Inject constructor(
 
         // Try parsing display date e.g. "July 25, 2026"
         return runCatching {
-            val dateObj = displayDateFormat.parse(rawDate)
-            if (dateObj != null) isoDateFormat.format(dateObj) else rawDate
+            LocalDate.parse(rawDate, displayDateFormatter).toString()
         }.getOrDefault(rawDate)
     }
 
@@ -206,8 +207,8 @@ class ActivityDetailViewModel @Inject constructor(
                     val exerciseCalories = exercises.sumOf { it.caloriesBurned }
                     val exerciseMinutes = exercises.sumOf { it.durationMinute }
 
-                    val parsedDate = runCatching { isoDateFormat.parse(targetDate) }.getOrNull()
-                    val displayDate = if (parsedDate != null) displayDateFormat.format(parsedDate) else targetDate
+                    val parsedDate = runCatching { LocalDate.parse(targetDate) }.getOrNull()
+                    val displayDate = parsedDate?.format(displayDateFormatter) ?: targetDate
 
                     val targetCal = profile?.dailyCalories ?: com.fdev.nutrimindai.feature.dailyintake.domain.model.NutritionSummary.DEFAULT_GOAL_CALORIES
                     val targetProtein = profile?.dailyProtein?.toDouble() ?: 140.0
@@ -263,8 +264,7 @@ class ActivityDetailViewModel @Inject constructor(
 
                     val timelineItems = mutableListOf<ActivityTimelineItemData>()
                     val isLocked = dailyLog?.status == DailyLogStatus.COMPLETED
-
-                    val timeFormatter = SimpleDateFormat("hh:mm a", Locale.getDefault())
+                    val systemZone = ZoneId.systemDefault()
 
                     // Group Intakes by MealType
                     MealType.entries.forEach { mealType ->
@@ -272,7 +272,7 @@ class ActivityDetailViewModel @Inject constructor(
                         if (mealIntakes.isNotEmpty()) {
                             val latestCreatedAt = mealIntakes.maxOfOrNull { it.createdAt } ?: 0L
                             val timeStr = if (latestCreatedAt > 0L) {
-                                timeFormatter.format(Date(latestCreatedAt))
+                                Instant.ofEpochMilli(latestCreatedAt).atZone(systemZone).format(timeFormatter)
                             } else {
                                 when (mealType) {
                                     MealType.BREAKFAST -> "07:30 AM"
@@ -318,7 +318,7 @@ class ActivityDetailViewModel @Inject constructor(
                     // Exercise items
                     exercises.forEachIndexed { idx, ex ->
                         val exTimeStr = if (ex.createdAt > 0L) {
-                            timeFormatter.format(Date(ex.createdAt))
+                            Instant.ofEpochMilli(ex.createdAt).atZone(systemZone).format(timeFormatter)
                         } else {
                             "05:30 PM"
                         }

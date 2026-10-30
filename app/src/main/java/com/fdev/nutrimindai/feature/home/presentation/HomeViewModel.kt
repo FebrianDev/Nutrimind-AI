@@ -33,9 +33,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.time.LocalDate
 import javax.inject.Inject
 
 sealed class HomeUiState {
@@ -133,7 +131,7 @@ class HomeViewModel @Inject constructor(
     private var loadDataJob: Job? = null
 
     private val currentDate: String
-        get() = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        get() = LocalDate.now().toString()
 
     init {
         startObservingDateAndData()

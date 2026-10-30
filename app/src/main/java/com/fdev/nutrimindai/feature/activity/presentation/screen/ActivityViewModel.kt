@@ -4,18 +4,25 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.DailyLog
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.DailyLogStatus
+import com.fdev.nutrimindai.feature.dailyintake.domain.model.Exercise
+import com.fdev.nutrimindai.feature.dailyintake.domain.model.Intake
+import com.fdev.nutrimindai.feature.dailyintake.domain.model.Water
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.DailyLogRepository
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.ExerciseRepository
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.IntakeRepository
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.WaterRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 import javax.inject.Inject
 
@@ -61,47 +68,72 @@ class ActivityViewModel @Inject constructor(
     val selectedDate: StateFlow<String?> = _selectedDate.asStateFlow()
 
     private val currentDate: String
-        get() = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-    private val displayDateFormat = SimpleDateFormat("MMMM dd, yyyy", Locale.getDefault())
-    private val parseDateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        get() = LocalDate.now().toString()
+    private val displayDateFormatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy", Locale.getDefault())
+    private val dayHeaderFormatter = DateTimeFormatter.ofPattern("EEE, MMMM dd", Locale.getDefault())
 
     init {
         loadActivity()
     }
 
+    @OptIn(FlowPreview::class)
     private fun loadActivity() {
         viewModelScope.launch {
             try {
-                combine(
+                // 1. Precompute all day summaries reactively in O(N) using single batch table flows (no N+1 queries)
+                val allSummariesFlow = combine(
                     dailyLogRepository.getAllDailyLogs(),
-                    _searchQuery,
-                    _selectedDate
-                ) { dailyLogs, query, filterDate ->
+                    intakeRepository.getAllIntakes(),
+                    waterRepository.getAllWaterRecords(),
+                    exerciseRepository.getAllExercises()
+                ) { dailyLogs, allIntakes, allWaters, allExercises ->
                     if (dailyLogs.isEmpty()) {
+                        emptyList()
+                    } else {
+                        val intakesByLogId = allIntakes.groupBy { it.dailyLogId }
+                        val watersByLogId = allWaters.groupBy { it.dailyLogId }
+                        val exercisesByLogId = allExercises.groupBy { it.dailyLogId }
+                        val todayStr = currentDate
+
+                        dailyLogs.map { log ->
+                            buildDaySummary(
+                                dailyLog = log,
+                                intakes = intakesByLogId[log.id].orEmpty(),
+                                waters = watersByLogId[log.id].orEmpty(),
+                                exercises = exercisesByLogId[log.id].orEmpty(),
+                                todayStr = todayStr
+                            )
+                        }
+                    }
+                }.flowOn(Dispatchers.Default)
+
+                // 2. Apply date & debounced search filters in memory without triggering any SQLite queries
+                combine(
+                    allSummariesFlow,
+                    _searchQuery.debounce(250L),
+                    _selectedDate
+                ) { summaries, query, filterDate ->
+                    if (summaries.isEmpty()) {
                         return@combine ActivityUiState.Empty
                     }
 
-                    // 1. Filter by Date if selected
-                    val dateFilteredLogs = if (!filterDate.isNullOrBlank()) {
-                        dailyLogs.filter { it.date == filterDate }
-                    } else {
-                        dailyLogs
-                    }
-
-                    // 2. Build summaries
-                    val summaries = dateFilteredLogs.map { log -> buildDaySummary(log) }
-
-                    // 3. Filter by Search Query if entered
-                    val finalSummaries = if (query.isNotBlank()) {
-                        summaries.filter { summary ->
-                            summary.displayDate.contains(query, ignoreCase = true) ||
-                            summary.fullDate.contains(query, ignoreCase = true) ||
-                            summary.status.contains(query, ignoreCase = true) ||
-                            summary.dailyLog.date.contains(query, ignoreCase = true) ||
-                            summary.keywords.any { it.contains(query, ignoreCase = true) }
-                        }
+                    val dateFiltered = if (!filterDate.isNullOrBlank()) {
+                        summaries.filter { it.dailyLog.date == filterDate }
                     } else {
                         summaries
+                    }
+
+                    val trimmedQuery = query.trim()
+                    val finalSummaries = if (trimmedQuery.isNotBlank()) {
+                        dateFiltered.filter { summary ->
+                            summary.displayDate.contains(trimmedQuery, ignoreCase = true) ||
+                                summary.fullDate.contains(trimmedQuery, ignoreCase = true) ||
+                                summary.status.contains(trimmedQuery, ignoreCase = true) ||
+                                summary.dailyLog.date.contains(trimmedQuery, ignoreCase = true) ||
+                                summary.keywords.any { it.contains(trimmedQuery, ignoreCase = true) }
+                        }
+                    } else {
+                        dateFiltered
                     }
 
                     if (finalSummaries.isEmpty()) {
@@ -109,10 +141,10 @@ class ActivityViewModel @Inject constructor(
                     } else {
                         ActivityUiState.Success(
                             days = finalSummaries,
-                            isFiltered = !filterDate.isNullOrBlank() || query.isNotBlank()
+                            isFiltered = !filterDate.isNullOrBlank() || trimmedQuery.isNotBlank()
                         )
                     }
-                }.collect { state ->
+                }.flowOn(Dispatchers.Default).collect { state ->
                     _uiState.value = state
                 }
             } catch (e: Exception) {
@@ -147,16 +179,22 @@ class ActivityViewModel @Inject constructor(
         _searchQuery.value = ""
     }
 
-    private suspend fun buildDaySummary(dailyLog: DailyLog): ActivityDaySummary {
-        val intakes = intakeRepository.getIntakesForDailyLogDirect(dailyLog.id)
-        val waters = waterRepository.getWaterRecordsForDailyLogDirect(dailyLog.id)
-        val exercises = exerciseRepository.getExercisesForDailyLogDirect(dailyLog.id)
+    private fun buildDaySummary(
+        dailyLog: DailyLog,
+        intakes: List<Intake>,
+        waters: List<Water>,
+        exercises: List<Exercise>,
+        todayStr: String
+    ): ActivityDaySummary {
+        val isToday = dailyLog.date == todayStr
+        val parsedDate = runCatching { LocalDate.parse(dailyLog.date) }.getOrNull()
 
-        val isToday = dailyLog.date == currentDate
-        val displayDate = if (isToday) "Today" else formatDisplayDate(dailyLog.date)
-
-        val parsedDate = runCatching { parseDateFormat.parse(dailyLog.date) }.getOrNull()
-        val fullDate = if (parsedDate != null) displayDateFormat.format(parsedDate) else dailyLog.date
+        val displayDate = when {
+            isToday -> "Today"
+            parsedDate != null -> parsedDate.format(dayHeaderFormatter)
+            else -> dailyLog.date
+        }
+        val fullDate = parsedDate?.format(displayDateFormatter) ?: dailyLog.date
 
         val statusText = when (dailyLog.status) {
             DailyLogStatus.DRAFT -> "Draft"
@@ -164,9 +202,9 @@ class ActivityViewModel @Inject constructor(
             DailyLogStatus.MISSED -> "Missed"
         }
 
-        val keywords = mutableListOf<String>()
-        keywords.addAll(intakes.map { it.foodName })
-        keywords.addAll(exercises.map { it.exerciseType })
+        val keywords = ArrayList<String>(intakes.size + exercises.size)
+        intakes.forEach { keywords.add(it.foodName) }
+        exercises.forEach { keywords.add(it.exerciseType) }
 
         return ActivityDaySummary(
             dailyLog = dailyLog,
@@ -181,16 +219,6 @@ class ActivityViewModel @Inject constructor(
             isEditable = isToday && dailyLog.status == DailyLogStatus.DRAFT,
             keywords = keywords
         )
-    }
-
-    private fun formatDisplayDate(dateString: String): String {
-        val parsedDate = runCatching { parseDateFormat.parse(dateString) }.getOrNull()
-        return if (parsedDate != null) {
-            val dayFormat = SimpleDateFormat("EEE, MMMM dd", Locale.getDefault())
-            dayFormat.format(parsedDate)
-        } else {
-            dateString
-        }
     }
 }
 

@@ -507,6 +507,10 @@ fun CalendarStrip(
     onMonthHeaderClick: () -> Unit
 ) {
     val dateFormat = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) }
+    val startMonthFormat = remember { SimpleDateFormat("MMM", Locale.getDefault()) }
+    val fullMonthYearFormat = remember { SimpleDateFormat("MMMM yyyy", Locale.getDefault()) }
+    val shortYearFormat = remember { SimpleDateFormat("MMM yyyy", Locale.getDefault()) }
+    val dayNameFormat = remember { SimpleDateFormat("EEE", Locale.getDefault()) }
     val todayDateStr = remember { dateFormat.format(Date()) }
 
     // Anchor calendar around selectedDate if set, or today's date
@@ -528,9 +532,6 @@ fun CalendarStrip(
         val startCal = baseCalendar.clone() as Calendar
         val endCal = (baseCalendar.clone() as Calendar).apply { add(Calendar.DAY_OF_WEEK, 6) }
 
-        val startMonthFormat = SimpleDateFormat("MMM", Locale.getDefault())
-        val fullMonthYearFormat = SimpleDateFormat("MMMM yyyy", Locale.getDefault())
-
         if (startCal.get(Calendar.MONTH) == endCal.get(Calendar.MONTH) &&
             startCal.get(Calendar.YEAR) == endCal.get(Calendar.YEAR)
         ) {
@@ -538,12 +539,9 @@ fun CalendarStrip(
         } else if (startCal.get(Calendar.YEAR) == endCal.get(Calendar.YEAR)) {
             "${startMonthFormat.format(startCal.time)} - ${fullMonthYearFormat.format(endCal.time)}"
         } else {
-            val shortYearFormat = SimpleDateFormat("MMM yyyy", Locale.getDefault())
             "${shortYearFormat.format(startCal.time)} - ${shortYearFormat.format(endCal.time)}"
         }
     }
-
-    val dayNameFormat = remember { SimpleDateFormat("EEE", Locale.getDefault()) }
 
     val days = remember(baseCalendar, selectedDate) {
         val calIter = baseCalendar.clone() as Calendar
