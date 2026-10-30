@@ -128,18 +128,26 @@ class CoachViewModel @Inject constructor(
         _errorMessage.value = null
 
         viewModelScope.launch {
-            val result = coachRepository.transcribeVoice(audioFile)
-            _isTranscribingVoice.value = false
-            audioFile.delete()
-
-            result.onSuccess { transcribed ->
-                val clean = transcribed.trim()
-                if (clean.isNotBlank()) {
-                    val current = _inputText.value.trim()
-                    _inputText.value = if (current.isEmpty()) clean else "$current $clean"
+            try {
+                val result = coachRepository.transcribeVoice(audioFile)
+                result.onSuccess { transcribed ->
+                    val clean = transcribed.trim()
+                    if (clean.isNotBlank()) {
+                        val current = _inputText.value.trim()
+                        _inputText.value = if (current.isEmpty()) clean else "$current $clean"
+                    }
+                }.onFailure { error ->
+                    _errorMessage.value = error.localizedMessage ?: "Failed to transcribe voice with Meta AI"
                 }
-            }.onFailure { error ->
-                _errorMessage.value = error.localizedMessage ?: "Failed to transcribe voice with Meta AI"
+            } finally {
+                _isTranscribingVoice.value = false
+                try {
+                    if (audioFile.exists()) {
+                        audioFile.delete()
+                    }
+                } catch (e: Exception) {
+                    timber.log.Timber.w(e, "Failed to delete temporary audio file")
+                }
             }
         }
     }

@@ -86,14 +86,10 @@ class HomeViewModel @Inject constructor(
                     val existing = exerciseRepository.getExercisesForDailyLogDirect(currentDailyLogId)
                         .find { it.exerciseType == com.fdev.nutrimindai.core.health.HealthConnectManager.HEALTH_CONNECT_EXERCISE_TYPE }
 
-                    if (existing != null) {
-                        exerciseRepository.deleteExercise(existing)
-                    }
-
                     if (metrics.activeCalories > 0 || metrics.steps > 0) {
                         exerciseRepository.addExercise(
                             Exercise(
-                                id = 0,
+                                id = existing?.id ?: 0,
                                 dailyLogId = currentDailyLogId,
                                 exerciseType = com.fdev.nutrimindai.core.health.HealthConnectManager.HEALTH_CONNECT_EXERCISE_TYPE,
                                 durationMinute = (metrics.steps / 100).toInt().coerceAtLeast(1),
@@ -102,6 +98,9 @@ class HomeViewModel @Inject constructor(
                             )
                         )
                         onResult("Successfully synced ${metrics.steps} steps & ${metrics.activeCalories} active kcal!")
+                    } else if (existing != null) {
+                        exerciseRepository.deleteExercise(existing)
+                        onResult("Health Connect: No steps or active calorie data logged today.")
                     } else {
                         onResult("Health Connect: No steps or active calorie data logged today.")
                     }
