@@ -3,6 +3,7 @@ package com.fdev.nutrimindai.feature.dailyintake.presentation.nutrichef
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fdev.nutrimindai.core.ai.AiRepository
+import com.fdev.nutrimindai.feature.dailyintake.domain.model.DailyLogStatus
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.FoodSource
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.Intake
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.MealType
@@ -67,51 +68,52 @@ class NutriChefViewModel @Inject constructor(
     fun loadDailyNutritionBudget() {
         viewModelScope.launch {
             val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
-            val dailyLog = dailyLogRepository.getDailyLogByDate(todayStr).firstOrNull()
-            if (dailyLog != null) {
-                currentDailyLogId = dailyLog.id
-                val intakes = intakeRepository.getIntakesForDailyLogDirect(dailyLog.id)
-                val profile = profileRepository.getProfile().firstOrNull()
+            val dailyLogId = dailyLogRepository.getOrCreateDailyLog(todayStr)
+            currentDailyLogId = dailyLogId
 
-                val goalCalories = profile?.dailyCalories ?: 2100
-                val goalProtein = (profile?.dailyProtein ?: 120).toDouble()
-                val goalCarbs = (profile?.dailyCarbs ?: 245).toDouble()
-                val goalFat = (profile?.dailyFat ?: 65).toDouble()
-                val userGoal = profile?.goal?.name ?: "Maintenance"
-
-                val consumedCalories = intakes.sumOf { it.calories }
-                val consumedProtein = intakes.sumOf { it.protein }
-                val consumedCarbs = intakes.sumOf { it.carbs }
-                val consumedFat = intakes.sumOf { it.fat }
-
-                val remainingCalories = (goalCalories - consumedCalories).coerceAtLeast(150)
-                val remainingProtein = (goalProtein - consumedProtein).coerceAtLeast(10.0)
-                val remainingCarbs = (goalCarbs - consumedCarbs).coerceAtLeast(10.0)
-                val remainingFat = (goalFat - consumedFat).coerceAtLeast(5.0)
-
-                // Pick smart default meal type by current time
-                val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-                val defaultMealType = when {
-                    currentHour < 11 -> MealType.BREAKFAST
-                    currentHour < 16 -> MealType.LUNCH
-                    currentHour < 21 -> MealType.DINNER
-                    else -> MealType.OTHERS
-                }
-
-                _uiState.value = _uiState.value.copy(
-                    remainingCalories = remainingCalories,
-                    remainingProtein = remainingProtein,
-                    remainingCarbs = remainingCarbs,
-                    remainingFat = remainingFat,
-                    selectedMealType = defaultMealType,
-                    userGoal = userGoal
-                )
-
-                // Auto generate initial recipes
-                generateRecipes()
+            val intakes = if (dailyLogId > 0L) {
+                intakeRepository.getIntakesForDailyLogDirect(dailyLogId)
             } else {
-                generateRecipes()
+                emptyList()
             }
+            val profile = profileRepository.getProfile().firstOrNull()
+
+            val goalCalories = profile?.dailyCalories ?: 2100
+            val goalProtein = (profile?.dailyProtein ?: 120).toDouble()
+            val goalCarbs = (profile?.dailyCarbs ?: 245).toDouble()
+            val goalFat = (profile?.dailyFat ?: 65).toDouble()
+            val userGoal = profile?.goal?.name ?: "Maintenance"
+
+            val consumedCalories = intakes.sumOf { it.calories }
+            val consumedProtein = intakes.sumOf { it.protein }
+            val consumedCarbs = intakes.sumOf { it.carbs }
+            val consumedFat = intakes.sumOf { it.fat }
+
+            val remainingCalories = (goalCalories - consumedCalories).coerceAtLeast(150)
+            val remainingProtein = (goalProtein - consumedProtein).coerceAtLeast(10.0)
+            val remainingCarbs = (goalCarbs - consumedCarbs).coerceAtLeast(10.0)
+            val remainingFat = (goalFat - consumedFat).coerceAtLeast(5.0)
+
+            // Pick smart default meal type by current time
+            val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+            val defaultMealType = when {
+                currentHour < 11 -> MealType.BREAKFAST
+                currentHour < 16 -> MealType.LUNCH
+                currentHour < 21 -> MealType.DINNER
+                else -> MealType.OTHERS
+            }
+
+            _uiState.value = _uiState.value.copy(
+                remainingCalories = remainingCalories,
+                remainingProtein = remainingProtein,
+                remainingCarbs = remainingCarbs,
+                remainingFat = remainingFat,
+                selectedMealType = defaultMealType,
+                userGoal = userGoal
+            )
+
+            // Auto generate initial recipes
+            generateRecipes()
         }
     }
 
@@ -153,12 +155,15 @@ class NutriChefViewModel @Inject constructor(
     fun logRecipeToIntake(recipe: SmartRecipe, onComplete: () -> Unit = {}) {
         viewModelScope.launch {
             try {
-                if (currentDailyLogId == 0L) {
-                    val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
-                    val dailyLog = dailyLogRepository.getDailyLogByDate(todayStr).firstOrNull()
-                    if (dailyLog != null) {
-                        currentDailyLogId = dailyLog.id
-                    }
+                val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+                val todayLog = dailyLogRepository.getDailyLogByDateDirect(todayStr)
+                if (todayLog?.status == DailyLogStatus.COMPLETED) {
+                    _events.emit(NutriChefEvent.ShowToast("Today's journal is already completed. Reopen today's log to add meals."))
+                    return@launch
+                }
+
+                if (currentDailyLogId <= 0L) {
+                    currentDailyLogId = dailyLogRepository.getOrCreateDailyLog(todayStr)
                 }
 
                 val intake = Intake(
