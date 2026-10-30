@@ -1,5 +1,6 @@
 package com.fdev.nutrimindai.feature.coach.presentation
 
+import com.fdev.nutrimindai.core.designsystem.component.NutriMindConfirmationDialog
 import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -14,7 +15,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -121,24 +121,16 @@ fun CoachScreen(
     }
 
     if (showClearDialog) {
-        AlertDialog(
+        NutriMindConfirmationDialog(
+            title = stringResource(R.string.coach_dialog_clear_title),
+            description = stringResource(R.string.coach_dialog_clear_desc),
+            confirmButtonText = stringResource(R.string.coach_btn_clear),
+            dismissButtonText = stringResource(R.string.dialog_cancel),
+            isDanger = true,
             onDismissRequest = { showClearDialog = false },
-            title = { Text(text = stringResource(R.string.coach_dialog_clear_title)) },
-            text = { Text(text = stringResource(R.string.coach_dialog_clear_desc)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showClearDialog = false
-                        viewModel.clearHistory()
-                    }
-                ) {
-                    Text(text = stringResource(R.string.coach_btn_clear), color = MaterialTheme.colorScheme.error)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showClearDialog = false }) {
-                    Text(text = stringResource(R.string.dialog_cancel))
-                }
+            onConfirm = {
+                showClearDialog = false
+                viewModel.clearHistory()
             }
         )
     }

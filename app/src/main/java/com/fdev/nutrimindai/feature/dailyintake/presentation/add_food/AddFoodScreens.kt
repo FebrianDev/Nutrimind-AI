@@ -29,6 +29,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fdev.nutrimindai.R
+import com.fdev.nutrimindai.core.designsystem.component.NutriMindInfoDialog
 import com.fdev.nutrimindai.core.ai.FoodRecognitionResult
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.Food
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.FoodSource
@@ -186,17 +187,11 @@ fun PlaceholderDialog(
     description: String,
     onDismiss: () -> Unit
 ) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        containerColor = MaterialTheme.colorScheme.surface,
-        icon = { Icon(Icons.Default.Info, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
-        title = { Text(text = title, fontWeight = FontWeight.Bold) },
-        text = { Text(text = description) },
-        confirmButton = {
-            Button(onClick = onDismiss) {
-                Text(stringResource(R.string.food_dialog_ok))
-            }
-        }
+    NutriMindInfoDialog(
+        title = title,
+        description = description,
+        onDismiss = onDismiss,
+        icon = Icons.Default.Info
     )
 }
 
@@ -357,19 +352,12 @@ fun SearchFoodScreen(
     // 3. Error Alert Dialog
     if (uiState is AddFoodUiState.Error) {
         val errorMsg = (uiState as AddFoodUiState.Error).message
-        AlertDialog(
-            onDismissRequest = { viewModel.resetState() },
-            containerColor = MaterialTheme.colorScheme.surface,
-            icon = {
-                Icon(Icons.Default.Info, contentDescription = null, tint = MaterialTheme.colorScheme.error)
-            },
-            title = { Text(text = "Estimation Notice", fontWeight = FontWeight.Bold) },
-            text = { Text(text = errorMsg) },
-            confirmButton = {
-                Button(onClick = { viewModel.resetState() }) {
-                    Text(stringResource(R.string.food_dialog_ok))
-                }
-            }
+        NutriMindInfoDialog(
+            title = "Estimation Notice",
+            description = errorMsg,
+            onDismiss = { viewModel.resetState() },
+            icon = Icons.Default.Info,
+            iconTint = MaterialTheme.colorScheme.error
         )
     }
 

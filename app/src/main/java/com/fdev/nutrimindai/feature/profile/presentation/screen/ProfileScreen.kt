@@ -36,6 +36,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.fdev.nutrimindai.core.designsystem.component.NutriMindConfirmationDialog
+import com.fdev.nutrimindai.core.designsystem.component.NutriMindInfoDialog
 import com.fdev.nutrimindai.core.designsystem.component.UserAvatar
 import com.fdev.nutrimindai.feature.profile.data.local.entity.ProfileEntity
 import com.fdev.nutrimindai.core.model.Goal
@@ -50,7 +52,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import timber.log.Timber
-import java.util.Locale
 
 import kotlinx.coroutines.launch
 
@@ -274,93 +275,34 @@ fun ProfileScreen(
     }
 
     if (showResetProgressDialog) {
-        AlertDialog(
+        NutriMindConfirmationDialog(
+            title = stringResource(R.string.profile_reset_data_dialog_title),
+            description = stringResource(R.string.profile_reset_data_dialog_msg),
+            confirmButtonText = stringResource(R.string.profile_reset_data_confirm_btn),
+            dismissButtonText = stringResource(R.string.dialog_cancel),
+            icon = Icons.Default.Warning,
+            isDanger = true,
             onDismissRequest = { showResetProgressDialog = false },
-            containerColor = MaterialTheme.colorScheme.surface,
-            icon = {
-                Icon(
-                    imageVector = Icons.Default.Warning,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.size(32.dp)
-                )
-            },
-            title = {
-                Text(
-                    text = stringResource(R.string.profile_reset_data_dialog_title),
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontWeight = FontWeight.Bold
-                )
-            },
-            text = {
-                Text(
-                    text = stringResource(R.string.profile_reset_data_dialog_msg),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        showResetProgressDialog = false
-                        viewModel.resetProgressData()
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error,
-                        contentColor = MaterialTheme.colorScheme.onError
-                    )
-                ) {
-                    Text(
-                        text = stringResource(R.string.profile_reset_data_confirm_btn),
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showResetProgressDialog = false }) {
-                    Text(
-                        text = stringResource(R.string.dialog_cancel),
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
+            onConfirm = {
+                showResetProgressDialog = false
+                viewModel.resetProgressData()
             }
         )
     }
 
     if (showResetDialog) {
-        AlertDialog(
+        NutriMindConfirmationDialog(
+            title = stringResource(R.string.btn_log_out),
+            description = stringResource(R.string.profile_logout_confirm_msg),
+            confirmButtonText = stringResource(R.string.btn_log_out),
+            dismissButtonText = stringResource(R.string.dialog_cancel),
+            isDanger = true,
+            confirmButtonEnabled = !isLoggingOut,
+            dismissButtonEnabled = !isLoggingOut,
             onDismissRequest = { if (!isLoggingOut) showResetDialog = false },
-            containerColor = MaterialTheme.colorScheme.surface,
-            title = {
-                Text(
-                    stringResource(R.string.btn_log_out),
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontWeight = FontWeight.Bold
-                )
-            },
-            text = {
-                Text(
-                    stringResource(R.string.profile_logout_confirm_msg),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showResetDialog = false
-                        viewModel.logout(onSuccess = onNavigateToOnboarding)
-                    },
-                    enabled = !isLoggingOut
-                ) {
-                    Text(stringResource(R.string.btn_log_out), color = MaterialTheme.colorScheme.error, fontWeight = FontWeight.Bold)
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { showResetDialog = false },
-                    enabled = !isLoggingOut
-                ) {
-                    Text(stringResource(R.string.dialog_cancel), color = MaterialTheme.colorScheme.onSurface)
-                }
+            onConfirm = {
+                showResetDialog = false
+                viewModel.logout(onSuccess = onNavigateToOnboarding)
             }
         )
     }
@@ -443,12 +385,10 @@ fun ProfileScreen(
     }
 
     if (showAboutDialog) {
-        AlertDialog(
-            onDismissRequest = { showAboutDialog = false },
-            containerColor = MaterialTheme.colorScheme.surface,
-            title = {
-                Text(stringResource(R.string.label_about_app), color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Bold)
-            },
+        NutriMindInfoDialog(
+            title = stringResource(R.string.label_about_app),
+            buttonText = stringResource(R.string.btn_close),
+            onDismiss = { showAboutDialog = false },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
@@ -473,11 +413,6 @@ fun ProfileScreen(
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.outline
                     )
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = { showAboutDialog = false }) {
-                    Text(stringResource(R.string.btn_close), color = MaterialTheme.colorScheme.primary)
                 }
             }
         )
