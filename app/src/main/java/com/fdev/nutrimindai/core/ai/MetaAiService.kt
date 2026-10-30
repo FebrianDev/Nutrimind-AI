@@ -117,6 +117,7 @@ class MetaAiService @Inject constructor(
             } catch (e: Exception) {
                 Timber.w("MetaAiService: text generation failed with model $modelName: ${e.message}")
                 lastException = e
+                if (!shouldTryNextModel(e)) break
             }
         }
 
@@ -178,6 +179,7 @@ class MetaAiService @Inject constructor(
             } catch (e: Exception) {
                 Timber.w("MetaAiService: chat failed with model $modelName: ${e.message}")
                 lastException = e
+                if (!shouldTryNextModel(e)) break
             }
         }
 
@@ -298,6 +300,7 @@ class MetaAiService @Inject constructor(
             } catch (e: Exception) {
                 Timber.w("MetaAiService: vision analysis failed with model $modelName: ${e.message}")
                 lastException = e
+                if (!shouldTryNextModel(e)) break
             }
         }
 
@@ -409,11 +412,26 @@ class MetaAiService @Inject constructor(
             } catch (e: Exception) {
                 Timber.w("MetaAiService: estimation failed with model $modelName: ${e.message}")
                 lastException = e
+                if (!shouldTryNextModel(e)) break
             }
         }
 
         val friendlyMessage = formatErrorMessage(lastException)
         Result.failure(IllegalStateException(friendlyMessage))
+    }
+
+    private fun shouldTryNextModel(e: Exception): Boolean {
+        return when (e) {
+            is MetaAiAuthException,
+            is MetaAiRateLimitException,
+            is java.net.UnknownHostException,
+            is java.net.ConnectException,
+            is java.net.SocketTimeoutException,
+            is java.io.InterruptedIOException,
+            is javax.net.ssl.SSLException -> false
+            is MetaAiHttpException -> e.statusCode in setOf(400, 404, 422, 500, 502, 503)
+            else -> true
+        }
     }
 
     private fun executeChatCompletion(requestPayload: ChatCompletionRequest): String {
@@ -435,7 +453,7 @@ class MetaAiService @Inject constructor(
                 when (response.code) {
                     401, 403 -> throw MetaAiAuthException(response.code, responseBody)
                     429 -> throw MetaAiRateLimitException(responseBody)
-                    else -> throw IOException("Meta AI HTTP ${response.code}: $responseBody")
+                    else -> throw MetaAiHttpException(response.code, "Meta AI HTTP ${response.code}: $responseBody")
                 }
             }
 
@@ -455,14 +473,14 @@ class MetaAiService @Inject constructor(
 
         val scaledBitmap = if (width > maxDimension || height > maxDimension) {
             val scale = maxDimension.toFloat() / maxOf(width, height)
-            val newWidth = (width * scale).toInt()
-            val newHeight = (height * scale).toInt()
+            val newWidth = (width * scale).toInt().coerceAtLeast(1)
+            val newHeight = (height * scale).toInt().coerceAtLeast(1)
             Bitmap.createScaledBitmap(bitmap, newWidth, newHeight, true)
         } else {
             bitmap
         }
 
-        val outputStream = ByteArrayOutputStream()
+        val outputStream = ByteArrayOutputStream(64 * 1024)
         scaledBitmap.compress(Bitmap.CompressFormat.JPEG, 85, outputStream)
         val byteArray = outputStream.toByteArray()
         return Base64.encodeToString(byteArray, Base64.NO_WRAP)
@@ -737,6 +755,7 @@ class MetaAiService @Inject constructor(
             } catch (e: Exception) {
                 Timber.w("MetaAiService: recipe generation failed with model $modelName: ${e.message}")
                 lastException = e
+                if (!shouldTryNextModel(e)) break
             }
         }
 
@@ -842,3 +861,4 @@ class MetaAiService @Inject constructor(
 
 class MetaAiAuthException(val statusCode: Int, rawBody: String) : IOException("Meta AI Authentication Error ($statusCode): $rawBody")
 class MetaAiRateLimitException(rawBody: String) : IOException("Meta AI Rate Limit Exceeded (429): $rawBody")
+class MetaAiHttpException(val statusCode: Int, message: String) : IOException(message)
