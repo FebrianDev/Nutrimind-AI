@@ -538,17 +538,18 @@ class MetaAiService @Inject constructor(
             .build()
 
         try {
-            val response = okHttpClient.newCall(request).execute()
-            val responseBody = response.body?.string().orEmpty()
+            val (isSuccess, code, responseBody) = okHttpClient.newCall(request).execute().use { response ->
+                Triple(response.isSuccessful, response.code, response.body?.string().orEmpty())
+            }
 
-            if (response.isSuccessful && responseBody.isNotBlank()) {
+            if (isSuccess && responseBody.isNotBlank()) {
                 val transcript = parseTranscriptionResponse(responseBody)
                 if (transcript.isNotBlank()) {
                     Timber.d("Meta AI ASR Transcribe success: $transcript")
                     return@withContext Result.success(transcript)
                 }
             } else {
-                Timber.w("Primary Meta ASR transcribe endpoint returned ${response.code}: $responseBody")
+                Timber.w("Primary Meta ASR transcribe endpoint returned $code: $responseBody")
             }
         } catch (e: Exception) {
             Timber.w(e, "Primary Meta ASR transcribe failed, trying fallback transcription endpoint")
@@ -574,10 +575,11 @@ class MetaAiService @Inject constructor(
             .build()
 
         try {
-            val response = okHttpClient.newCall(fallbackRequest).execute()
-            val responseBody = response.body?.string().orEmpty()
+            val (isSuccess, responseBody) = okHttpClient.newCall(fallbackRequest).execute().use { response ->
+                Pair(response.isSuccessful, response.body?.string().orEmpty())
+            }
 
-            if (response.isSuccessful && responseBody.isNotBlank()) {
+            if (isSuccess && responseBody.isNotBlank()) {
                 val transcript = parseTranscriptionResponse(responseBody)
                 if (transcript.isNotBlank()) {
                     return@withContext Result.success(transcript)

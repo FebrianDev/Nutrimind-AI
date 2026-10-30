@@ -140,6 +140,11 @@ fun CameraScanScreen(
             viewModel.onBarcodeScanned(barcode)
         }
     }
+    DisposableEffect(barcodeAnalyzer) {
+        onDispose {
+            barcodeAnalyzer.close()
+        }
+    }
     val imageAnalysis = remember {
         ImageAnalysis.Builder()
             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)

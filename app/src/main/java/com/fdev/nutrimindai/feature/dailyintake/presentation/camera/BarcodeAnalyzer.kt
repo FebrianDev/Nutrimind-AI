@@ -73,4 +73,15 @@ class BarcodeAnalyzer(
                 imageProxy.close()
             }
     }
+
+    /**
+     * Closes the underlying ML Kit BarcodeScanner instance to free native memory.
+     */
+    fun close() {
+        try {
+            scanner.close()
+        } catch (e: Exception) {
+            Timber.w(e, "BarcodeAnalyzer: Error closing BarcodeScanner")
+        }
+    }
 }
