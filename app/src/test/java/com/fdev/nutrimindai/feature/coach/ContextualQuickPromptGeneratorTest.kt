@@ -46,14 +46,14 @@ class ContextualQuickPromptGeneratorTest {
     private val fakeDailyLogDao = object : DailyLogDao {
         override fun getDailyLogByDate(date: String): Flow<DailyLogEntity?> = flowOf(dailyLogResult)
         override suspend fun getDailyLogByDateDirect(date: String): DailyLogEntity? = dailyLogResult
-        override fun getAllDailyLogs(): Flow<List<DailyLogEntity>> = flowOf(emptyList())
-        override suspend fun getAllDailyLogsDirect(): List<DailyLogEntity> = emptyList()
-        override fun getDailyLogsBetweenDates(startDate: String, endDate: String): Flow<List<DailyLogEntity>> = flowOf(emptyList())
-        override suspend fun getDailyLogsBetweenDatesDirect(startDate: String, endDate: String): List<DailyLogEntity> = emptyList()
+        override fun getAllDailyLogs(): Flow<List<DailyLogEntity>> = flowOf(listOfNotNull(dailyLogResult))
+        override suspend fun getAllDailyLogsDirect(): List<DailyLogEntity> = listOfNotNull(dailyLogResult)
+        override fun getDailyLogsBetweenDates(startDate: String, endDate: String): Flow<List<DailyLogEntity>> = flowOf(listOfNotNull(dailyLogResult))
+        override suspend fun getDailyLogsBetweenDatesDirect(startDate: String, endDate: String): List<DailyLogEntity> = listOfNotNull(dailyLogResult)
         override suspend fun insertDailyLog(dailyLog: DailyLogEntity) {}
         override suspend fun updateDailyLog(dailyLog: DailyLogEntity) {}
         override suspend fun updateAiSummary(dailyLogId: String, aiSummary: String) {}
-        override suspend fun getDailyLogCount(): Int = 0
+        override suspend fun getDailyLogCount(): Int = if (dailyLogResult != null) 1 else 0
         override suspend fun getPastDraftLogs(currentDate: String): List<DailyLogEntity> = emptyList()
         override suspend fun getUnsyncedDailyLogs(): List<DailyLogEntity> = emptyList()
         override suspend fun markDailyLogsSynced(ids: List<String>) {}
@@ -126,7 +126,7 @@ class ContextualQuickPromptGeneratorTest {
 
     private val sampleLog = DailyLogEntity(
         id = "log-101",
-        date = "2026-10-27",
+        date = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(java.util.Date()),
         status = DailyLogStatus.DRAFT
     )
 

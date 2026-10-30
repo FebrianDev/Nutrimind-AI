@@ -5,7 +5,15 @@ import com.fdev.nutrimindai.feature.dailyintake.data.local.dao.DailyLogDao
 import com.fdev.nutrimindai.feature.dailyintake.data.local.dao.ExerciseDao
 import com.fdev.nutrimindai.feature.dailyintake.data.local.dao.IntakeDao
 import com.fdev.nutrimindai.feature.dailyintake.data.local.dao.WaterDao
+import com.fdev.nutrimindai.feature.dailyintake.data.local.datasource.LocalDailyLogDataSource
+import com.fdev.nutrimindai.feature.dailyintake.data.local.datasource.LocalExerciseDataSource
+import com.fdev.nutrimindai.feature.dailyintake.data.local.datasource.LocalIntakeDataSource
+import com.fdev.nutrimindai.feature.dailyintake.data.local.datasource.LocalWaterDataSource
+import com.fdev.nutrimindai.feature.dailyintake.data.repository.DailyLogRepositoryImpl
+import com.fdev.nutrimindai.feature.dailyintake.domain.repository.DailyLogRepository
 import com.fdev.nutrimindai.feature.profile.data.local.dao.ProfileDao
+import com.fdev.nutrimindai.feature.profile.data.repository.ProfileRepositoryImpl
+import com.fdev.nutrimindai.feature.profile.domain.repository.ProfileRepository
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -20,12 +28,31 @@ import javax.inject.Singleton
  */
 @Singleton
 class ContextualQuickPromptGenerator @Inject constructor(
-    private val profileDao: ProfileDao,
-    private val dailyLogDao: DailyLogDao,
+    private val profileRepository: ProfileRepository,
+    private val dailyLogRepository: DailyLogRepository,
     private val intakeDao: IntakeDao,
     private val waterDao: WaterDao,
     private val exerciseDao: ExerciseDao
 ) {
+
+    constructor(
+        profileDao: ProfileDao,
+        dailyLogDao: DailyLogDao,
+        intakeDao: IntakeDao,
+        waterDao: WaterDao,
+        exerciseDao: ExerciseDao
+    ) : this(
+        profileRepository = ProfileRepositoryImpl(profileDao),
+        dailyLogRepository = DailyLogRepositoryImpl(
+            localDataSource = LocalDailyLogDataSource(dailyLogDao),
+            intakeDataSource = LocalIntakeDataSource(intakeDao),
+            waterDataSource = LocalWaterDataSource(waterDao),
+            exerciseDataSource = LocalExerciseDataSource(exerciseDao)
+        ),
+        intakeDao = intakeDao,
+        waterDao = waterDao,
+        exerciseDao = exerciseDao
+    )
 
     /**
      * Retrieves a curated list of up to 5 dynamic prompts based on real-time diary status and time of day.
@@ -36,8 +63,8 @@ class ContextualQuickPromptGenerator @Inject constructor(
         val hour = overrideHour ?: Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
         val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
 
-        val profile = profileDao.getProfileDirect()
-        val dailyLog = dailyLogDao.getDailyLogByDateDirect(currentDate)
+        val profile = profileRepository.getProfileDirect()
+        val dailyLog = dailyLogRepository.getDailyLogByDateDirect(currentDate)
 
         val intakes = dailyLog?.let { intakeDao.getIntakesForDailyLogDirect(it.id) } ?: emptyList()
         val waters = dailyLog?.let { waterDao.getWaterRecordsForDailyLogDirect(it.id) } ?: emptyList()

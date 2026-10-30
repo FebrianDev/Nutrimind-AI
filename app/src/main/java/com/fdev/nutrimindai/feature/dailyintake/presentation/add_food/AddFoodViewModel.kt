@@ -15,10 +15,12 @@ import com.fdev.nutrimindai.core.ai.FoodRecognitionResult
 import com.fdev.nutrimindai.core.sync.SyncManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -35,7 +37,7 @@ sealed interface AddFoodUiState {
     data class Error(val message: String) : AddFoodUiState
 }
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @HiltViewModel
 class AddFoodViewModel @Inject constructor(
     private val intakeRepository: IntakeRepository,
@@ -58,6 +60,7 @@ class AddFoodViewModel @Inject constructor(
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
 
     val foods: StateFlow<List<Food>> = _searchQuery
+        .debounce { query -> if (query.isBlank()) 0L else 150L }
         .flatMapLatest { query ->
             if (query.isBlank()) {
                 foodRepository.getAllFoods()

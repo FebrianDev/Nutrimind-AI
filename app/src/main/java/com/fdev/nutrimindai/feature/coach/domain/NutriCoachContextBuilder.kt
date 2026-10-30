@@ -1,11 +1,11 @@
 package com.fdev.nutrimindai.feature.coach.domain
 
-import com.fdev.nutrimindai.feature.dailyintake.data.local.dao.DailyLogDao
 import com.fdev.nutrimindai.feature.dailyintake.data.local.dao.ExerciseDao
 import com.fdev.nutrimindai.feature.dailyintake.data.local.dao.IntakeDao
 import com.fdev.nutrimindai.feature.dailyintake.data.local.dao.WaterDao
-import com.fdev.nutrimindai.feature.profile.data.local.dao.ProfileDao
-import com.fdev.nutrimindai.feature.progress.data.local.dao.WeightLogDao
+import com.fdev.nutrimindai.feature.dailyintake.domain.repository.DailyLogRepository
+import com.fdev.nutrimindai.feature.profile.domain.repository.ProfileRepository
+import com.fdev.nutrimindai.feature.progress.domain.repository.WeightLogRepository
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -20,23 +20,23 @@ import com.fdev.nutrimindai.feature.dailyintake.domain.model.MealType
  */
 @Singleton
 class NutriCoachContextBuilder @Inject constructor(
-    private val profileDao: ProfileDao,
-    private val dailyLogDao: DailyLogDao,
+    private val profileRepository: ProfileRepository,
+    private val dailyLogRepository: DailyLogRepository,
     private val intakeDao: IntakeDao,
     private val waterDao: WaterDao,
     private val exerciseDao: ExerciseDao,
-    private val weightLogDao: WeightLogDao
+    private val weightLogRepository: WeightLogRepository
 ) {
 
     suspend fun buildSystemPrompt(aiProviderName: String = "AI"): String {
         val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
-        val profile = profileDao.getProfileDirect()
-        val dailyLog = dailyLogDao.getDailyLogByDateDirect(currentDate)
+        val profile = profileRepository.getProfileDirect()
+        val dailyLog = dailyLogRepository.getDailyLogByDateDirect(currentDate)
 
         val intakes = dailyLog?.let { intakeDao.getIntakesForDailyLogDirect(it.id) } ?: emptyList()
         val waters = dailyLog?.let { waterDao.getWaterRecordsForDailyLogDirect(it.id) } ?: emptyList()
         val exercises = dailyLog?.let { exerciseDao.getExercisesForDailyLogDirect(it.id) } ?: emptyList()
-        val latestWeight = weightLogDao.getLatestWeightLogDirect()
+        val latestWeight = weightLogRepository.getLatestWeightLogDirect()
 
         val name = profile?.name ?: "User"
         val goal = profile?.goal?.name ?: "MaintainWeight"
