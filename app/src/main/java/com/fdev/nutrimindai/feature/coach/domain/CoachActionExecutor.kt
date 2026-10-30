@@ -69,7 +69,6 @@ class CoachActionExecutor @Inject constructor(
                     }
                     try {
                         val intake = Intake(
-                            id = 0,
                             dailyLogId = dailyLogId,
                             mealType = action.mealType,
                             foodName = action.foodName,
@@ -100,7 +99,6 @@ class CoachActionExecutor @Inject constructor(
                     try {
                         val currentTime = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
                         val water = Water(
-                            id = 0,
                             dailyLogId = dailyLogId,
                             amountMl = action.amountMl,
                             time = currentTime
@@ -120,7 +118,6 @@ class CoachActionExecutor @Inject constructor(
                     }
                     try {
                         val exercise = Exercise(
-                            id = 0,
                             dailyLogId = dailyLogId,
                             exerciseType = action.exerciseType,
                             durationMinute = action.durationMinute,

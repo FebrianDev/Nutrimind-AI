@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.DailyLogStatus
+import java.util.UUID
 
 @Entity(
     tableName = "daily_log",
@@ -12,8 +13,8 @@ import com.fdev.nutrimindai.feature.dailyintake.domain.model.DailyLogStatus
     ]
 )
 data class DailyLogEntity(
-    @PrimaryKey(autoGenerate = true)
-    val id: Long = 0,
+    @PrimaryKey
+    val id: String = UUID.randomUUID().toString(),
     val date: String, // ISO-8601 format (YYYY-MM-DD)
     val status: DailyLogStatus = DailyLogStatus.DRAFT,
     val createdAt: Long = System.currentTimeMillis(),

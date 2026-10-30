@@ -20,20 +20,20 @@ class WaterRepositoryImpl @Inject constructor(
         return localDataSource.getAllWaterRecords().map { list -> list.map { it.toDomain() } }
     }
 
-    override fun getWaterRecordsForDailyLogs(dailyLogIds: List<Long>): Flow<List<Water>> {
+    override fun getWaterRecordsForDailyLogs(dailyLogIds: List<String>): Flow<List<Water>> {
         if (dailyLogIds.isEmpty()) return flowOf(emptyList())
         return localDataSource.getWaterRecordsForDailyLogs(dailyLogIds).map { list -> list.map { it.toDomain() } }
     }
 
-    override suspend fun getWaterRecordsForDailyLogsDirect(dailyLogIds: List<Long>): List<Water> {
+    override suspend fun getWaterRecordsForDailyLogsDirect(dailyLogIds: List<String>): List<Water> {
         return localDataSource.getWaterRecordsForDailyLogsDirect(dailyLogIds).map { it.toDomain() }
     }
 
-    override fun getWaterRecordsForDailyLog(dailyLogId: Long): Flow<List<Water>> {
+    override fun getWaterRecordsForDailyLog(dailyLogId: String): Flow<List<Water>> {
         return localDataSource.getWaterRecordsForDailyLog(dailyLogId).map { list -> list.map { it.toDomain() } }
     }
 
-    override suspend fun getWaterRecordsForDailyLogDirect(dailyLogId: Long): List<Water> {
+    override suspend fun getWaterRecordsForDailyLogDirect(dailyLogId: String): List<Water> {
         return localDataSource.getWaterRecordsForDailyLogDirect(dailyLogId).map { it.toDomain() }
     }
 
@@ -45,8 +45,8 @@ class WaterRepositoryImpl @Inject constructor(
         val existingEntity = localDataSource.getWaterRecordsForDailyLogDirect(water.dailyLogId)
             .find { it.id == water.id }
         val docIds = buildList {
-            if (water.id > 0L) {
-                add(water.id.toString())
+            if (water.id.isNotBlank()) {
+                add(water.id)
                 if (existingEntity != null && existingEntity.createdAt > 0L) {
                     add("${existingEntity.createdAt}_${water.id}")
                 }

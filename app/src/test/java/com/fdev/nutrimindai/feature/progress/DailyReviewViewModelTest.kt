@@ -58,7 +58,7 @@ class DailyReviewViewModelTest {
     fun `when dailyLog has cached aiSummary in DB, viewmodel uses it directly without calling aiRepository`() = runTest(testDispatcher) {
         val cachedSummary = "Cached AI evaluation from previous completion in Room database."
         val mockDailyLog = DailyLog(
-            id = 1L,
+            id = "log-1",
             date = "2026-08-08",
             status = DailyLogStatus.COMPLETED,
             aiSummary = cachedSummary
@@ -80,12 +80,12 @@ class DailyReviewViewModelTest {
             dailyExerciseMinutes = 30
         )
 
-        `when`(dailyLogRepository.getOrCreateDailyLog("2026-08-08")).thenReturn(1L)
+        `when`(dailyLogRepository.getOrCreateDailyLog("2026-08-08")).thenReturn("log-1")
         `when`(dailyLogRepository.getDailyLogByDate("2026-08-08")).thenReturn(flowOf(mockDailyLog))
         `when`(profileRepository.getProfile()).thenReturn(flowOf(profile))
-        `when`(intakeRepository.getIntakesForDailyLog(1L)).thenReturn(flowOf(emptyList()))
-        `when`(waterRepository.getWaterRecordsForDailyLog(1L)).thenReturn(flowOf(emptyList()))
-        `when`(exerciseRepository.getExercisesForDailyLog(1L)).thenReturn(flowOf(emptyList()))
+        `when`(intakeRepository.getIntakesForDailyLog("log-1")).thenReturn(flowOf(emptyList()))
+        `when`(waterRepository.getWaterRecordsForDailyLog("log-1")).thenReturn(flowOf(emptyList()))
+        `when`(exerciseRepository.getExercisesForDailyLog("log-1")).thenReturn(flowOf(emptyList()))
 
         val viewModel = DailyReviewViewModel(
             savedStateHandle = savedStateHandle,

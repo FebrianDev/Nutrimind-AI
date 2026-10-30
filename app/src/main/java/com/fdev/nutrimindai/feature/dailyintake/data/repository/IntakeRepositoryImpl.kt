@@ -20,20 +20,20 @@ class IntakeRepositoryImpl @Inject constructor(
         return localDataSource.getAllIntakes().map { list -> list.map { it.toDomain() } }
     }
 
-    override fun getIntakesForDailyLogs(dailyLogIds: List<Long>): Flow<List<Intake>> {
+    override fun getIntakesForDailyLogs(dailyLogIds: List<String>): Flow<List<Intake>> {
         if (dailyLogIds.isEmpty()) return flowOf(emptyList())
         return localDataSource.getIntakesForDailyLogs(dailyLogIds).map { list -> list.map { it.toDomain() } }
     }
 
-    override suspend fun getIntakesForDailyLogsDirect(dailyLogIds: List<Long>): List<Intake> {
+    override suspend fun getIntakesForDailyLogsDirect(dailyLogIds: List<String>): List<Intake> {
         return localDataSource.getIntakesForDailyLogsDirect(dailyLogIds).map { it.toDomain() }
     }
 
-    override fun getIntakesForDailyLog(dailyLogId: Long): Flow<List<Intake>> {
+    override fun getIntakesForDailyLog(dailyLogId: String): Flow<List<Intake>> {
         return localDataSource.getIntakesForDailyLog(dailyLogId).map { list -> list.map { it.toDomain() } }
     }
 
-    override suspend fun getIntakesForDailyLogDirect(dailyLogId: Long): List<Intake> {
+    override suspend fun getIntakesForDailyLogDirect(dailyLogId: String): List<Intake> {
         return localDataSource.getIntakesForDailyLogDirect(dailyLogId).map { it.toDomain() }
     }
 
@@ -50,8 +50,8 @@ class IntakeRepositoryImpl @Inject constructor(
             .find { it.id == intake.id }
         val createdAt = existingEntity?.createdAt?.takeIf { it > 0L } ?: intake.createdAt
         val docIds = buildList {
-            if (intake.id > 0L) {
-                add(intake.id.toString())
+            if (intake.id.isNotBlank()) {
+                add(intake.id)
                 if (createdAt > 0L) {
                     add("${createdAt}_${intake.id}")
                 }

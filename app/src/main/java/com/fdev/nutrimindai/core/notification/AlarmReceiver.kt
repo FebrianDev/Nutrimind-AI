@@ -90,7 +90,6 @@ class AlarmReceiver : BroadcastReceiver() {
         val timeStr = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
 
         val water = Water(
-            id = 0,
             dailyLogId = dailyLogId,
             amountMl = amountMl,
             time = timeStr

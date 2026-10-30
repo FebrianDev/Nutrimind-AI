@@ -97,7 +97,7 @@ class BarcodeFoodRepositoryTest {
         whenever(foodRepository.searchFoodsDirect("123456")).thenReturn(
             listOf(
                 Food(
-                    id = 1,
+                    id = "food-1",
                     name = "Local Banana",
                     calories = 105,
                     protein = 1.3,

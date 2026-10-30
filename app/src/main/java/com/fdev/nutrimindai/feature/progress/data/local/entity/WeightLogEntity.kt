@@ -3,6 +3,7 @@ package com.fdev.nutrimindai.feature.progress.data.local.entity
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import java.util.UUID
 
 @Entity(
     tableName = "weight_log_table",
@@ -11,8 +12,8 @@ import androidx.room.PrimaryKey
     ]
 )
 data class WeightLogEntity(
-    @PrimaryKey(autoGenerate = true)
-    val id: Long = 0,
+    @PrimaryKey
+    val id: String = UUID.randomUUID().toString(),
     val date: String,
     val weightKg: Float,
     val note: String? = null,

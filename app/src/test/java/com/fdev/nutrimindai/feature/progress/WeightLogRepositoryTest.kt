@@ -1,5 +1,6 @@
 package com.fdev.nutrimindai.feature.progress
 
+import com.fdev.nutrimindai.core.datastore.PreferenceManager
 import com.fdev.nutrimindai.feature.progress.data.local.dao.WeightLogDao
 import com.fdev.nutrimindai.feature.progress.data.local.entity.WeightLogEntity
 import com.fdev.nutrimindai.feature.progress.data.repository.WeightLogRepositoryImpl
@@ -16,12 +17,13 @@ import org.mockito.Mockito.`when`
 class WeightLogRepositoryTest {
 
     private val weightLogDao = mock(WeightLogDao::class.java)
-    private val repository = WeightLogRepositoryImpl(weightLogDao)
+    private val preferenceManager = mock(PreferenceManager::class.java)
+    private val repository = WeightLogRepositoryImpl(weightLogDao, preferenceManager)
 
     @Test
     fun `getLatestWeightLog returns latest logged weight`() = runTest {
         val sampleLog = WeightLogEntity(
-            id = 1L,
+            id = "weight-1",
             date = "2026-08-08",
             weightKg = 69.5f,
             note = "Morning post-workout"
@@ -38,8 +40,8 @@ class WeightLogRepositoryTest {
     @Test
     fun `getAllWeightLogs returns all logged entries in chronological order`() = runTest {
         val logs = listOf(
-            WeightLogEntity(1L, "2026-08-01", 72.0f, null),
-            WeightLogEntity(2L, "2026-08-08", 70.2f, "Weekly check-in")
+            WeightLogEntity("weight-1", "2026-08-01", 72.0f, null),
+            WeightLogEntity("weight-2", "2026-08-08", 70.2f, "Weekly check-in")
         )
         `when`(weightLogDao.getAllWeightLogs()).thenReturn(flowOf(logs))
 

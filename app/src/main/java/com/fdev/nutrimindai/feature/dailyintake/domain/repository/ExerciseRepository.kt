@@ -5,10 +5,10 @@ import kotlinx.coroutines.flow.Flow
 
 interface ExerciseRepository {
     fun getAllExercises(): Flow<List<Exercise>>
-    fun getExercisesForDailyLogs(dailyLogIds: List<Long>): Flow<List<Exercise>>
-    suspend fun getExercisesForDailyLogsDirect(dailyLogIds: List<Long>): List<Exercise>
-    fun getExercisesForDailyLog(dailyLogId: Long): Flow<List<Exercise>>
-    suspend fun getExercisesForDailyLogDirect(dailyLogId: Long): List<Exercise>
+    fun getExercisesForDailyLogs(dailyLogIds: List<String>): Flow<List<Exercise>>
+    suspend fun getExercisesForDailyLogsDirect(dailyLogIds: List<String>): List<Exercise>
+    fun getExercisesForDailyLog(dailyLogId: String): Flow<List<Exercise>>
+    suspend fun getExercisesForDailyLogDirect(dailyLogId: String): List<Exercise>
     suspend fun addExercise(exercise: Exercise)
     suspend fun deleteExercise(exercise: Exercise)
 }

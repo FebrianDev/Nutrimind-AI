@@ -11,5 +11,5 @@ interface WeightLogRepository {
     fun getLatestWeightLog(): Flow<WeightLogEntity?>
     suspend fun getLatestWeightLogDirect(): WeightLogEntity?
     suspend fun logWeight(date: String, weightKg: Float, note: String? = null)
-    suspend fun deleteWeightLog(id: Long)
+    suspend fun deleteWeightLog(id: String)
 }

@@ -6,6 +6,7 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.FoodSource
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.MealType
+import java.util.UUID
 
 @Entity(
     tableName = "intake",
@@ -22,9 +23,9 @@ import com.fdev.nutrimindai.feature.dailyintake.domain.model.MealType
     ]
 )
 data class IntakeEntity(
-    @PrimaryKey(autoGenerate = true)
-    val id: Long = 0,
-    val dailyLogId: Long,
+    @PrimaryKey
+    val id: String = UUID.randomUUID().toString(),
+    val dailyLogId: String,
     val mealType: MealType,
     val foodName: String,
     val servingSize: Double,

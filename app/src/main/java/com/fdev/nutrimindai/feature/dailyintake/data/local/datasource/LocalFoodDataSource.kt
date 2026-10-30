@@ -10,6 +10,6 @@ interface LocalFoodDataSource {
     suspend fun searchFoodsDirect(query: String): List<FoodEntity>
     suspend fun findFoodByName(name: String): FoodEntity?
     suspend fun insertFoods(foods: List<FoodEntity>)
-    suspend fun insertFood(food: FoodEntity): Long
+    suspend fun insertFood(food: FoodEntity)
     suspend fun getFoodCount(): Int
 }

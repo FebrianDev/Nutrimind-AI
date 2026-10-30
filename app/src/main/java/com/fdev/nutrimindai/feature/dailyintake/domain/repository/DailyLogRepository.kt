@@ -10,10 +10,10 @@ interface DailyLogRepository {
     suspend fun getAllDailyLogsDirect(): List<DailyLog>
     fun getDailyLogsBetweenDates(startDate: String, endDate: String): Flow<List<DailyLog>>
     suspend fun getDailyLogsBetweenDatesDirect(startDate: String, endDate: String): List<DailyLog>
-    suspend fun getOrCreateDailyLog(date: String): Long
+    suspend fun getOrCreateDailyLog(date: String): String
     suspend fun completeDailyLog(date: String, aiSummary: String? = null)
     suspend fun completeToday(aiSummary: String? = null)
-    suspend fun saveAiSummary(dailyLogId: Long, aiSummary: String)
+    suspend fun saveAiSummary(dailyLogId: String, aiSummary: String)
     suspend fun reopenToday()
     suspend fun reopenDailyLog(date: String)
     suspend fun getDailyLogCount(): Int

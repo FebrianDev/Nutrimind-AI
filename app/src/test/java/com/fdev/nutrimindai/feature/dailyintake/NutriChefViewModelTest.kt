@@ -99,11 +99,11 @@ class NutriChefViewModelTest {
 
     @Test
     fun `loadDailyNutritionBudget calculates remaining calories and triggers recipe generation`() = runTest(testDispatcher) {
-        val dailyLog = DailyLog(id = 1L, date = "2026-10-28", status = DailyLogStatus.DRAFT)
+        val dailyLog = DailyLog(id = "log-1", date = "2026-10-28", status = DailyLogStatus.DRAFT)
         val existingIntakes = listOf(
             Intake(
-                id = 1L,
-                dailyLogId = 1L,
+                id = "intake-1",
+                dailyLogId = "log-1",
                 mealType = MealType.BREAKFAST,
                 foodName = "Oatmeal",
                 servingSize = 1.0,
@@ -119,7 +119,8 @@ class NutriChefViewModelTest {
         )
 
         whenever(dailyLogRepository.getDailyLogByDate(any())).thenReturn(flowOf(dailyLog))
-        whenever(intakeRepository.getIntakesForDailyLogDirect(1L)).thenReturn(existingIntakes)
+        whenever(dailyLogRepository.getOrCreateDailyLog(any())).thenReturn("log-1")
+        whenever(intakeRepository.getIntakesForDailyLogDirect("log-1")).thenReturn(existingIntakes)
         whenever(profileRepository.getProfile()).thenReturn(flowOf(sampleProfile))
         whenever(aiRepository.generateSmartRecipes(any(), any(), any(), any(), any(), any()))
             .thenReturn(Result.success(listOf(sampleRecipe)))
@@ -137,8 +138,9 @@ class NutriChefViewModelTest {
 
     @Test
     fun `logRecipeToIntake successfully saves Intake record with FoodSource AI_CHEF`() = runTest(testDispatcher) {
-        val dailyLog = DailyLog(id = 10L, date = "2026-10-28", status = DailyLogStatus.DRAFT)
+        val dailyLog = DailyLog(id = "log-10", date = "2026-10-28", status = DailyLogStatus.DRAFT)
         whenever(dailyLogRepository.getDailyLogByDate(any())).thenReturn(flowOf(dailyLog))
+        whenever(dailyLogRepository.getOrCreateDailyLog(any())).thenReturn("log-10")
         whenever(intakeRepository.getIntakesForDailyLogDirect(any())).thenReturn(emptyList())
         whenever(profileRepository.getProfile()).thenReturn(flowOf(sampleProfile))
         whenever(aiRepository.generateSmartRecipes(any(), any(), any(), any(), any(), any()))

@@ -28,7 +28,7 @@ interface FoodDao {
     suspend fun insertFoods(foods: List<FoodEntity>)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertFood(food: FoodEntity): Long
+    suspend fun insertFood(food: FoodEntity)
 
     @Query("SELECT COUNT(*) FROM food_table")
     suspend fun getFoodCount(): Int
@@ -37,5 +37,5 @@ interface FoodDao {
     suspend fun getUnsyncedFoods(): List<FoodEntity>
 
     @Query("UPDATE food_table SET isSync = 1 WHERE id IN (:ids)")
-    suspend fun markFoodsSynced(ids: List<Long>)
+    suspend fun markFoodsSynced(ids: List<String>)
 }

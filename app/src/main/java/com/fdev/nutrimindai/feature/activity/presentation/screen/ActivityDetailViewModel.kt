@@ -108,7 +108,7 @@ class ActivityDetailViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<ActivityDetailUiState>(ActivityDetailUiState.Loading)
     val uiState: StateFlow<ActivityDetailUiState> = _uiState.asStateFlow()
 
-    private val generatingAiSummaryForLogIds = mutableSetOf<Long>()
+    private val generatingAiSummaryForLogIds = mutableSetOf<String>()
 
     private val displayDateFormatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy", Locale.getDefault())
     private val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.getDefault())
@@ -135,7 +135,7 @@ class ActivityDetailViewModel @Inject constructor(
     }
 
     private fun triggerBackgroundAiSummaryIfNeeded(
-        dailyLogId: Long,
+        dailyLogId: String,
         userGoal: String,
         score: Int,
         totalCalories: Int,
@@ -151,7 +151,7 @@ class ActivityDetailViewModel @Inject constructor(
         exerciseMinutes: Int,
         targetExercise: Int
     ) {
-        if (dailyLogId <= 0L || !generatingAiSummaryForLogIds.add(dailyLogId)) return
+        if (dailyLogId.isBlank() || !generatingAiSummaryForLogIds.add(dailyLogId)) return
 
         viewModelScope.launch {
             val fallback = "Great job completing your daily journal! Your nutritional intake has been successfully logged."

@@ -29,13 +29,13 @@ interface DailyLogDao {
     suspend fun getDailyLogsBetweenDatesDirect(startDate: String, endDate: String): List<DailyLogEntity>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertDailyLog(dailyLog: DailyLogEntity): Long
+    suspend fun insertDailyLog(dailyLog: DailyLogEntity)
 
     @Update
     suspend fun updateDailyLog(dailyLog: DailyLogEntity)
 
     @Query("UPDATE daily_log SET aiSummary = :aiSummary, isSync = 0 WHERE id = :dailyLogId")
-    suspend fun updateAiSummary(dailyLogId: Long, aiSummary: String)
+    suspend fun updateAiSummary(dailyLogId: String, aiSummary: String)
 
     @Query("SELECT COUNT(*) FROM daily_log")
     suspend fun getDailyLogCount(): Int
@@ -47,5 +47,5 @@ interface DailyLogDao {
     suspend fun getUnsyncedDailyLogs(): List<DailyLogEntity>
 
     @Query("UPDATE daily_log SET isSync = 1 WHERE id IN (:ids)")
-    suspend fun markDailyLogsSynced(ids: List<Long>)
+    suspend fun markDailyLogsSynced(ids: List<String>)
 }

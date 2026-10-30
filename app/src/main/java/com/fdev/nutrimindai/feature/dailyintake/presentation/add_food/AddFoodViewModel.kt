@@ -159,7 +159,6 @@ class AddFoodViewModel @Inject constructor(
 
                 val dailyLogId = dailyLogRepository.getOrCreateDailyLog(currentDate)
                 val intake = Intake(
-                    id = 0,
                     dailyLogId = dailyLogId,
                     mealType = mealType,
                     foodName = nameTrimmed,
@@ -181,7 +180,6 @@ class AddFoodViewModel @Inject constructor(
                 if (foodSource == FoodSource.MANUAL) {
                     foodRepository.insertFood(
                         Food(
-                            id = 0,
                             name = nameTrimmed,
                             calories = calories,
                             protein = protein,

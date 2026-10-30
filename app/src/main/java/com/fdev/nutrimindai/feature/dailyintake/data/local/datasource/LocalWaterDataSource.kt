@@ -11,19 +11,19 @@ class LocalWaterDataSource @Inject constructor(
     fun getAllWaterRecords(): Flow<List<WaterEntity>> =
         dao.getAllWaterRecords()
 
-    fun getWaterRecordsForDailyLogs(dailyLogIds: List<Long>): Flow<List<WaterEntity>> =
+    fun getWaterRecordsForDailyLogs(dailyLogIds: List<String>): Flow<List<WaterEntity>> =
         dao.getWaterRecordsForDailyLogs(dailyLogIds)
 
-    suspend fun getWaterRecordsForDailyLogsDirect(dailyLogIds: List<Long>): List<WaterEntity> =
+    suspend fun getWaterRecordsForDailyLogsDirect(dailyLogIds: List<String>): List<WaterEntity> =
         if (dailyLogIds.isEmpty()) emptyList() else dao.getWaterRecordsForDailyLogsDirect(dailyLogIds)
 
-    fun getWaterRecordsForDailyLog(dailyLogId: Long): Flow<List<WaterEntity>> =
+    fun getWaterRecordsForDailyLog(dailyLogId: String): Flow<List<WaterEntity>> =
         dao.getWaterRecordsForDailyLog(dailyLogId)
 
-    suspend fun getWaterRecordsForDailyLogDirect(dailyLogId: Long): List<WaterEntity> =
+    suspend fun getWaterRecordsForDailyLogDirect(dailyLogId: String): List<WaterEntity> =
         dao.getWaterRecordsForDailyLogDirect(dailyLogId)
 
-    fun getTotalWater(dailyLogId: Long): Flow<Int> =
+    fun getTotalWater(dailyLogId: String): Flow<Int> =
         dao.getTotalWater(dailyLogId)
 
     suspend fun insertWater(water: WaterEntity) =
@@ -32,6 +32,6 @@ class LocalWaterDataSource @Inject constructor(
     suspend fun deleteWater(water: WaterEntity) =
         dao.deleteWater(water)
 
-    suspend fun getWaterCount(dailyLogId: Long): Int =
+    suspend fun getWaterCount(dailyLogId: String): Int =
         dao.getWaterCount(dailyLogId)
 }

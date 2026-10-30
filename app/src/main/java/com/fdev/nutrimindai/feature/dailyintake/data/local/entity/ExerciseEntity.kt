@@ -4,6 +4,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import java.util.UUID
 
 @Entity(
     tableName = "exercise",
@@ -20,9 +21,9 @@ import androidx.room.PrimaryKey
     ]
 )
 data class ExerciseEntity(
-    @PrimaryKey(autoGenerate = true)
-    val id: Long = 0,
-    val dailyLogId: Long,
+    @PrimaryKey
+    val id: String = UUID.randomUUID().toString(),
+    val dailyLogId: String,
     val exerciseType: String,
     val durationMinute: Int,
     val caloriesBurned: Int,

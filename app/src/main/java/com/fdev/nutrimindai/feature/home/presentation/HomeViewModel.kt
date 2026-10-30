@@ -83,14 +83,14 @@ class HomeViewModel @Inject constructor(
                 val metrics = healthConnectManager.readTodayMetrics()
                 val currentDailyLogId = (uiState.value as? HomeUiState.Success)?.summary?.dailyLogId
                     ?: dailyLogRepository.getOrCreateDailyLog(currentDate)
-                if (currentDailyLogId > 0L) {
+                if (currentDailyLogId.isNotBlank()) {
                     val existing = exerciseRepository.getExercisesForDailyLogDirect(currentDailyLogId)
                         .find { it.exerciseType == com.fdev.nutrimindai.core.health.HealthConnectManager.HEALTH_CONNECT_EXERCISE_TYPE }
 
                     if (metrics.activeCalories > 0 || metrics.steps > 0) {
                         exerciseRepository.addExercise(
                             Exercise(
-                                id = existing?.id ?: 0,
+                                id = existing?.id ?: java.util.UUID.randomUUID().toString(),
                                 dailyLogId = currentDailyLogId,
                                 exerciseType = com.fdev.nutrimindai.core.health.HealthConnectManager.HEALTH_CONNECT_EXERCISE_TYPE,
                                 durationMinute = (metrics.steps / 100).toInt().coerceAtLeast(1),

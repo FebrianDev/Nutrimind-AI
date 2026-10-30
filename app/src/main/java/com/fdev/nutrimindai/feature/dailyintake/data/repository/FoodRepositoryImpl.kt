@@ -45,12 +45,16 @@ class FoodRepositoryImpl @Inject constructor(
         localDataSource.insertFoods(nonDuplicateEntities)
     }
 
-    override suspend fun insertFood(food: Food): Long {
+    override suspend fun insertFood(food: Food): String {
         val existing = localDataSource.findFoodByName(food.name)
         return if (existing != null) {
-            localDataSource.insertFood(food.toEntity().copy(id = existing.id))
+            val entity = food.toEntity().copy(id = existing.id)
+            localDataSource.insertFood(entity)
+            existing.id
         } else {
-            localDataSource.insertFood(food.toEntity())
+            val entity = food.toEntity()
+            localDataSource.insertFood(entity)
+            entity.id
         }
     }
 

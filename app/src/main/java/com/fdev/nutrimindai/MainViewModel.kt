@@ -76,7 +76,12 @@ class MainViewModel @Inject constructor(
                     }
                 }
 
-                var profile = profileRepository.getProfileDirect()
+                var profile = try {
+                    profileRepository.getProfileDirect()
+                } catch (e: Exception) {
+                    Timber.e(e, "Failed to read local profile on start")
+                    null
+                }
                 if (profile == null) {
                     try {
                         firestoreSyncRepository.downloadAndRestoreUserData()

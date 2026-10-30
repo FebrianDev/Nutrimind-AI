@@ -59,7 +59,7 @@ class NutriChefViewModel @Inject constructor(
     private val _events = MutableSharedFlow<NutriChefEvent>()
     val events: SharedFlow<NutriChefEvent> = _events.asSharedFlow()
 
-    private var currentDailyLogId: Long = 0L
+    private var currentDailyLogId: String = ""
 
     init {
         loadDailyNutritionBudget()
@@ -71,7 +71,7 @@ class NutriChefViewModel @Inject constructor(
             val dailyLogId = dailyLogRepository.getOrCreateDailyLog(todayStr)
             currentDailyLogId = dailyLogId
 
-            val intakes = if (dailyLogId > 0L) {
+            val intakes = if (dailyLogId.isNotBlank()) {
                 intakeRepository.getIntakesForDailyLogDirect(dailyLogId)
             } else {
                 emptyList()
@@ -162,12 +162,11 @@ class NutriChefViewModel @Inject constructor(
                     return@launch
                 }
 
-                if (currentDailyLogId <= 0L) {
+                if (currentDailyLogId.isBlank()) {
                     currentDailyLogId = dailyLogRepository.getOrCreateDailyLog(todayStr)
                 }
 
                 val intake = Intake(
-                    id = 0L,
                     dailyLogId = currentDailyLogId,
                     mealType = recipe.mealType,
                     foodName = recipe.title,

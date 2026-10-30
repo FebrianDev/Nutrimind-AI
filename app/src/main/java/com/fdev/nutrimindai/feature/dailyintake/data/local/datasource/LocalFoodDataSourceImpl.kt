@@ -33,8 +33,8 @@ class LocalFoodDataSourceImpl @Inject constructor(
         foodDao.insertFoods(foods)
     }
 
-    override suspend fun insertFood(food: FoodEntity): Long {
-        return foodDao.insertFood(food)
+    override suspend fun insertFood(food: FoodEntity) {
+        foodDao.insertFood(food)
     }
 
     override suspend fun getFoodCount(): Int {

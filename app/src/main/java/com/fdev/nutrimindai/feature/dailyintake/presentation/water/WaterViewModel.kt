@@ -113,7 +113,6 @@ class WaterViewModel @Inject constructor(
                 val dailyLogId = dailyLogRepository.getOrCreateDailyLog(currentDate)
                 val timeString = LocalTime.now().format(timeFormatter)
                 val water = Water(
-                    id = 0,
                     dailyLogId = dailyLogId,
                     amountMl = amountMl,
                     time = timeString

@@ -17,11 +17,11 @@ interface ChatMessageDao {
     suspend fun getRecentMessagesDesc(limit: Int): List<ChatMessageEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertMessage(message: ChatMessageEntity): Long
+    suspend fun insertMessage(message: ChatMessageEntity)
 
     @Query("DELETE FROM chat_message_table")
     suspend fun clearAllMessages()
 
     @Query("DELETE FROM chat_message_table WHERE id = :id")
-    suspend fun deleteMessage(id: Long)
+    suspend fun deleteMessage(id: String)
 }

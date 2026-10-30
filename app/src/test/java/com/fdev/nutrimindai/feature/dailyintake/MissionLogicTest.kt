@@ -25,12 +25,12 @@ class MissionLogicTest {
 
         val summary = TodaySummary(
             date = "2026-08-08",
-            dailyLogId = 1L,
+            dailyLogId = "log-1",
             userGoal = Goal.LoseWeight,
             breakfastList = listOf(
                 Intake(
-                    id = 1L,
-                    dailyLogId = 1L,
+                    id = "intake-1",
+                    dailyLogId = "log-1",
                     mealType = MealType.BREAKFAST,
                     foodName = "Spinach Egg Salad",
                     servingSize = 1.0,
@@ -69,16 +69,16 @@ class MissionLogicTest {
 
         val summary = TodaySummary(
             date = "2026-08-08",
-            dailyLogId = 1L,
+            dailyLogId = "log-1",
             userGoal = Goal.GainWeight,
             breakfastList = listOf(
-                Intake(1, 1, MealType.BREAKFAST, "Oatmeal", 1.0, "bowl", 600, 30.0, 80.0, 15.0, 6.0, null, FoodSource.SEARCH)
+                Intake("intake-1", "log-1", MealType.BREAKFAST, "Oatmeal", 1.0, "bowl", 600, 30.0, 80.0, 15.0, 6.0, null, FoodSource.SEARCH)
             ),
             lunchList = listOf(
-                Intake(2, 1, MealType.LUNCH, "Chicken Rice", 1.0, "plate", 1000, 60.0, 110.0, 20.0, 3.0, null, FoodSource.SEARCH)
+                Intake("intake-2", "log-1", MealType.LUNCH, "Chicken Rice", 1.0, "plate", 1000, 60.0, 110.0, 20.0, 3.0, null, FoodSource.SEARCH)
             ),
             dinnerList = listOf(
-                Intake(3, 1, MealType.DINNER, "Beef Steak", 1.0, "plate", 1000, 60.0, 40.0, 35.0, 2.0, null, FoodSource.SEARCH)
+                Intake("intake-3", "log-1", MealType.DINNER, "Beef Steak", 1.0, "plate", 1000, 60.0, 40.0, 35.0, 2.0, null, FoodSource.SEARCH)
             )
         )
 

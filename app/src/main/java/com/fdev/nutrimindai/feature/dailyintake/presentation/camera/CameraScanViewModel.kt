@@ -195,7 +195,6 @@ class CameraScanViewModel @Inject constructor(
 
                 val dailyLogId = dailyLogRepository.getOrCreateDailyLog(currentDate)
                 val intake = Intake(
-                    id = 0,
                     dailyLogId = dailyLogId,
                     mealType = mealType,
                     foodName = nameTrimmed,
@@ -216,7 +215,6 @@ class CameraScanViewModel @Inject constructor(
                 // Also save AI-recognized food into the local food catalog for future searchability
                 foodRepository.insertFood(
                     Food(
-                        id = 0,
                         name = nameTrimmed,
                         calories = calories,
                         protein = protein,

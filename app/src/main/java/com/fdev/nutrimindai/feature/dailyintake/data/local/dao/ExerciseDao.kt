@@ -14,19 +14,19 @@ interface ExerciseDao {
     fun getAllExercises(): Flow<List<ExerciseEntity>>
 
     @Query("SELECT * FROM exercise WHERE dailyLogId IN (:dailyLogIds) ORDER BY createdAt DESC")
-    fun getExercisesForDailyLogs(dailyLogIds: List<Long>): Flow<List<ExerciseEntity>>
+    fun getExercisesForDailyLogs(dailyLogIds: List<String>): Flow<List<ExerciseEntity>>
 
     @Query("SELECT * FROM exercise WHERE dailyLogId IN (:dailyLogIds) ORDER BY createdAt DESC")
-    suspend fun getExercisesForDailyLogsDirect(dailyLogIds: List<Long>): List<ExerciseEntity>
+    suspend fun getExercisesForDailyLogsDirect(dailyLogIds: List<String>): List<ExerciseEntity>
 
     @Query("SELECT * FROM exercise WHERE dailyLogId = :dailyLogId ORDER BY createdAt DESC")
-    fun getExercisesForDailyLog(dailyLogId: Long): Flow<List<ExerciseEntity>>
+    fun getExercisesForDailyLog(dailyLogId: String): Flow<List<ExerciseEntity>>
 
     @Query("SELECT * FROM exercise WHERE dailyLogId = :dailyLogId ORDER BY createdAt DESC")
-    suspend fun getExercisesForDailyLogDirect(dailyLogId: Long): List<ExerciseEntity>
+    suspend fun getExercisesForDailyLogDirect(dailyLogId: String): List<ExerciseEntity>
 
     @Query("SELECT COALESCE(SUM(caloriesBurned), 0) FROM exercise WHERE dailyLogId = :dailyLogId")
-    fun getTotalCaloriesBurned(dailyLogId: Long): Flow<Int>
+    fun getTotalCaloriesBurned(dailyLogId: String): Flow<Int>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertExercise(exercise: ExerciseEntity)
@@ -38,11 +38,11 @@ interface ExerciseDao {
     suspend fun deleteExercise(exercise: ExerciseEntity)
 
     @Query("SELECT COUNT(*) FROM exercise WHERE dailyLogId = :dailyLogId")
-    suspend fun getExerciseCount(dailyLogId: Long): Int
+    suspend fun getExerciseCount(dailyLogId: String): Int
 
     @Query("SELECT * FROM exercise WHERE isSync = 0")
     suspend fun getUnsyncedExercises(): List<ExerciseEntity>
 
     @Query("UPDATE exercise SET isSync = 1 WHERE id IN (:ids)")
-    suspend fun markExercisesSynced(ids: List<Long>)
+    suspend fun markExercisesSynced(ids: List<String>)
 }

@@ -15,19 +15,19 @@ interface IntakeDao {
     fun getAllIntakes(): Flow<List<IntakeEntity>>
 
     @Query("SELECT * FROM intake WHERE dailyLogId IN (:dailyLogIds) ORDER BY createdAt DESC")
-    fun getIntakesForDailyLogs(dailyLogIds: List<Long>): Flow<List<IntakeEntity>>
+    fun getIntakesForDailyLogs(dailyLogIds: List<String>): Flow<List<IntakeEntity>>
 
     @Query("SELECT * FROM intake WHERE dailyLogId IN (:dailyLogIds) ORDER BY createdAt DESC")
-    suspend fun getIntakesForDailyLogsDirect(dailyLogIds: List<Long>): List<IntakeEntity>
+    suspend fun getIntakesForDailyLogsDirect(dailyLogIds: List<String>): List<IntakeEntity>
 
     @Query("SELECT * FROM intake WHERE dailyLogId = :dailyLogId ORDER BY createdAt DESC")
-    fun getIntakesForDailyLog(dailyLogId: Long): Flow<List<IntakeEntity>>
+    fun getIntakesForDailyLog(dailyLogId: String): Flow<List<IntakeEntity>>
 
     @Query("SELECT * FROM intake WHERE dailyLogId = :dailyLogId ORDER BY createdAt DESC")
-    suspend fun getIntakesForDailyLogDirect(dailyLogId: Long): List<IntakeEntity>
+    suspend fun getIntakesForDailyLogDirect(dailyLogId: String): List<IntakeEntity>
 
     @Query("SELECT * FROM intake WHERE dailyLogId = :dailyLogId AND mealType = :mealType ORDER BY createdAt DESC")
-    fun getIntakesByMealType(dailyLogId: Long, mealType: String): Flow<List<IntakeEntity>>
+    fun getIntakesByMealType(dailyLogId: String, mealType: String): Flow<List<IntakeEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertIntake(intake: IntakeEntity)
@@ -42,11 +42,11 @@ interface IntakeDao {
     suspend fun deleteIntake(intake: IntakeEntity)
 
     @Query("SELECT COUNT(*) FROM intake WHERE dailyLogId = :dailyLogId")
-    suspend fun getIntakeCount(dailyLogId: Long): Int
+    suspend fun getIntakeCount(dailyLogId: String): Int
 
     @Query("SELECT * FROM intake WHERE isSync = 0")
     suspend fun getUnsyncedIntakes(): List<IntakeEntity>
 
     @Query("UPDATE intake SET isSync = 1 WHERE id IN (:ids)")
-    suspend fun markIntakesSynced(ids: List<Long>)
+    suspend fun markIntakesSynced(ids: List<String>)
 }

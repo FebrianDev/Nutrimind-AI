@@ -41,7 +41,7 @@ class WeightLogRepositoryImpl @Inject constructor(
     override suspend fun logWeight(date: String, weightKg: Float, note: String?) {
         val existing = weightLogDao.getWeightLogByDateDirect(date)
         val entity = WeightLogEntity(
-            id = existing?.id ?: 0,
+            id = existing?.id ?: java.util.UUID.randomUUID().toString(),
             date = date,
             weightKg = weightKg,
             note = note?.trim()?.ifBlank { null } ?: existing?.note,
@@ -51,10 +51,10 @@ class WeightLogRepositoryImpl @Inject constructor(
         weightLogDao.insertWeightLog(entity)
     }
 
-    override suspend fun deleteWeightLog(id: Long) {
+    override suspend fun deleteWeightLog(id: String) {
         val existing = weightLogDao.getAllWeightLogsDirect().find { it.id == id }
         val docIds = buildList {
-            if (id > 0L) add(id.toString())
+            if (id.isNotBlank()) add(id)
             if (existing != null && existing.date.isNotBlank()) {
                 add(existing.date)
                 add("${existing.date}_${existing.timestamp}_$id")

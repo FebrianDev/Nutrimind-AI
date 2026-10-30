@@ -20,20 +20,20 @@ class ExerciseRepositoryImpl @Inject constructor(
         return localDataSource.getAllExercises().map { list -> list.map { it.toDomain() } }
     }
 
-    override fun getExercisesForDailyLogs(dailyLogIds: List<Long>): Flow<List<Exercise>> {
+    override fun getExercisesForDailyLogs(dailyLogIds: List<String>): Flow<List<Exercise>> {
         if (dailyLogIds.isEmpty()) return flowOf(emptyList())
         return localDataSource.getExercisesForDailyLogs(dailyLogIds).map { list -> list.map { it.toDomain() } }
     }
 
-    override suspend fun getExercisesForDailyLogsDirect(dailyLogIds: List<Long>): List<Exercise> {
+    override suspend fun getExercisesForDailyLogsDirect(dailyLogIds: List<String>): List<Exercise> {
         return localDataSource.getExercisesForDailyLogsDirect(dailyLogIds).map { it.toDomain() }
     }
 
-    override fun getExercisesForDailyLog(dailyLogId: Long): Flow<List<Exercise>> {
+    override fun getExercisesForDailyLog(dailyLogId: String): Flow<List<Exercise>> {
         return localDataSource.getExercisesForDailyLog(dailyLogId).map { list -> list.map { it.toDomain() } }
     }
 
-    override suspend fun getExercisesForDailyLogDirect(dailyLogId: Long): List<Exercise> {
+    override suspend fun getExercisesForDailyLogDirect(dailyLogId: String): List<Exercise> {
         return localDataSource.getExercisesForDailyLogDirect(dailyLogId).map { it.toDomain() }
     }
 
@@ -46,8 +46,8 @@ class ExerciseRepositoryImpl @Inject constructor(
             .find { it.id == exercise.id }
         val createdAt = existingEntity?.createdAt?.takeIf { it > 0L } ?: exercise.createdAt
         val docIds = buildList {
-            if (exercise.id > 0L) {
-                add(exercise.id.toString())
+            if (exercise.id.isNotBlank()) {
+                add(exercise.id)
                 if (createdAt > 0L) {
                     add("${createdAt}_${exercise.id}")
                 }

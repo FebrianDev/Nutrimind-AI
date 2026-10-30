@@ -11,19 +11,19 @@ class LocalIntakeDataSource @Inject constructor(
     fun getAllIntakes(): Flow<List<IntakeEntity>> =
         dao.getAllIntakes()
 
-    fun getIntakesForDailyLogs(dailyLogIds: List<Long>): Flow<List<IntakeEntity>> =
+    fun getIntakesForDailyLogs(dailyLogIds: List<String>): Flow<List<IntakeEntity>> =
         dao.getIntakesForDailyLogs(dailyLogIds)
 
-    suspend fun getIntakesForDailyLogsDirect(dailyLogIds: List<Long>): List<IntakeEntity> =
+    suspend fun getIntakesForDailyLogsDirect(dailyLogIds: List<String>): List<IntakeEntity> =
         if (dailyLogIds.isEmpty()) emptyList() else dao.getIntakesForDailyLogsDirect(dailyLogIds)
 
-    fun getIntakesForDailyLog(dailyLogId: Long): Flow<List<IntakeEntity>> =
+    fun getIntakesForDailyLog(dailyLogId: String): Flow<List<IntakeEntity>> =
         dao.getIntakesForDailyLog(dailyLogId)
 
-    suspend fun getIntakesForDailyLogDirect(dailyLogId: Long): List<IntakeEntity> =
+    suspend fun getIntakesForDailyLogDirect(dailyLogId: String): List<IntakeEntity> =
         dao.getIntakesForDailyLogDirect(dailyLogId)
 
-    fun getIntakesByMealType(dailyLogId: Long, mealType: String): Flow<List<IntakeEntity>> =
+    fun getIntakesByMealType(dailyLogId: String, mealType: String): Flow<List<IntakeEntity>> =
         dao.getIntakesByMealType(dailyLogId, mealType)
 
     suspend fun insertIntake(intake: IntakeEntity) =
@@ -35,6 +35,6 @@ class LocalIntakeDataSource @Inject constructor(
     suspend fun deleteIntake(intake: IntakeEntity) =
         dao.deleteIntake(intake)
 
-    suspend fun getIntakeCount(dailyLogId: Long): Int =
+    suspend fun getIntakeCount(dailyLogId: String): Int =
         dao.getIntakeCount(dailyLogId)
 }

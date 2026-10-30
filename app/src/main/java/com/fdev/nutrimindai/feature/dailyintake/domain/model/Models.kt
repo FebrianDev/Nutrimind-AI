@@ -1,8 +1,9 @@
 package com.fdev.nutrimindai.feature.dailyintake.domain.model
 import com.fdev.nutrimindai.core.model.Goal
+import java.util.UUID
 
 data class DailyLog(
-    val id: Long,
+    val id: String = UUID.randomUUID().toString(),
     val date: String,
     val status: DailyLogStatus,
     val createdAt: Long = 0L,
@@ -11,8 +12,8 @@ data class DailyLog(
 )
 
 data class Intake(
-    val id: Long,
-    val dailyLogId: Long,
+    val id: String = UUID.randomUUID().toString(),
+    val dailyLogId: String,
     val mealType: MealType,
     val foodName: String,
     val servingSize: Double,
@@ -28,15 +29,15 @@ data class Intake(
 )
 
 data class Water(
-    val id: Long,
-    val dailyLogId: Long,
+    val id: String = UUID.randomUUID().toString(),
+    val dailyLogId: String,
     val amountMl: Int,
     val time: String // Formatted time
 )
 
 data class Exercise(
-    val id: Long,
-    val dailyLogId: Long,
+    val id: String = UUID.randomUUID().toString(),
+    val dailyLogId: String,
     val exerciseType: String,
     val durationMinute: Int,
     val caloriesBurned: Int,
@@ -79,7 +80,7 @@ data class DailyMissionItem(
 
 data class TodaySummary(
     val date: String,
-    val dailyLogId: Long?,
+    val dailyLogId: String?,
     val userName: String = "User",
     val userPhotoUrl: String? = null,
     val userGoal: Goal = Goal.MaintainWeight,

@@ -29,17 +29,17 @@ interface WeightLogDao {
     suspend fun getLatestWeightLogDirect(): WeightLogEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertWeightLog(log: WeightLogEntity): Long
+    suspend fun insertWeightLog(log: WeightLogEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertWeightLogs(logs: List<WeightLogEntity>)
 
     @Query("DELETE FROM weight_log_table WHERE id = :id")
-    suspend fun deleteWeightLog(id: Long)
+    suspend fun deleteWeightLog(id: String)
 
     @Query("SELECT * FROM weight_log_table WHERE isSync = 0")
     suspend fun getUnsyncedWeightLogs(): List<WeightLogEntity>
 
     @Query("UPDATE weight_log_table SET isSync = 1 WHERE id IN (:ids)")
-    suspend fun markWeightLogsSynced(ids: List<Long>)
+    suspend fun markWeightLogsSynced(ids: List<String>)
 }

@@ -50,47 +50,59 @@ class ContextualQuickPromptGeneratorTest {
         override suspend fun getAllDailyLogsDirect(): List<DailyLogEntity> = emptyList()
         override fun getDailyLogsBetweenDates(startDate: String, endDate: String): Flow<List<DailyLogEntity>> = flowOf(emptyList())
         override suspend fun getDailyLogsBetweenDatesDirect(startDate: String, endDate: String): List<DailyLogEntity> = emptyList()
-        override suspend fun insertDailyLog(dailyLog: DailyLogEntity): Long = 1L
+        override suspend fun insertDailyLog(dailyLog: DailyLogEntity) {}
         override suspend fun updateDailyLog(dailyLog: DailyLogEntity) {}
-        override suspend fun updateAiSummary(dailyLogId: Long, aiSummary: String) {}
+        override suspend fun updateAiSummary(dailyLogId: String, aiSummary: String) {}
         override suspend fun getDailyLogCount(): Int = 0
         override suspend fun getPastDraftLogs(currentDate: String): List<DailyLogEntity> = emptyList()
         override suspend fun getUnsyncedDailyLogs(): List<DailyLogEntity> = emptyList()
-        override suspend fun markDailyLogsSynced(ids: List<Long>) {}
+        override suspend fun markDailyLogsSynced(ids: List<String>) {}
     }
 
     private val fakeIntakeDao = object : IntakeDao {
-        override fun getIntakesForDailyLog(dailyLogId: Long): Flow<List<IntakeEntity>> = flowOf(intakesResult)
-        override suspend fun getIntakesForDailyLogDirect(dailyLogId: Long): List<IntakeEntity> = intakesResult
-        override fun getIntakesByMealType(dailyLogId: Long, mealType: String): Flow<List<IntakeEntity>> = flowOf(emptyList())
+        override fun getAllIntakes(): Flow<List<IntakeEntity>> = flowOf(intakesResult)
+        override fun getIntakesForDailyLogs(dailyLogIds: List<String>): Flow<List<IntakeEntity>> = flowOf(intakesResult)
+        override suspend fun getIntakesForDailyLogsDirect(dailyLogIds: List<String>): List<IntakeEntity> = intakesResult
+        override fun getIntakesForDailyLog(dailyLogId: String): Flow<List<IntakeEntity>> = flowOf(intakesResult)
+        override suspend fun getIntakesForDailyLogDirect(dailyLogId: String): List<IntakeEntity> = intakesResult
+        override fun getIntakesByMealType(dailyLogId: String, mealType: String): Flow<List<IntakeEntity>> = flowOf(emptyList())
         override suspend fun insertIntake(intake: IntakeEntity) {}
+        override suspend fun insertIntakes(intakes: List<IntakeEntity>) {}
         override suspend fun updateIntake(intake: IntakeEntity) {}
         override suspend fun deleteIntake(intake: IntakeEntity) {}
-        override suspend fun getIntakeCount(dailyLogId: Long): Int = 0
+        override suspend fun getIntakeCount(dailyLogId: String): Int = 0
         override suspend fun getUnsyncedIntakes(): List<IntakeEntity> = emptyList()
-        override suspend fun markIntakesSynced(ids: List<Long>) {}
+        override suspend fun markIntakesSynced(ids: List<String>) {}
     }
 
     private val fakeWaterDao = object : WaterDao {
-        override fun getWaterRecordsForDailyLog(dailyLogId: Long): Flow<List<WaterEntity>> = flowOf(watersResult)
-        override suspend fun getWaterRecordsForDailyLogDirect(dailyLogId: Long): List<WaterEntity> = watersResult
-        override fun getTotalWater(dailyLogId: Long): Flow<Int> = flowOf(0)
+        override fun getAllWaterRecords(): Flow<List<WaterEntity>> = flowOf(watersResult)
+        override fun getWaterRecordsForDailyLogs(dailyLogIds: List<String>): Flow<List<WaterEntity>> = flowOf(watersResult)
+        override suspend fun getWaterRecordsForDailyLogsDirect(dailyLogIds: List<String>): List<WaterEntity> = watersResult
+        override fun getWaterRecordsForDailyLog(dailyLogId: String): Flow<List<WaterEntity>> = flowOf(watersResult)
+        override suspend fun getWaterRecordsForDailyLogDirect(dailyLogId: String): List<WaterEntity> = watersResult
+        override fun getTotalWater(dailyLogId: String): Flow<Int> = flowOf(0)
         override suspend fun insertWater(water: WaterEntity) {}
+        override suspend fun insertWaterRecords(waters: List<WaterEntity>) {}
         override suspend fun deleteWater(water: WaterEntity) {}
-        override suspend fun getWaterCount(dailyLogId: Long): Int = 0
+        override suspend fun getWaterCount(dailyLogId: String): Int = 0
         override suspend fun getUnsyncedWater(): List<WaterEntity> = emptyList()
-        override suspend fun markWaterSynced(ids: List<Long>) {}
+        override suspend fun markWaterSynced(ids: List<String>) {}
     }
 
     private val fakeExerciseDao = object : ExerciseDao {
-        override fun getExercisesForDailyLog(dailyLogId: Long): Flow<List<ExerciseEntity>> = flowOf(exercisesResult)
-        override suspend fun getExercisesForDailyLogDirect(dailyLogId: Long): List<ExerciseEntity> = exercisesResult
-        override fun getTotalCaloriesBurned(dailyLogId: Long): Flow<Int> = flowOf(0)
+        override fun getAllExercises(): Flow<List<ExerciseEntity>> = flowOf(exercisesResult)
+        override fun getExercisesForDailyLogs(dailyLogIds: List<String>): Flow<List<ExerciseEntity>> = flowOf(exercisesResult)
+        override suspend fun getExercisesForDailyLogsDirect(dailyLogIds: List<String>): List<ExerciseEntity> = exercisesResult
+        override fun getExercisesForDailyLog(dailyLogId: String): Flow<List<ExerciseEntity>> = flowOf(exercisesResult)
+        override suspend fun getExercisesForDailyLogDirect(dailyLogId: String): List<ExerciseEntity> = exercisesResult
+        override fun getTotalCaloriesBurned(dailyLogId: String): Flow<Int> = flowOf(0)
         override suspend fun insertExercise(exercise: ExerciseEntity) {}
+        override suspend fun insertExercises(exercises: List<ExerciseEntity>) {}
         override suspend fun deleteExercise(exercise: ExerciseEntity) {}
-        override suspend fun getExerciseCount(dailyLogId: Long): Int = 0
+        override suspend fun getExerciseCount(dailyLogId: String): Int = 0
         override suspend fun getUnsyncedExercises(): List<ExerciseEntity> = emptyList()
-        override suspend fun markExercisesSynced(ids: List<Long>) {}
+        override suspend fun markExercisesSynced(ids: List<String>) {}
     }
 
     private lateinit var generator: ContextualQuickPromptGenerator
@@ -113,7 +125,7 @@ class ContextualQuickPromptGeneratorTest {
     )
 
     private val sampleLog = DailyLogEntity(
-        id = 101,
+        id = "log-101",
         date = "2026-10-27",
         status = DailyLogStatus.DRAFT
     )
@@ -176,8 +188,8 @@ class ContextualQuickPromptGeneratorTest {
     fun `low remaining calories triggers contextual light snack prompt`() = runBlocking {
         intakesResult = listOf(
             IntakeEntity(
-                id = 1,
-                dailyLogId = 101,
+                id = "intake-1",
+                dailyLogId = "log-101",
                 mealType = MealType.LUNCH,
                 foodName = "Chicken Rice",
                 servingSize = 1.0,
@@ -202,7 +214,7 @@ class ContextualQuickPromptGeneratorTest {
     @Test
     fun `low water in afternoon triggers hydration boost prompt`() = runBlocking {
         watersResult = listOf(
-            WaterEntity(id = 1, dailyLogId = 101, amountMl = 500)
+            WaterEntity(id = "water-1", dailyLogId = "log-101", amountMl = 500)
         )
 
         val prompts = generator.getContextualPrompts(overrideHour = 15)

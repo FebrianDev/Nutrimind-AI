@@ -26,13 +26,13 @@ class LocalDailyLogDataSource @Inject constructor(
     suspend fun getDailyLogsBetweenDatesDirect(startDate: String, endDate: String): List<DailyLogEntity> =
         dao.getDailyLogsBetweenDatesDirect(startDate, endDate)
 
-    suspend fun insertDailyLog(dailyLog: DailyLogEntity): Long =
+    suspend fun insertDailyLog(dailyLog: DailyLogEntity) =
         dao.insertDailyLog(dailyLog)
 
     suspend fun updateDailyLog(dailyLog: DailyLogEntity) =
         dao.updateDailyLog(dailyLog)
 
-    suspend fun updateAiSummary(dailyLogId: Long, aiSummary: String) =
+    suspend fun updateAiSummary(dailyLogId: String, aiSummary: String) =
         dao.updateAiSummary(dailyLogId, aiSummary)
 
     suspend fun getDailyLogCount(): Int =

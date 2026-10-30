@@ -10,6 +10,6 @@ interface FoodRepository {
     suspend fun searchFoodsDirect(query: String): List<Food>
     suspend fun findFoodByName(name: String): Food?
     suspend fun insertFoods(foods: List<Food>)
-    suspend fun insertFood(food: Food): Long
+    suspend fun insertFood(food: Food): String
     suspend fun getFoodCount(): Int
 }

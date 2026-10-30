@@ -82,7 +82,7 @@ class ExerciseViewModel @Inject constructor(
                 if (metrics.activeCalories > 0 || metrics.steps > 0) {
                     exerciseRepository.addExercise(
                         Exercise(
-                            id = existing?.id ?: 0,
+                            id = existing?.id ?: java.util.UUID.randomUUID().toString(),
                             dailyLogId = dailyLogId,
                             exerciseType = HealthConnectManager.HEALTH_CONNECT_EXERCISE_TYPE,
                             durationMinute = (metrics.steps / 100).toInt().coerceAtLeast(1),
@@ -205,7 +205,6 @@ class ExerciseViewModel @Inject constructor(
             try {
                 val dailyLogId = dailyLogRepository.getOrCreateDailyLog(currentDate)
                 val exercise = Exercise(
-                    id = 0,
                     dailyLogId = dailyLogId,
                     exerciseType = exerciseType,
                     durationMinute = duration,

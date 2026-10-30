@@ -11,19 +11,19 @@ class LocalExerciseDataSource @Inject constructor(
     fun getAllExercises(): Flow<List<ExerciseEntity>> =
         dao.getAllExercises()
 
-    fun getExercisesForDailyLogs(dailyLogIds: List<Long>): Flow<List<ExerciseEntity>> =
+    fun getExercisesForDailyLogs(dailyLogIds: List<String>): Flow<List<ExerciseEntity>> =
         dao.getExercisesForDailyLogs(dailyLogIds)
 
-    suspend fun getExercisesForDailyLogsDirect(dailyLogIds: List<Long>): List<ExerciseEntity> =
+    suspend fun getExercisesForDailyLogsDirect(dailyLogIds: List<String>): List<ExerciseEntity> =
         if (dailyLogIds.isEmpty()) emptyList() else dao.getExercisesForDailyLogsDirect(dailyLogIds)
 
-    fun getExercisesForDailyLog(dailyLogId: Long): Flow<List<ExerciseEntity>> =
+    fun getExercisesForDailyLog(dailyLogId: String): Flow<List<ExerciseEntity>> =
         dao.getExercisesForDailyLog(dailyLogId)
 
-    suspend fun getExercisesForDailyLogDirect(dailyLogId: Long): List<ExerciseEntity> =
+    suspend fun getExercisesForDailyLogDirect(dailyLogId: String): List<ExerciseEntity> =
         dao.getExercisesForDailyLogDirect(dailyLogId)
 
-    fun getTotalCaloriesBurned(dailyLogId: Long): Flow<Int> =
+    fun getTotalCaloriesBurned(dailyLogId: String): Flow<Int> =
         dao.getTotalCaloriesBurned(dailyLogId)
 
     suspend fun insertExercise(exercise: ExerciseEntity) =
@@ -32,6 +32,6 @@ class LocalExerciseDataSource @Inject constructor(
     suspend fun deleteExercise(exercise: ExerciseEntity) =
         dao.deleteExercise(exercise)
 
-    suspend fun getExerciseCount(dailyLogId: Long): Int =
+    suspend fun getExerciseCount(dailyLogId: String): Int =
         dao.getExerciseCount(dailyLogId)
 }

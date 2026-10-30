@@ -72,18 +72,14 @@ class DailyLogRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getOrCreateDailyLog(date: String): Long {
+    override suspend fun getOrCreateDailyLog(date: String): String {
         autoCompletePastLogs()
         val existing = localDataSource.getDailyLogByDateDirect(date)
         if (existing != null) return existing.id
 
         val newLog = DailyLogEntity(date = date)
-        val insertedId = localDataSource.insertDailyLog(newLog)
-        return if (insertedId == -1L) {
-            localDataSource.getDailyLogByDateDirect(date)?.id ?: 0L
-        } else {
-            insertedId
-        }
+        localDataSource.insertDailyLog(newLog)
+        return localDataSource.getDailyLogByDateDirect(date)?.id ?: newLog.id
     }
 
     override suspend fun completeDailyLog(date: String, aiSummary: String?) {
@@ -106,7 +102,7 @@ class DailyLogRepositoryImpl @Inject constructor(
         completeDailyLog(currentDate, aiSummary)
     }
 
-    override suspend fun saveAiSummary(dailyLogId: Long, aiSummary: String) {
+    override suspend fun saveAiSummary(dailyLogId: String, aiSummary: String) {
         localDataSource.updateAiSummary(dailyLogId, aiSummary)
     }
 
