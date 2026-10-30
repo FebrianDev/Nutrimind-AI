@@ -238,15 +238,17 @@ fun FoodItemDetailDialog(
                 when {
                     path.isNullOrBlank() -> null
                     path.startsWith("http://") || path.startsWith("https://") -> path
-                    else -> File(path).takeIf { it.exists() }
+                    else -> File(path)
                 }
             }
+            var imageLoadFailed by remember(intake.imagePath) { mutableStateOf(false) }
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                if (imageModel != null) {
+                if (imageModel != null && !imageLoadFailed) {
                     AsyncImage(
                         model = imageModel,
                         contentDescription = intake.foodName,
                         contentScale = ContentScale.Crop,
+                        onError = { imageLoadFailed = true },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(160.dp)
@@ -505,14 +507,16 @@ fun FoodItemCard(
                 when {
                     path.isNullOrBlank() -> null
                     path.startsWith("http://") || path.startsWith("https://") -> path
-                    else -> File(path).takeIf { it.exists() }
+                    else -> File(path)
                 }
             }
-            if (imageModel != null) {
+            var imageLoadFailed by remember(intake.imagePath) { mutableStateOf(false) }
+            if (imageModel != null && !imageLoadFailed) {
                 AsyncImage(
                     model = imageModel,
                     contentDescription = intake.foodName,
                     contentScale = ContentScale.Crop,
+                    onError = { imageLoadFailed = true },
                     modifier = Modifier
                         .size(52.dp)
                         .clip(RoundedCornerShape(12.dp))

@@ -2,7 +2,11 @@ package com.fdev.nutrimindai.feature.dailyintake.presentation.camera
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.ImageDecoder
 import android.graphics.Matrix
+import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fdev.nutrimindai.core.ai.AiRepository
@@ -18,16 +22,16 @@ import com.fdev.nutrimindai.feature.dailyintake.domain.repository.IntakeReposito
 import com.fdev.nutrimindai.core.sync.SyncManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.time.LocalDate
 import javax.inject.Inject
 
 enum class ScanMode {
@@ -58,7 +62,7 @@ class CameraScanViewModel @Inject constructor(
     private var currentBitmap: Bitmap? = null
 
     private val currentDate: String
-        get() = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        get() = LocalDate.now().toString()
 
     fun toggleTorch() {
         _torchEnabled.value = !_torchEnabled.value
@@ -90,10 +94,49 @@ class CameraScanViewModel @Inject constructor(
         }
     }
 
+    fun analyzeGalleryUri(uri: Uri) {
+        if (_uiState.value is CameraScanUiState.Analyzing) return
+        viewModelScope.launch {
+            _uiState.value = CameraScanUiState.Analyzing
+            try {
+                val decodedBitmap = withContext(Dispatchers.IO) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        val source = ImageDecoder.createSource(context.contentResolver, uri)
+                        ImageDecoder.decodeBitmap(source) { decoder, info, _ ->
+                            val maxDim = 1024
+                            val size = info.size
+                            if (size.width > maxDim || size.height > maxDim) {
+                                val ratio = size.width.toFloat() / size.height.toFloat()
+                                if (size.width > size.height) {
+                                    decoder.setTargetSize(maxDim, (maxDim / ratio).toInt().coerceAtLeast(1))
+                                } else {
+                                    decoder.setTargetSize((maxDim * ratio).toInt().coerceAtLeast(1), maxDim)
+                                }
+                            }
+                            decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+                        }
+                    } else {
+                        @Suppress("DEPRECATION")
+                        val raw = MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
+                        scaleBitmapForAi(raw)
+                    }
+                }
+                analyzeImage(decodedBitmap)
+            } catch (e: Exception) {
+                Timber.e(e, "Error loading image from gallery")
+                _uiState.value = CameraScanUiState.Error(
+                    e.message ?: "Failed to load image from gallery."
+                )
+            }
+        }
+    }
+
     fun analyzeImage(bitmap: Bitmap) {
         viewModelScope.launch {
             _uiState.value = CameraScanUiState.Analyzing
-            val scaledBitmap = scaleBitmapForAi(bitmap)
+            val scaledBitmap = withContext(Dispatchers.Default) {
+                scaleBitmapForAi(bitmap)
+            }
             currentBitmap = scaledBitmap
             val result = aiRepository.analyzeFoodImage(scaledBitmap)
             result.onSuccess { recognized ->
@@ -193,8 +236,8 @@ class CameraScanViewModel @Inject constructor(
         }
     }
 
-    private fun saveBitmapLocally(bitmap: Bitmap): String? {
-        return try {
+    private suspend fun saveBitmapLocally(bitmap: Bitmap): String? = withContext(Dispatchers.IO) {
+        try {
             val dir = File(context.filesDir, "food_images")
             if (!dir.exists()) dir.mkdirs()
             val file = File(dir, "meal_${System.currentTimeMillis()}.jpg")

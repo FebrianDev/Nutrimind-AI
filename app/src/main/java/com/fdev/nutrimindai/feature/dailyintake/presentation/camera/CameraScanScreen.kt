@@ -1,14 +1,12 @@
 package com.fdev.nutrimindai.feature.dailyintake.presentation.camera
 
 import android.Manifest
-import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.ImageDecoder
 import android.graphics.Matrix
 import android.net.Uri
-import android.os.Build
-import android.provider.MediaStore
+import java.util.concurrent.Executor
+import java.util.concurrent.Executors
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.Camera
@@ -97,33 +95,7 @@ fun CameraScanScreen(
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        uri?.let {
-            try {
-                val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    val source = ImageDecoder.createSource(context.contentResolver, it)
-                    ImageDecoder.decodeBitmap(source) { decoder, info, _ ->
-                        val maxDim = 1024
-                        val size = info.size
-                        if (size.width > maxDim || size.height > maxDim) {
-                            val ratio = size.width.toFloat() / size.height.toFloat()
-                            if (size.width > size.height) {
-                                decoder.setTargetSize(maxDim, (maxDim / ratio).toInt().coerceAtLeast(1))
-                            } else {
-                                decoder.setTargetSize((maxDim * ratio).toInt().coerceAtLeast(1), maxDim)
-                            }
-                        }
-                        decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
-                    }
-                } else {
-                    @Suppress("DEPRECATION")
-                    val raw = MediaStore.Images.Media.getBitmap(context.contentResolver, it)
-                    scaleBitmapDown(raw, 1024)
-                }
-                viewModel.analyzeImage(bitmap)
-            } catch (e: Exception) {
-                Timber.e(e, "Error loading image from gallery")
-            }
-        }
+        uri?.let { viewModel.analyzeGalleryUri(it) }
     }
 
     LaunchedEffect(launchGalleryDirectly) {
@@ -135,14 +107,16 @@ fun CameraScanScreen(
     val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
     var camera by remember { mutableStateOf<Camera?>(null) }
     val imageCapture = remember { ImageCapture.Builder().build() }
+    val cameraExecutor = remember { Executors.newSingleThreadExecutor() }
     val barcodeAnalyzer = remember {
         BarcodeAnalyzer { barcode ->
             viewModel.onBarcodeScanned(barcode)
         }
     }
-    DisposableEffect(barcodeAnalyzer) {
+    DisposableEffect(barcodeAnalyzer, cameraExecutor) {
         onDispose {
             barcodeAnalyzer.close()
+            cameraExecutor.shutdown()
         }
     }
     val imageAnalysis = remember {
@@ -268,7 +242,7 @@ fun CameraScanScreen(
                                     preview,
                                     imageCapture,
                                     imageAnalysis.apply {
-                                        setAnalyzer(ContextCompat.getMainExecutor(ctx), barcodeAnalyzer)
+                                        setAnalyzer(cameraExecutor, barcodeAnalyzer)
                                     }
                                 )
                             } catch (exc: Exception) {
@@ -412,7 +386,7 @@ fun CameraScanScreen(
                             .padding(4.dp)
                             .clickable {
                                 capturePhoto(
-                                    context = context,
+                                    executor = cameraExecutor,
                                     imageCapture = imageCapture,
                                     onImageCaptured = { bitmap ->
                                         viewModel.analyzeImage(bitmap)
@@ -862,21 +836,22 @@ fun MacroField(
 }
 
 private fun capturePhoto(
-    context: Context,
+    executor: Executor,
     imageCapture: ImageCapture,
     onImageCaptured: (Bitmap) -> Unit
 ) {
-    val executor = ContextCompat.getMainExecutor(context)
     imageCapture.takePicture(
         executor,
         object : ImageCapture.OnImageCapturedCallback() {
             override fun onCaptureSuccess(imageProxy: ImageProxy) {
-                val bitmap = imageProxy.toBitmap()
-                val rotationDegrees = imageProxy.imageInfo.rotationDegrees
-                val rotatedBitmap = rotateBitmap(bitmap, rotationDegrees)
-                imageProxy.close()
-                val scaledBitmap = scaleBitmapDown(rotatedBitmap, 1024)
-                onImageCaptured(scaledBitmap)
+                val processedBitmap = try {
+                    val bitmap = imageProxy.toBitmap()
+                    val rotationDegrees = imageProxy.imageInfo.rotationDegrees
+                    rotateAndScaleBitmap(bitmap, rotationDegrees, 1024)
+                } finally {
+                    imageProxy.close()
+                }
+                onImageCaptured(processedBitmap)
             }
 
             override fun onError(exception: ImageCaptureException) {
@@ -886,28 +861,26 @@ private fun capturePhoto(
     )
 }
 
-private fun scaleBitmapDown(bitmap: Bitmap, maxDimension: Int = 1024): Bitmap {
+private fun rotateAndScaleBitmap(bitmap: Bitmap, degrees: Int, maxDimension: Int = 1024): Bitmap {
     val width = bitmap.width
     val height = bitmap.height
-    if (width <= maxDimension && height <= maxDimension) return bitmap
+    val rotatedWidth = if (degrees % 180 != 0) height else width
+    val rotatedHeight = if (degrees % 180 != 0) width else height
 
-    val ratio = width.toFloat() / height.toFloat()
-    val targetWidth: Int
-    val targetHeight: Int
-    if (width > height) {
-        targetWidth = maxDimension
-        targetHeight = (maxDimension / ratio).toInt().coerceAtLeast(1)
-    } else {
-        targetHeight = maxDimension
-        targetWidth = (maxDimension * ratio).toInt().coerceAtLeast(1)
+    val maxSide = maxOf(rotatedWidth, rotatedHeight)
+    val scale = if (maxSide > maxDimension) maxDimension.toFloat() / maxSide else 1f
+
+    if (degrees == 0 && scale == 1f) return bitmap
+
+    val matrix = Matrix().apply {
+        if (scale < 1f) {
+            postScale(scale, scale)
+        }
+        if (degrees != 0) {
+            postRotate(degrees.toFloat())
+        }
     }
-    return Bitmap.createScaledBitmap(bitmap, targetWidth, targetHeight, true)
-}
-
-private fun rotateBitmap(bitmap: Bitmap, degrees: Int): Bitmap {
-    if (degrees == 0) return bitmap
-    val matrix = Matrix().apply { postRotate(degrees.toFloat()) }
-    return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+    return Bitmap.createBitmap(bitmap, 0, 0, width, height, matrix, true)
 }
 
 private fun String.capitalized(): String = replaceFirstChar { if (it.isLowerCase()) it.titlecase(java.util.Locale.getDefault()) else it.toString() }
