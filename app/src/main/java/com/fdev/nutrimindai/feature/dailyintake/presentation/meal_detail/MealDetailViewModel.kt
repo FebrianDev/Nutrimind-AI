@@ -9,6 +9,8 @@ import com.fdev.nutrimindai.feature.dailyintake.domain.model.Intake
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.DailyLogRepository
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.IntakeRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -49,6 +51,9 @@ class MealDetailViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<MealDetailUiState>(MealDetailUiState.Loading)
     val uiState: StateFlow<MealDetailUiState> = _uiState.asStateFlow()
 
+    private var lastLoadedDate: String = ""
+    private var loadJob: Job? = null
+
     private val currentDate: String
         get() = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
 
@@ -56,13 +61,22 @@ class MealDetailViewModel @Inject constructor(
         loadMealDetails()
     }
 
+    fun checkDateAndReloadIfNeeded() {
+        if (currentDate != lastLoadedDate) {
+            loadMealDetails()
+        }
+    }
+
     private fun loadMealDetails() {
-        viewModelScope.launch {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             try {
-                val dailyLogId = dailyLogRepository.getOrCreateDailyLog(currentDate)
+                val dateToLoad = currentDate
+                lastLoadedDate = dateToLoad
+                val dailyLogId = dailyLogRepository.getOrCreateDailyLog(dateToLoad)
 
                 combine(
-                    dailyLogRepository.getDailyLogByDate(currentDate),
+                    dailyLogRepository.getDailyLogByDate(dateToLoad),
                     intakeRepository.getIntakesForDailyLog(dailyLogId)
                 ) { dailyLog, allIntakes ->
                     val status = dailyLog?.status ?: DailyLogStatus.DRAFT
@@ -81,6 +95,8 @@ class MealDetailViewModel @Inject constructor(
                 }.collect { state ->
                     _uiState.value = state
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _uiState.value = MealDetailUiState.Error(e.message ?: "An unexpected error occurred.")
             }

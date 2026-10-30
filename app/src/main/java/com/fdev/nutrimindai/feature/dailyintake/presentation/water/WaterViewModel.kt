@@ -11,6 +11,8 @@ import com.fdev.nutrimindai.feature.dailyintake.domain.repository.ExerciseReposi
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.WaterRepository
 import com.fdev.nutrimindai.feature.profile.domain.repository.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -45,6 +47,9 @@ class WaterViewModel @Inject constructor(
     private val _uiState = MutableStateFlow<WaterUiState>(WaterUiState.Loading)
     val uiState: StateFlow<WaterUiState> = _uiState.asStateFlow()
 
+    private var lastLoadedDate: String = ""
+    private var loadJob: Job? = null
+
     private val currentDate: String
         get() = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
 
@@ -52,13 +57,22 @@ class WaterViewModel @Inject constructor(
         loadWater()
     }
 
+    fun checkDateAndReloadIfNeeded() {
+        if (currentDate != lastLoadedDate) {
+            loadWater()
+        }
+    }
+
     private fun loadWater() {
-        viewModelScope.launch {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             try {
-                val dailyLogId = dailyLogRepository.getOrCreateDailyLog(currentDate)
+                val dateToLoad = currentDate
+                lastLoadedDate = dateToLoad
+                val dailyLogId = dailyLogRepository.getOrCreateDailyLog(dateToLoad)
 
                 combine(
-                    dailyLogRepository.getDailyLogByDate(currentDate),
+                    dailyLogRepository.getDailyLogByDate(dateToLoad),
                     waterRepository.getWaterRecordsForDailyLog(dailyLogId),
                     exerciseRepository.getExercisesForDailyLog(dailyLogId),
                     profileRepository.getProfile()
@@ -78,6 +92,8 @@ class WaterViewModel @Inject constructor(
                 }.collect { state ->
                     _uiState.value = state
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _uiState.value = WaterUiState.Error(e.message ?: "Failed to load water intake data.")
             }
@@ -86,8 +102,9 @@ class WaterViewModel @Inject constructor(
 
     fun addWater(amountMl: Int) {
         if (amountMl <= 0) return
+        checkDateAndReloadIfNeeded()
         val currentState = uiState.value
-        if (currentState is WaterUiState.Success && currentState.status != DailyLogStatus.DRAFT) return
+        if (currentState is WaterUiState.Success && currentState.status != DailyLogStatus.DRAFT && currentDate == lastLoadedDate) return
 
         viewModelScope.launch {
             try {

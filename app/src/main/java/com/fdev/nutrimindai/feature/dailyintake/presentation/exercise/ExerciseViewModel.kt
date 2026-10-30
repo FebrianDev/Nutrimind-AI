@@ -12,6 +12,8 @@ import com.fdev.nutrimindai.core.health.HealthConnectManager
 import com.fdev.nutrimindai.core.health.HealthMetrics
 import com.fdev.nutrimindai.core.sync.SyncManager
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -73,19 +75,16 @@ class ExerciseViewModel @Inject constructor(
             }
 
             try {
+                checkDateAndReloadIfNeeded()
                 val metrics = healthConnectManager.readTodayMetrics()
                 val dailyLogId = dailyLogRepository.getOrCreateDailyLog(currentDate)
                 val existing = exerciseRepository.getExercisesForDailyLogDirect(dailyLogId)
                     .find { it.exerciseType == HealthConnectManager.HEALTH_CONNECT_EXERCISE_TYPE }
 
-                if (existing != null) {
-                    exerciseRepository.deleteExercise(existing)
-                }
-
                 if (metrics.activeCalories > 0 || metrics.steps > 0) {
                     exerciseRepository.addExercise(
                         Exercise(
-                            id = 0,
+                            id = existing?.id ?: 0,
                             dailyLogId = dailyLogId,
                             exerciseType = HealthConnectManager.HEALTH_CONNECT_EXERCISE_TYPE,
                             durationMinute = (metrics.steps / 100).toInt().coerceAtLeast(1),
@@ -95,6 +94,10 @@ class ExerciseViewModel @Inject constructor(
                     )
                     syncManager.triggerManualSync()
                     onResult("Successfully synced ${metrics.steps} steps & ${metrics.activeCalories} kcal!")
+                } else if (existing != null) {
+                    exerciseRepository.deleteExercise(existing)
+                    syncManager.triggerManualSync()
+                    onResult("Health Connect: No steps or active calorie data logged today.")
                 } else {
                     onResult("Health Connect: No steps or active calorie data logged today.")
                 }
@@ -109,6 +112,9 @@ class ExerciseViewModel @Inject constructor(
 
     private val _addExerciseUiState = MutableStateFlow<AddExerciseUiState>(AddExerciseUiState.Idle)
     val addExerciseUiState: StateFlow<AddExerciseUiState> = _addExerciseUiState.asStateFlow()
+
+    private var lastLoadedDate: String = ""
+    private var loadJob: Job? = null
 
     private val currentDate: String
         get() = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
@@ -127,6 +133,12 @@ class ExerciseViewModel @Inject constructor(
         loadExercises()
     }
 
+    fun checkDateAndReloadIfNeeded() {
+        if (currentDate != lastLoadedDate) {
+            loadExercises()
+        }
+    }
+
     fun calculateMetCalories(type: String, durationMinutes: Int): Int {
         return MetExerciseCalculator.calculateCalories(
             exerciseType = type,
@@ -136,12 +148,15 @@ class ExerciseViewModel @Inject constructor(
     }
 
     private fun loadExercises() {
-        viewModelScope.launch {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             try {
-                val dailyLogId = dailyLogRepository.getOrCreateDailyLog(currentDate)
+                val dateToLoad = currentDate
+                lastLoadedDate = dateToLoad
+                val dailyLogId = dailyLogRepository.getOrCreateDailyLog(dateToLoad)
 
                 combine(
-                    dailyLogRepository.getDailyLogByDate(currentDate),
+                    dailyLogRepository.getDailyLogByDate(dateToLoad),
                     exerciseRepository.getExercisesForDailyLog(dailyLogId)
                 ) { dailyLog, list ->
                     val status = dailyLog?.status ?: DailyLogStatus.DRAFT
@@ -154,6 +169,8 @@ class ExerciseViewModel @Inject constructor(
                 }.collect { state ->
                     _uiState.value = state
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 _uiState.value = ExerciseUiState.Error(e.message ?: "Failed to load exercise records.")
             }
