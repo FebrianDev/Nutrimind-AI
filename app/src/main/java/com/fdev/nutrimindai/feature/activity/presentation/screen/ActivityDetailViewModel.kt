@@ -12,6 +12,7 @@ import com.fdev.nutrimindai.feature.dailyintake.domain.repository.IntakeReposito
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.WaterRepository
 import com.fdev.nutrimindai.feature.profile.domain.repository.ProfileRepository
 import com.fdev.nutrimindai.core.ai.AiRepository
+import com.fdev.nutrimindai.core.sync.SyncManager
 import com.fdev.nutrimindai.feature.progress.presentation.screen.DailyReviewDetailData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -98,11 +99,14 @@ class ActivityDetailViewModel @Inject constructor(
     private val waterRepository: WaterRepository,
     private val exerciseRepository: ExerciseRepository,
     private val profileRepository: ProfileRepository,
-    private val aiRepository: AiRepository
+    private val aiRepository: AiRepository,
+    private val syncManager: SyncManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<ActivityDetailUiState>(ActivityDetailUiState.Loading)
     val uiState: StateFlow<ActivityDetailUiState> = _uiState.asStateFlow()
+
+    private val generatingAiSummaryForLogIds = mutableSetOf<Long>()
 
     private val isoDateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
     private val displayDateFormat = SimpleDateFormat("MMMM dd, yyyy", Locale.getDefault())
@@ -127,6 +131,56 @@ class ActivityDetailViewModel @Inject constructor(
             val dateObj = displayDateFormat.parse(rawDate)
             if (dateObj != null) isoDateFormat.format(dateObj) else rawDate
         }.getOrDefault(rawDate)
+    }
+
+    private fun triggerBackgroundAiSummaryIfNeeded(
+        dailyLogId: Long,
+        userGoal: String,
+        score: Int,
+        totalCalories: Int,
+        targetCal: Int,
+        totalProtein: Double,
+        targetProtein: Double,
+        totalCarbs: Double,
+        targetCarbs: Double,
+        totalFat: Double,
+        targetFat: Double,
+        totalWater: Int,
+        targetWater: Int,
+        exerciseMinutes: Int,
+        targetExercise: Int
+    ) {
+        if (dailyLogId <= 0L || !generatingAiSummaryForLogIds.add(dailyLogId)) return
+
+        viewModelScope.launch {
+            val fallback = "Great job completing your daily journal! Your nutritional intake has been successfully logged."
+            try {
+                val generated = aiRepository.generateDailyReviewSummary(
+                    userGoal = userGoal,
+                    score = score,
+                    calories = totalCalories,
+                    targetCalories = targetCal,
+                    protein = totalProtein,
+                    targetProtein = targetProtein,
+                    carbs = totalCarbs,
+                    targetCarbs = targetCarbs,
+                    fat = totalFat,
+                    targetFat = targetFat,
+                    waterMl = totalWater,
+                    targetWaterMl = targetWater,
+                    exerciseMinutes = exerciseMinutes,
+                    targetExerciseMinutes = targetExercise,
+                    fallbackSummary = fallback
+                )
+                dailyLogRepository.saveAiSummary(dailyLogId, generated)
+                syncManager.triggerManualSync()
+            } catch (e: Exception) {
+                dailyLogRepository.saveAiSummary(dailyLogId, fallback)
+                syncManager.triggerManualSync()
+            } finally {
+                generatingAiSummaryForLogIds.remove(dailyLogId)
+            }
+        }
     }
 
     private fun loadActivityDetail() {
@@ -180,30 +234,24 @@ class ActivityDetailViewModel @Inject constructor(
                     val finalAiSummary = when {
                         !existingAiSummary.isNullOrBlank() -> existingAiSummary
                         dailyLog?.status == DailyLogStatus.COMPLETED -> {
-                            val fallback = "Great job completing your daily journal! Your nutritional intake has been successfully logged."
-                            try {
-                                val generated = aiRepository.generateDailyReviewSummary(
-                                    userGoal = profile?.goal?.name ?: "Maintain Weight",
-                                    score = score,
-                                    calories = totalCalories,
-                                    targetCalories = targetCal,
-                                    protein = totalProtein,
-                                    targetProtein = targetProtein,
-                                    carbs = totalCarbs,
-                                    targetCarbs = targetCarbs,
-                                    fat = totalFat,
-                                    targetFat = targetFat,
-                                    waterMl = totalWater,
-                                    targetWaterMl = targetWater,
-                                    exerciseMinutes = exerciseMinutes,
-                                    targetExerciseMinutes = targetExercise,
-                                    fallbackSummary = fallback
-                                )
-                                dailyLogRepository.saveAiSummary(dailyLogId, generated)
-                                generated
-                            } catch (e: Exception) {
-                                fallback
-                            }
+                            triggerBackgroundAiSummaryIfNeeded(
+                                dailyLogId = dailyLogId,
+                                userGoal = profile?.goal?.name ?: "Maintain Weight",
+                                score = score,
+                                totalCalories = totalCalories,
+                                targetCal = targetCal,
+                                totalProtein = totalProtein,
+                                targetProtein = targetProtein,
+                                totalCarbs = totalCarbs,
+                                targetCarbs = targetCarbs,
+                                totalFat = totalFat,
+                                targetFat = targetFat,
+                                totalWater = totalWater,
+                                targetWater = targetWater,
+                                exerciseMinutes = exerciseMinutes,
+                                targetExercise = targetExercise
+                            )
+                            "Generating your personalized Meta AI dietitian evaluation..."
                         }
                         totalCalories > 0 -> {
                             "Daily journal is in progress. Complete your day to generate a personalized Meta AI dietitian evaluation."
@@ -321,13 +369,45 @@ class ActivityDetailViewModel @Inject constructor(
 
     fun completeToday() {
         viewModelScope.launch {
-            dailyLogRepository.completeToday()
+            val currentData = (_uiState.value as? ActivityDetailUiState.Success)?.data
+            val profile = profileRepository.getProfile().first()
+            val fallback = "Great job completing your daily journal! Your nutritional intake has been successfully logged."
+
+            val generatedSummary = if (currentData != null) {
+                try {
+                    aiRepository.generateDailyReviewSummary(
+                        userGoal = profile?.goal?.name ?: "Maintain Weight",
+                        score = currentData.healthScore,
+                        calories = currentData.totalCalories,
+                        targetCalories = currentData.targetCalories,
+                        protein = currentData.totalProtein,
+                        targetProtein = currentData.targetProtein,
+                        carbs = currentData.totalCarbs,
+                        targetCarbs = currentData.targetCarbs,
+                        fat = currentData.totalFat,
+                        targetFat = currentData.targetFat,
+                        waterMl = currentData.totalWaterMl,
+                        targetWaterMl = currentData.targetWaterMl,
+                        exerciseMinutes = currentData.exerciseMinutes,
+                        targetExerciseMinutes = currentData.targetExerciseMinutes,
+                        fallbackSummary = fallback
+                    )
+                } catch (e: Exception) {
+                    fallback
+                }
+            } else {
+                fallback
+            }
+
+            dailyLogRepository.completeToday(generatedSummary)
+            syncManager.triggerManualSync()
         }
     }
 
     fun reopenToday() {
         viewModelScope.launch {
             dailyLogRepository.reopenToday()
+            syncManager.triggerManualSync()
         }
     }
 }
