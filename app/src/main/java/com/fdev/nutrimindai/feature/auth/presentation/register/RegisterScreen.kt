@@ -38,7 +38,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fdev.nutrimindai.R
 import com.fdev.nutrimindai.feature.auth.presentation.AuthGoogleHelper
-import kotlinx.coroutines.launch
 
 @Composable
 fun RegisterScreen(
@@ -62,9 +61,21 @@ fun RegisterScreen(
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(uiState) {
-        if (uiState is RegisterUiState.Error) {
-            snackbarHostState.showSnackbar((uiState as RegisterUiState.Error).message)
-            viewModel.clearError()
+        when (val state = uiState) {
+            is RegisterUiState.Error -> {
+                val message = state.message
+                viewModel.clearError()
+                snackbarHostState.showSnackbar(message)
+            }
+            is RegisterUiState.Success -> {
+                if (state.isNewUser) {
+                    onNavigateToOnboarding()
+                } else {
+                    onNavigateToHome()
+                }
+                viewModel.resetUiState()
+            }
+            else -> {}
         }
     }
 
@@ -218,8 +229,10 @@ fun RegisterScreen(
                             ),
                             keyboardActions = KeyboardActions(
                                 onDone = {
-                                    focusManager.clearFocus()
-                                    viewModel.register(onNavigateToOnboarding)
+                                    if (uiState !is RegisterUiState.Loading) {
+                                        focusManager.clearFocus()
+                                        viewModel.register()
+                                    }
                                 }
                             ),
                             modifier = Modifier.fillMaxWidth(),
@@ -231,8 +244,10 @@ fun RegisterScreen(
                         // Submit Button
                         Button(
                             onClick = {
-                                focusManager.clearFocus()
-                                viewModel.register(onNavigateToOnboarding)
+                                if (uiState !is RegisterUiState.Loading) {
+                                    focusManager.clearFocus()
+                                    viewModel.register()
+                                }
                             },
                             enabled = uiState !is RegisterUiState.Loading,
                             modifier = Modifier
@@ -291,22 +306,26 @@ fun RegisterScreen(
                 // Google Sign-Up Button
                 OutlinedButton(
                     onClick = {
-                        focusManager.clearFocus()
-                        AuthGoogleHelper.performGoogleSignIn(
-                            context = context,
-                            coroutineScope = coroutineScope,
-                            onIdTokenReceived = { idToken ->
-                                viewModel.loginWithGoogle(idToken, onNavigateToHome, onNavigateToOnboarding)
-                            },
-                            onOAuthSuccess = {
-                                viewModel.handleGoogleAuthSuccess(onNavigateToHome, onNavigateToOnboarding)
-                            },
-                            onError = { errorMsg ->
-                                coroutineScope.launch {
-                                    snackbarHostState.showSnackbar(errorMsg)
+                        if (uiState !is RegisterUiState.Loading) {
+                            focusManager.clearFocus()
+                            AuthGoogleHelper.performGoogleSignIn(
+                                context = context,
+                                coroutineScope = coroutineScope,
+                                onStart = { viewModel.setLoading() },
+                                onIdTokenReceived = { idToken ->
+                                    viewModel.loginWithGoogle(idToken)
+                                },
+                                onOAuthSuccess = {
+                                    viewModel.handleGoogleAuthSuccess()
+                                },
+                                onError = { errorMsg ->
+                                    viewModel.setError(errorMsg)
+                                },
+                                onCancel = {
+                                    viewModel.setIdle()
                                 }
-                            }
-                        )
+                            )
+                        }
                     },
                     enabled = uiState !is RegisterUiState.Loading,
                     modifier = Modifier
@@ -336,8 +355,10 @@ fun RegisterScreen(
                 // Guest Mode / Anonymous Button
                 OutlinedButton(
                     onClick = {
-                        focusManager.clearFocus()
-                        viewModel.loginAnonymously(onNavigateToOnboarding)
+                        if (uiState !is RegisterUiState.Loading) {
+                            focusManager.clearFocus()
+                            viewModel.loginAnonymously()
+                        }
                     },
                     enabled = uiState !is RegisterUiState.Loading,
                     modifier = Modifier

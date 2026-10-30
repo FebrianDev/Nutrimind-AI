@@ -1,8 +1,11 @@
 package com.fdev.nutrimindai.feature.auth.presentation.login
 
+import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.fdev.nutrimindai.core.database.DB_VERSION
 import com.fdev.nutrimindai.core.datastore.PreferenceManager
+import com.fdev.nutrimindai.core.sync.FirestoreSyncRepository
 import com.fdev.nutrimindai.feature.auth.domain.repository.AuthRepository
 import com.fdev.nutrimindai.feature.profile.domain.repository.ProfileRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -10,10 +13,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import javax.inject.Inject
-import com.fdev.nutrimindai.core.database.DB_VERSION
-import com.fdev.nutrimindai.core.sync.FirestoreSyncRepository
 import timber.log.Timber
+import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
@@ -40,15 +41,18 @@ class LoginViewModel @Inject constructor(
         _password.value = newPassword
     }
 
-    fun loginWithEmail(
-        onNavigateToHome: () -> Unit,
-        onNavigateToOnboarding: () -> Unit
-    ) {
+    fun loginWithEmail() {
+        if (_uiState.value is LoginUiState.Loading) return
+
         val currentEmail = _email.value.trim()
         val currentPassword = _password.value
 
         if (currentEmail.isBlank()) {
-            _uiState.value = LoginUiState.Error("Please enter your email.")
+            _uiState.value = LoginUiState.Error("Please enter your email address.")
+            return
+        }
+        if (!Patterns.EMAIL_ADDRESS.matcher(currentEmail).matches()) {
+            _uiState.value = LoginUiState.Error("Please enter a valid email address.")
             return
         }
         if (currentPassword.isBlank()) {
@@ -58,94 +62,118 @@ class LoginViewModel @Inject constructor(
 
         viewModelScope.launch {
             _uiState.value = LoginUiState.Loading
-            val result = authRepository.loginWithEmail(currentEmail, currentPassword)
-            result.fold(
-                onSuccess = {
-                    try {
-                        firestoreSyncRepository.downloadAndRestoreUserData()
-                        preferenceManager.setSavedDbVersion(DB_VERSION)
-                    } catch (e: Exception) {
-                        Timber.e(e, "Failed to pull user data from Firestore on login")
-                    }
+            try {
+                val result = authRepository.loginWithEmail(currentEmail, currentPassword)
+                result.fold(
+                    onSuccess = {
+                        try {
+                            firestoreSyncRepository.downloadAndRestoreUserData()
+                            preferenceManager.setSavedDbVersion(DB_VERSION)
+                        } catch (e: Exception) {
+                            Timber.e(e, "Failed to pull user data from Firestore on login")
+                        }
 
-                    val profile = profileRepository.getProfileDirect()
-                    val hasProfile = profile != null
+                        val profile = profileRepository.getProfileDirect()
+                        val hasProfile = profile != null
 
-                    if (hasProfile) {
-                        preferenceManager.setOnboardingCompleted(true)
-                        _uiState.value = LoginUiState.Success(isNewUser = false)
-                        onNavigateToHome()
-                    } else {
-                        _uiState.value = LoginUiState.Success(isNewUser = true)
-                        onNavigateToOnboarding()
+                        if (hasProfile) {
+                            preferenceManager.setOnboardingCompleted(true)
+                            _uiState.value = LoginUiState.Success(isNewUser = false)
+                        } else {
+                            _uiState.value = LoginUiState.Success(isNewUser = true)
+                        }
+                    },
+                    onFailure = { error ->
+                        _uiState.value = LoginUiState.Error(error.message ?: "Login failed. Please try again.")
                     }
-                },
-                onFailure = { error ->
-                    _uiState.value = LoginUiState.Error(error.message ?: "Login failed. Please try again.")
-                }
-            )
+                )
+            } catch (e: Exception) {
+                Timber.e(e, "Unexpected error during email login")
+                _uiState.value = LoginUiState.Error("An unexpected error occurred. Please try again.")
+            }
         }
     }
 
-    fun loginWithGoogle(
-        idToken: String,
-        onNavigateToHome: () -> Unit,
-        onNavigateToOnboarding: () -> Unit
-    ) {
-        viewModelScope.launch {
-            _uiState.value = LoginUiState.Loading
-            val result = authRepository.loginWithGoogle(idToken)
-            result.fold(
-                onSuccess = {
-                    handleGoogleAuthSuccess(onNavigateToHome, onNavigateToOnboarding)
-                },
-                onFailure = { error ->
-                    _uiState.value = LoginUiState.Error(error.message ?: "Google login failed. Please try again.")
-                }
-            )
+    fun setLoading() {
+        _uiState.value = LoginUiState.Loading
+    }
+
+    fun setIdle() {
+        if (_uiState.value is LoginUiState.Loading) {
+            _uiState.value = LoginUiState.Idle
         }
     }
 
-    fun handleGoogleAuthSuccess(
-        onNavigateToHome: () -> Unit,
-        onNavigateToOnboarding: () -> Unit
-    ) {
+    fun setError(message: String) {
+        _uiState.value = LoginUiState.Error(message)
+    }
+
+    fun loginWithGoogle(idToken: String) {
         viewModelScope.launch {
             _uiState.value = LoginUiState.Loading
             try {
-                firestoreSyncRepository.downloadAndRestoreUserData()
-                preferenceManager.setSavedDbVersion(DB_VERSION)
+                val result = authRepository.loginWithGoogle(idToken)
+                result.fold(
+                    onSuccess = {
+                        handleGoogleAuthSuccess()
+                    },
+                    onFailure = { error ->
+                        _uiState.value = LoginUiState.Error(error.message ?: "Google login failed. Please try again.")
+                    }
+                )
             } catch (e: Exception) {
-                Timber.e(e, "Failed to pull user data from Firestore on Google login")
-            }
-
-            val profile = profileRepository.getProfileDirect()
-            val hasProfile = profile != null
-
-            if (hasProfile) {
-                preferenceManager.setOnboardingCompleted(true)
-                _uiState.value = LoginUiState.Success(isNewUser = false)
-                onNavigateToHome()
-            } else {
-                _uiState.value = LoginUiState.Success(isNewUser = true)
-                onNavigateToOnboarding()
+                Timber.e(e, "Unexpected error during Google login")
+                _uiState.value = LoginUiState.Error("Google login failed. Please try again.")
             }
         }
     }
 
-    fun loginAnonymously(onNavigateToOnboarding: () -> Unit) {
+    fun handleGoogleAuthSuccess() {
         viewModelScope.launch {
             _uiState.value = LoginUiState.Loading
-            val result = authRepository.loginAnonymously()
-            result.fold(
-                onSuccess = {
-                    _uiState.value = LoginUiState.Success(isNewUser = true)
-                    onNavigateToOnboarding()
-                },
-                onFailure = { error ->
-                    _uiState.value = LoginUiState.Error(error.message ?: "Guest login failed. Please check your internet connection.")
+            try {
+                try {
+                    firestoreSyncRepository.downloadAndRestoreUserData()
+                    preferenceManager.setSavedDbVersion(DB_VERSION)
+                } catch (e: Exception) {
+                    Timber.e(e, "Failed to pull user data from Firestore on Google login")
                 }
-            )
+
+                val profile = profileRepository.getProfileDirect()
+                val hasProfile = profile != null
+
+                if (hasProfile) {
+                    preferenceManager.setOnboardingCompleted(true)
+                    _uiState.value = LoginUiState.Success(isNewUser = false)
+                } else {
+                    _uiState.value = LoginUiState.Success(isNewUser = true)
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Error processing profile state after Google login")
+                _uiState.value = LoginUiState.Error("Error checking user profile. Please try logging in again.")
+            }
+        }
+    }
+
+    fun loginAnonymously() {
+        if (_uiState.value is LoginUiState.Loading) return
+
+        viewModelScope.launch {
+            _uiState.value = LoginUiState.Loading
+            try {
+                val result = authRepository.loginAnonymously()
+                result.fold(
+                    onSuccess = {
+                        _uiState.value = LoginUiState.Success(isNewUser = true)
+                    },
+                    onFailure = { error ->
+                        _uiState.value = LoginUiState.Error(error.message ?: "Guest login failed. Please check your internet connection.")
+                    }
+                )
+            } catch (e: Exception) {
+                Timber.e(e, "Unexpected error during guest login")
+                _uiState.value = LoginUiState.Error("Guest login failed. Please try again.")
+            }
         }
     }
 
@@ -155,16 +183,25 @@ class LoginViewModel @Inject constructor(
             onResult(false, "Please enter your email to reset password.")
             return
         }
+        if (!Patterns.EMAIL_ADDRESS.matcher(targetEmail).matches()) {
+            onResult(false, "Please enter a valid email address.")
+            return
+        }
         viewModelScope.launch {
-            val result = authRepository.sendPasswordReset(targetEmail)
-            result.fold(
-                onSuccess = {
-                    onResult(true, "Password reset link has been sent to $targetEmail.")
-                },
-                onFailure = { err ->
-                    onResult(false, err.message ?: "Failed to send password reset email.")
-                }
-            )
+            try {
+                val result = authRepository.sendPasswordReset(targetEmail)
+                result.fold(
+                    onSuccess = {
+                        onResult(true, "Password reset link has been sent to $targetEmail.")
+                    },
+                    onFailure = { err ->
+                        onResult(false, err.message ?: "Failed to send password reset email.")
+                    }
+                )
+            } catch (e: Exception) {
+                Timber.e(e, "Unexpected error during password reset")
+                onResult(false, "Failed to send password reset email. Please try again.")
+            }
         }
     }
 
@@ -172,5 +209,9 @@ class LoginViewModel @Inject constructor(
         if (_uiState.value is LoginUiState.Error) {
             _uiState.value = LoginUiState.Idle
         }
+    }
+
+    fun resetUiState() {
+        _uiState.value = LoginUiState.Idle
     }
 }

@@ -6,7 +6,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -39,7 +38,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fdev.nutrimindai.R
 import com.fdev.nutrimindai.feature.auth.presentation.AuthGoogleHelper
-import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(
@@ -64,9 +62,21 @@ fun LoginScreen(
     val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(uiState) {
-        if (uiState is LoginUiState.Error) {
-            snackbarHostState.showSnackbar((uiState as LoginUiState.Error).message)
-            viewModel.clearError()
+        when (val state = uiState) {
+            is LoginUiState.Error -> {
+                val message = state.message
+                viewModel.clearError()
+                snackbarHostState.showSnackbar(message)
+            }
+            is LoginUiState.Success -> {
+                if (state.isNewUser) {
+                    onNavigateToOnboarding()
+                } else {
+                    onNavigateToHome()
+                }
+                viewModel.resetUiState()
+            }
+            else -> {}
         }
     }
 
@@ -195,8 +205,10 @@ fun LoginScreen(
                             ),
                             keyboardActions = KeyboardActions(
                                 onDone = {
-                                    focusManager.clearFocus()
-                                    viewModel.loginWithEmail(onNavigateToHome, onNavigateToOnboarding)
+                                    if (uiState !is LoginUiState.Loading) {
+                                        focusManager.clearFocus()
+                                        viewModel.loginWithEmail()
+                                    }
                                 }
                             ),
                             modifier = Modifier.fillMaxWidth(),
@@ -224,8 +236,10 @@ fun LoginScreen(
                         // Submit Button
                         Button(
                             onClick = {
-                                focusManager.clearFocus()
-                                viewModel.loginWithEmail(onNavigateToHome, onNavigateToOnboarding)
+                                if (uiState !is LoginUiState.Loading) {
+                                    focusManager.clearFocus()
+                                    viewModel.loginWithEmail()
+                                }
                             },
                             enabled = uiState !is LoginUiState.Loading,
                             modifier = Modifier
@@ -284,22 +298,26 @@ fun LoginScreen(
                 // Google Sign-In Button
                 OutlinedButton(
                     onClick = {
-                        focusManager.clearFocus()
-                        AuthGoogleHelper.performGoogleSignIn(
-                            context = context,
-                            coroutineScope = coroutineScope,
-                            onIdTokenReceived = { idToken ->
-                                viewModel.loginWithGoogle(idToken, onNavigateToHome, onNavigateToOnboarding)
-                            },
-                            onOAuthSuccess = {
-                                viewModel.handleGoogleAuthSuccess(onNavigateToHome, onNavigateToOnboarding)
-                            },
-                            onError = { errorMsg ->
-                                coroutineScope.launch {
-                                    snackbarHostState.showSnackbar(errorMsg)
+                        if (uiState !is LoginUiState.Loading) {
+                            focusManager.clearFocus()
+                            AuthGoogleHelper.performGoogleSignIn(
+                                context = context,
+                                coroutineScope = coroutineScope,
+                                onStart = { viewModel.setLoading() },
+                                onIdTokenReceived = { idToken ->
+                                    viewModel.loginWithGoogle(idToken)
+                                },
+                                onOAuthSuccess = {
+                                    viewModel.handleGoogleAuthSuccess()
+                                },
+                                onError = { errorMsg ->
+                                    viewModel.setError(errorMsg)
+                                },
+                                onCancel = {
+                                    viewModel.setIdle()
                                 }
-                            }
-                        )
+                            )
+                        }
                     },
                     enabled = uiState !is LoginUiState.Loading,
                     modifier = Modifier
@@ -329,8 +347,10 @@ fun LoginScreen(
                 // Guest Mode / Anonymous Button
                 OutlinedButton(
                     onClick = {
-                        focusManager.clearFocus()
-                        viewModel.loginAnonymously(onNavigateToOnboarding)
+                        if (uiState !is LoginUiState.Loading) {
+                            focusManager.clearFocus()
+                            viewModel.loginAnonymously()
+                        }
                     },
                     enabled = uiState !is LoginUiState.Loading,
                     modifier = Modifier

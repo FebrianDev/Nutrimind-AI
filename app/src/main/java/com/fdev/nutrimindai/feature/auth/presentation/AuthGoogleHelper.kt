@@ -20,10 +20,13 @@ object AuthGoogleHelper {
     fun performGoogleSignIn(
         context: Context,
         coroutineScope: CoroutineScope,
+        onStart: () -> Unit = {},
         onIdTokenReceived: (String) -> Unit,
         onOAuthSuccess: () -> Unit,
-        onError: (String) -> Unit
+        onError: (String) -> Unit,
+        onCancel: () -> Unit = {}
     ) {
+        onStart()
         coroutineScope.launch {
             try {
                 val credentialManager = CredentialManager.create(context)
@@ -53,6 +56,7 @@ object AuthGoogleHelper {
                 }
             } catch (_: GetCredentialCancellationException) {
                 Timber.i("Google Sign-In was canceled by user")
+                onCancel()
                 return@launch
             } catch (e: GetCredentialException) {
                 Timber.w(e, "CredentialManager sign-in failed, attempting OAuthProvider fallback")

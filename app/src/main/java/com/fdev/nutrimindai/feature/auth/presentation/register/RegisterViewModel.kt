@@ -1,5 +1,6 @@
 package com.fdev.nutrimindai.feature.auth.presentation.register
 
+import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fdev.nutrimindai.core.database.DB_VERSION
@@ -47,7 +48,9 @@ class RegisterViewModel @Inject constructor(
         _password.value = newPassword
     }
 
-    fun register(onNavigateToOnboarding: () -> Unit) {
+    fun register() {
+        if (_uiState.value is RegisterUiState.Loading) return
+
         val currentName = _name.value.trim()
         val currentEmail = _email.value.trim()
         val currentPassword = _password.value
@@ -57,7 +60,11 @@ class RegisterViewModel @Inject constructor(
             return
         }
         if (currentEmail.isBlank()) {
-            _uiState.value = RegisterUiState.Error("Please enter your email.")
+            _uiState.value = RegisterUiState.Error("Please enter your email address.")
+            return
+        }
+        if (!Patterns.EMAIL_ADDRESS.matcher(currentEmail).matches()) {
+            _uiState.value = RegisterUiState.Error("Please enter a valid email address.")
             return
         }
         if (currentPassword.length < 6) {
@@ -67,79 +74,103 @@ class RegisterViewModel @Inject constructor(
 
         viewModelScope.launch {
             _uiState.value = RegisterUiState.Loading
-            val result = authRepository.registerWithEmail(currentName, currentEmail, currentPassword)
-            result.fold(
-                onSuccess = {
-                    _uiState.value = RegisterUiState.Success
-                    onNavigateToOnboarding()
-                },
-                onFailure = { error ->
-                    _uiState.value = RegisterUiState.Error(error.message ?: "Registration failed. Please try again.")
-                }
-            )
+            try {
+                val result = authRepository.registerWithEmail(currentName, currentEmail, currentPassword)
+                result.fold(
+                    onSuccess = {
+                        _uiState.value = RegisterUiState.Success(isNewUser = true)
+                    },
+                    onFailure = { error ->
+                        _uiState.value = RegisterUiState.Error(error.message ?: "Registration failed. Please try again.")
+                    }
+                )
+            } catch (e: Exception) {
+                Timber.e(e, "Unexpected error during registration")
+                _uiState.value = RegisterUiState.Error("An unexpected error occurred. Please try again.")
+            }
         }
     }
 
-    fun loginWithGoogle(
-        idToken: String,
-        onNavigateToHome: () -> Unit,
-        onNavigateToOnboarding: () -> Unit
-    ) {
-        viewModelScope.launch {
-            _uiState.value = RegisterUiState.Loading
-            val result = authRepository.loginWithGoogle(idToken)
-            result.fold(
-                onSuccess = {
-                    handleGoogleAuthSuccess(onNavigateToHome, onNavigateToOnboarding)
-                },
-                onFailure = { error ->
-                    _uiState.value = RegisterUiState.Error(error.message ?: "Google registration failed. Please try again.")
-                }
-            )
+    fun setLoading() {
+        _uiState.value = RegisterUiState.Loading
+    }
+
+    fun setIdle() {
+        if (_uiState.value is RegisterUiState.Loading) {
+            _uiState.value = RegisterUiState.Idle
         }
     }
 
-    fun handleGoogleAuthSuccess(
-        onNavigateToHome: () -> Unit,
-        onNavigateToOnboarding: () -> Unit
-    ) {
+    fun setError(message: String) {
+        _uiState.value = RegisterUiState.Error(message)
+    }
+
+    fun loginWithGoogle(idToken: String) {
         viewModelScope.launch {
             _uiState.value = RegisterUiState.Loading
             try {
-                firestoreSyncRepository.downloadAndRestoreUserData()
-                preferenceManager.setSavedDbVersion(DB_VERSION)
+                val result = authRepository.loginWithGoogle(idToken)
+                result.fold(
+                    onSuccess = {
+                        handleGoogleAuthSuccess()
+                    },
+                    onFailure = { error ->
+                        _uiState.value = RegisterUiState.Error(error.message ?: "Google registration failed. Please try again.")
+                    }
+                )
             } catch (e: Exception) {
-                Timber.e(e, "Failed to pull user data from Firestore on Google registration")
-            }
-
-            val profile = profileRepository.getProfileDirect()
-            val hasProfile = profile != null
-
-            if (hasProfile) {
-                preferenceManager.setOnboardingCompleted(true)
-                _uiState.value = RegisterUiState.Success
-                onNavigateToHome()
-            } else {
-                _uiState.value = RegisterUiState.Success
-                onNavigateToOnboarding()
+                Timber.e(e, "Unexpected error during Google login")
+                _uiState.value = RegisterUiState.Error("Google registration failed. Please try again.")
             }
         }
     }
 
-
-    fun loginAnonymously(onNavigateToOnboarding: () -> Unit) {
+    fun handleGoogleAuthSuccess() {
         viewModelScope.launch {
             _uiState.value = RegisterUiState.Loading
-            val result = authRepository.loginAnonymously()
-            result.fold(
-                onSuccess = {
-                    _uiState.value = RegisterUiState.Success
-                    onNavigateToOnboarding()
-                },
-                onFailure = { error ->
-                    _uiState.value = RegisterUiState.Error(error.message ?: "Guest login failed.")
+            try {
+                try {
+                    firestoreSyncRepository.downloadAndRestoreUserData()
+                    preferenceManager.setSavedDbVersion(DB_VERSION)
+                } catch (e: Exception) {
+                    Timber.e(e, "Failed to pull user data from Firestore on Google registration")
                 }
-            )
+
+                val profile = profileRepository.getProfileDirect()
+                val hasProfile = profile != null
+
+                if (hasProfile) {
+                    preferenceManager.setOnboardingCompleted(true)
+                    _uiState.value = RegisterUiState.Success(isNewUser = false)
+                } else {
+                    _uiState.value = RegisterUiState.Success(isNewUser = true)
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Error processing profile state after Google sign in")
+                _uiState.value = RegisterUiState.Error("Error checking user profile. Please try logging in again.")
+            }
+        }
+    }
+
+    fun loginAnonymously() {
+        if (_uiState.value is RegisterUiState.Loading) return
+
+        viewModelScope.launch {
+            _uiState.value = RegisterUiState.Loading
+            try {
+                val result = authRepository.loginAnonymously()
+                result.fold(
+                    onSuccess = {
+                        _uiState.value = RegisterUiState.Success(isNewUser = true)
+                    },
+                    onFailure = { error ->
+                        _uiState.value = RegisterUiState.Error(error.message ?: "Guest login failed.")
+                    }
+                )
+            } catch (e: Exception) {
+                Timber.e(e, "Unexpected error during guest login")
+                _uiState.value = RegisterUiState.Error("Guest login failed. Please try again.")
+            }
         }
     }
 
@@ -147,5 +178,9 @@ class RegisterViewModel @Inject constructor(
         if (_uiState.value is RegisterUiState.Error) {
             _uiState.value = RegisterUiState.Idle
         }
+    }
+
+    fun resetUiState() {
+        _uiState.value = RegisterUiState.Idle
     }
 }
