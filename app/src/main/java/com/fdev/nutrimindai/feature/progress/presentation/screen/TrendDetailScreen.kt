@@ -129,7 +129,9 @@ fun TrendDetailScreen(
                         metric = metric,
                         valueStr = detail.avgValueStr,
                         unit = detail.unit,
-                        percentChangeStr = detail.percentChangeStr
+                        percentChangeStr = detail.percentChangeStr,
+                        isPositiveTrend = detail.isPositiveTrend,
+                        selectedPeriodTab = detail.selectedPeriodTab
                     )
 
                     // Canvas Trend Line Chart
@@ -175,7 +177,9 @@ fun TrendSummarySection(
     metric: String,
     valueStr: String,
     unit: String,
-    percentChangeStr: String
+    percentChangeStr: String,
+    isPositiveTrend: Boolean = true,
+    selectedPeriodTab: Int = 0
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -196,15 +200,21 @@ fun TrendSummarySection(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+            val avgPeriodLabel = when (selectedPeriodTab) {
+                1 -> "Average this month"
+                2 -> "Average last 3 months"
+                else -> stringResource(R.string.avg_this_week)
+            }
             Text(
-                text = stringResource(R.string.avg_this_week),
+                text = avgPeriodLabel,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
 
+        val trendColor = if (isPositiveTrend) LightSuccess else MaterialTheme.colorScheme.error
         Surface(
-            color = LightSuccess.copy(alpha = 0.1f),
+            color = trendColor.copy(alpha = 0.12f),
             shape = RoundedCornerShape(8.dp)
         ) {
             Row(
@@ -214,14 +224,19 @@ fun TrendSummarySection(
                 Text(
                     text = percentChangeStr,
                     style = MaterialTheme.typography.labelMedium,
-                    color = LightSuccess,
+                    color = trendColor,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.width(4.dp))
+                val vsPeriodLabel = when (selectedPeriodTab) {
+                    1 -> "vs last month"
+                    2 -> "vs last 3 months"
+                    else -> stringResource(R.string.vs_last_week)
+                }
                 Text(
-                    text = stringResource(R.string.vs_last_week),
+                    text = vsPeriodLabel,
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                     fontSize = 10.sp
                 )
             }

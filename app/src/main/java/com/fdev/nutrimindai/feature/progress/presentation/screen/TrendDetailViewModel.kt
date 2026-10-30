@@ -75,8 +75,8 @@ class TrendDetailViewModel @Inject constructor(
             try {
                 val dayCount = when (periodTab) {
                     0 -> 7
-                    1 -> 14
-                    2 -> 30
+                    1 -> 30
+                    2 -> 90
                     else -> 7
                 }
 

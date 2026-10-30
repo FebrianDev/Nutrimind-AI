@@ -429,13 +429,23 @@ class ProgressViewModel @Inject constructor(
         val aiInsight = generateAiInsight(avgCalories, targetCal, waterGoalPercent, completedDays, totalDays)
 
         val todayPoint = trendPoints.lastOrNull()
+        val todayRecord = dayRecords.find { it.dateStr == currentDate } ?: dayRecords.lastOrNull()
+        val todayCarbs = todayRecord?.intakes?.sumOf { it.carbs } ?: 0.0
+        val todayFat = todayRecord?.intakes?.sumOf { it.fat } ?: 0.0
+        val todayFiber = todayRecord?.intakes?.sumOf { it.fiber } ?: 0.0
+
         val todayNutrition = NutritionSummary(
             calories = todayPoint?.calories?.toInt() ?: 0,
             protein = todayPoint?.protein?.toDouble() ?: 0.0,
+            carbs = todayCarbs,
+            fat = todayFat,
+            fiber = todayFiber,
             water = todayPoint?.water?.toInt() ?: 0,
             exerciseCalories = (todayPoint?.exercise ?: 0f).toInt(),
             goalCalories = targetCal,
             goalProtein = targetProtein.toInt(),
+            goalCarbs = profile?.dailyCarbs ?: NutritionSummary.DEFAULT_GOAL_CARBS,
+            goalFat = profile?.dailyFat ?: NutritionSummary.DEFAULT_GOAL_FAT,
             goalWater = targetWater
         )
 
