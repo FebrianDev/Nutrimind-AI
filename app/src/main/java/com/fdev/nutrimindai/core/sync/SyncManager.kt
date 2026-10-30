@@ -67,7 +67,14 @@ class SyncManager @Inject constructor(
     }
 
     suspend fun runSyncNowDirectly(): SyncResult {
-        triggerManualSync()
-        return firestoreSyncRepository.syncUnsyncedData()
+        val result = firestoreSyncRepository.syncUnsyncedData()
+        if (result.success && result.remainingUnsyncedCount == 0) {
+            runCatching {
+                workManager.cancelUniqueWork("manual_${DataSyncWorker.WORK_NAME}")
+            }
+        } else if (!result.success && result.remainingUnsyncedCount > 0) {
+            triggerManualSync()
+        }
+        return result
     }
 }
