@@ -196,13 +196,17 @@ class AlarmReceiver : BroadcastReceiver() {
             }
         }
 
-        notificationHelper.showMealReminder(
-            mealType = mealType,
-            title = title,
-            message = message,
-            notificationId = notifId,
-            isAlreadyLogged = isAlreadyLogged
-        )
+        if (isAlreadyLogged && settings.smartSkipIfLogged) {
+            Timber.d("AlarmReceiver: Meal $mealType already logged and smartSkipIfLogged is true. Skipping notification.")
+        } else {
+            notificationHelper.showMealReminder(
+                mealType = mealType,
+                title = title,
+                message = message,
+                notificationId = notifId,
+                isAlreadyLogged = isAlreadyLogged
+            )
+        }
 
         // Reschedule for next day
         val timeStr = when (mealType.lowercase()) {
@@ -248,12 +252,7 @@ class AlarmReceiver : BroadcastReceiver() {
         val settings = preferenceManager.reminderSettings.first()
 
         if (currentWater >= targetWater && settings.smartSkipIfLogged) {
-            notificationHelper.showWaterLoggedConfirmation(
-                addedMl = 0,
-                totalMl = currentWater,
-                targetMl = targetWater,
-                quickLogAmount = settings.quickLogWaterAmountMl
-            )
+            Timber.d("AlarmReceiver: Water target reached ($currentWater >= $targetWater ml) and smartSkipIfLogged is true. Skipping notification.")
         } else {
             val messages = listOf(
                 context.getString(R.string.notif_water_msg_1),
