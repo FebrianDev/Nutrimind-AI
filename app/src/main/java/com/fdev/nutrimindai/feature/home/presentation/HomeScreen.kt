@@ -298,7 +298,7 @@ fun HomeContent(
                     exerciseSummary = exerciseSummary,
                     isWaterLogged = summary.waterTotalMl > 0,
                     isExerciseLogged = summary.exerciseList.isNotEmpty(),
-                    onOpenNutriChef = if (summary.status == DailyLogStatus.DRAFT) onOpenNutriChef else null,
+                    onOpenNutriChef = null,
                     onMealClick = { mealType ->
                         when (mealType) {
                             "Water" -> onNavigateToWater()

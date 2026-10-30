@@ -95,10 +95,11 @@ fun WaterScreen(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(horizontal = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(20.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
                         contentPadding = PaddingValues(top = 8.dp, bottom = 32.dp)
                     ) {
                         item {
+                            Spacer(modifier = Modifier.height(8.dp))
                             WaterProgressCard(
                                 totalMl = state.totalMl,
                                 goalMl = state.goalMl,
@@ -108,6 +109,7 @@ fun WaterScreen(
 
                         if (state.status == DailyLogStatus.DRAFT) {
                             item {
+                                Spacer(modifier = Modifier.height(8.dp))
                                 QuickAddSection(
                                     onAddQuick = { viewModel.addWater(it) },
                                     onCustomClick = { showCustomWaterDialog = true }
@@ -245,13 +247,14 @@ fun QuickAddSection(
             QuickAddButton("+250 ml", Modifier.weight(1f)) { onAddQuick(250) }
             QuickAddButton("+500 ml", Modifier.weight(1f)) { onAddQuick(500) }
             QuickAddButton("+750 ml", Modifier.weight(1f)) { onAddQuick(750) }
-            OutlinedButton(
-                onClick = onCustomClick,
-                modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Text(stringResource(R.string.label_custom), fontWeight = FontWeight.Bold)
-            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedButton(
+            onClick = onCustomClick,
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text(stringResource(R.string.label_custom), fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -265,9 +268,15 @@ fun QuickAddButton(text: String, modifier: Modifier = Modifier, onClick: () -> U
         colors = ButtonDefaults.filledTonalButtonColors(
             containerColor = Color(0xFF0288D1).copy(alpha = 0.15f),
             contentColor = Color(0xFF0288D1)
-        )
+        ),
+        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp)
     ) {
-        Text(text, fontWeight = FontWeight.Bold)
+        Text(
+            text = text,
+            fontWeight = FontWeight.Bold,
+            maxLines = 1,
+            softWrap = false
+        )
     }
 }
 

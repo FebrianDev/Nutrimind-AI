@@ -291,7 +291,7 @@ fun ReminderSettingsScreen(
                             // Interval selector chips
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
                                 val intervals = listOf(
                                     Pair(stringResource(R.string.reminder_water_interval_1h), 1.0f),
@@ -301,8 +301,7 @@ fun ReminderSettingsScreen(
                                 )
                                 intervals.forEach { (label, value) ->
                                     val isSelected = settings.waterIntervalHours == value
-                                    FilterChip(
-                                        selected = isSelected,
+                                    Surface(
                                         onClick = {
                                             viewModel.updateWater(
                                                 enabled = true,
@@ -311,19 +310,28 @@ fun ReminderSettingsScreen(
                                                 endTime = settings.waterEndTime
                                             )
                                         },
-                                        label = {
+                                        shape = RoundedCornerShape(10.dp),
+                                        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                                        border = BorderStroke(
+                                            width = 1.dp,
+                                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+                                        ),
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Box(
+                                            modifier = Modifier.padding(horizontal = 0.dp, vertical = 2.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
                                             Text(
                                                 text = label,
                                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                                fontSize = 12.sp
+                                                fontSize = 11.sp,
+                                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                                maxLines = 1,
+                                                softWrap = false
                                             )
-                                        },
-                                        modifier = Modifier.weight(1f),
-                                        colors = FilterChipDefaults.filterChipColors(
-                                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                                            selectedLabelColor = MaterialTheme.colorScheme.primary
-                                        )
-                                    )
+                                        }
+                                    }
                                 }
                             }
 
@@ -377,27 +385,35 @@ fun ReminderSettingsScreen(
 
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
                                 val quickAmounts = listOf(200, 250, 330, 500)
                                 quickAmounts.forEach { amount ->
                                     val isSelected = settings.quickLogWaterAmountMl == amount
-                                    FilterChip(
-                                        selected = isSelected,
+                                    Surface(
                                         onClick = { viewModel.updateQuickLogAmount(amount) },
-                                        label = {
+                                        shape = RoundedCornerShape(10.dp),
+                                        color = if (isSelected) NutritionWater.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                                        border = BorderStroke(
+                                            width = 1.dp,
+                                            color = if (isSelected) NutritionWater else MaterialTheme.colorScheme.outlineVariant
+                                        ),
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Box(
+                                            modifier = Modifier.padding(horizontal = 0 .dp, vertical = 2.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
                                             Text(
                                                 text = "+$amount ml",
                                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                                fontSize = 12.sp
+                                                fontSize = 11.sp,
+                                                color = if (isSelected) NutritionWater else MaterialTheme.colorScheme.onSurfaceVariant,
+                                                maxLines = 1,
+                                                softWrap = false
                                             )
-                                        },
-                                        modifier = Modifier.weight(1f),
-                                        colors = FilterChipDefaults.filterChipColors(
-                                            selectedContainerColor = NutritionWater.copy(alpha = 0.2f),
-                                            selectedLabelColor = NutritionWater
-                                        )
-                                    )
+                                        }
+                                    }
                                 }
                             }
                         }
