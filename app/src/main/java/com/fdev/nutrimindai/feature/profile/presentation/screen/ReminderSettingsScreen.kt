@@ -673,6 +673,20 @@ fun ReminderSettingsScreen(
     if (showWaterWindowDialog) {
         var startHourText by remember { mutableStateOf(settings.waterStartTime) }
         var endHourText by remember { mutableStateOf(settings.waterEndTime) }
+        var validationError by remember { mutableStateOf<String?>(null) }
+
+        fun parseMinutesOfDay(timeStr: String): Int? {
+            val trimmed = timeStr.trim()
+            val match = Regex("^([01]?\\d|2[0-3]):([0-5]\\d)$").matchEntire(trimmed) ?: return null
+            val hours = match.groupValues[1].toIntOrNull() ?: return null
+            val minutes = match.groupValues[2].toIntOrNull() ?: return null
+            return hours * 60 + minutes
+        }
+
+        fun normalizeTimeFormat(timeStr: String): String {
+            val mins = parseMinutesOfDay(timeStr) ?: return timeStr.trim()
+            return String.format("%02d:%02d", mins / 60, mins % 60)
+        }
 
         AlertDialog(
             onDismissRequest = { showWaterWindowDialog = false },
@@ -714,8 +728,13 @@ fun ReminderSettingsScreen(
                     )
                     OutlinedTextField(
                         value = startHourText,
-                        onValueChange = { startHourText = it },
+                        onValueChange = {
+                            startHourText = it
+                            validationError = null
+                        },
                         label = { Text(stringResource(R.string.reminder_dialog_water_start_time)) },
+                        placeholder = { Text("08:00") },
+                        isError = validationError != null,
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.WbSunny,
@@ -738,8 +757,13 @@ fun ReminderSettingsScreen(
                     )
                     OutlinedTextField(
                         value = endHourText,
-                        onValueChange = { endHourText = it },
+                        onValueChange = {
+                            endHourText = it
+                            validationError = null
+                        },
                         label = { Text(stringResource(R.string.reminder_dialog_water_end_time)) },
+                        placeholder = { Text("21:00") },
+                        isError = validationError != null,
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.NightsStay,
@@ -760,18 +784,37 @@ fun ReminderSettingsScreen(
                         ),
                         modifier = Modifier.fillMaxWidth()
                     )
+                    if (validationError != null) {
+                        Text(
+                            text = validationError!!,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
                 }
             },
             confirmButton = {
                 Button(
                     onClick = {
-                        viewModel.updateWater(
-                            enabled = true,
-                            intervalHours = settings.waterIntervalHours,
-                            startTime = startHourText.trim(),
-                            endTime = endHourText.trim()
-                        )
-                        showWaterWindowDialog = false
+                        val startMins = parseMinutesOfDay(startHourText)
+                        val endMins = parseMinutesOfDay(endHourText)
+                        when {
+                            startMins == null || endMins == null -> {
+                                validationError = "Please enter valid 24-hour times in HH:mm format (e.g. 08:00 and 21:00)."
+                            }
+                            startMins >= endMins -> {
+                                validationError = "Start time must be earlier than end time."
+                            }
+                            else -> {
+                                viewModel.updateWater(
+                                    enabled = true,
+                                    intervalHours = settings.waterIntervalHours,
+                                    startTime = normalizeTimeFormat(startHourText),
+                                    endTime = normalizeTimeFormat(endHourText)
+                                )
+                                showWaterWindowDialog = false
+                            }
+                        }
                     },
                     shape = RoundedCornerShape(12.dp),
                     colors = ButtonDefaults.buttonColors(
