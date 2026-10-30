@@ -1,5 +1,6 @@
 package com.fdev.nutrimindai.feature.dailyintake.data.repository
 
+import com.fdev.nutrimindai.core.datastore.PreferenceManager
 import com.fdev.nutrimindai.feature.dailyintake.data.local.datasource.LocalWaterDataSource
 import com.fdev.nutrimindai.feature.dailyintake.data.mapper.toDomain
 import com.fdev.nutrimindai.feature.dailyintake.data.mapper.toEntity
@@ -10,7 +11,8 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class WaterRepositoryImpl @Inject constructor(
-    private val localDataSource: LocalWaterDataSource
+    private val localDataSource: LocalWaterDataSource,
+    private val preferenceManager: PreferenceManager
 ) : WaterRepository {
 
     override fun getWaterRecordsForDailyLog(dailyLogId: Long): Flow<List<Water>> {
@@ -26,6 +28,17 @@ class WaterRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteWater(water: Water) {
-        localDataSource.deleteWater(water.toEntity(createdAt = 0L))
+        val existingEntity = localDataSource.getWaterRecordsForDailyLogDirect(water.dailyLogId)
+            .find { it.id == water.id }
+        val docIds = buildList {
+            if (water.id > 0L) {
+                add(water.id.toString())
+                if (existingEntity != null && existingEntity.createdAt > 0L) {
+                    add("${existingEntity.createdAt}_${water.id}")
+                }
+            }
+        }
+        localDataSource.deleteWater(existingEntity ?: water.toEntity(createdAt = 0L))
+        preferenceManager.queueCloudDeletion("water_records", docIds)
     }
 }

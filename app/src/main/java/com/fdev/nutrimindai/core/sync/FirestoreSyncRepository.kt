@@ -1,5 +1,6 @@
 package com.fdev.nutrimindai.core.sync
 
+import android.net.Uri
 import com.fdev.nutrimindai.feature.dailyintake.data.local.dao.DailyLogDao
 import com.fdev.nutrimindai.feature.dailyintake.data.local.dao.ExerciseDao
 import com.fdev.nutrimindai.feature.dailyintake.data.local.dao.FoodDao
@@ -7,9 +8,17 @@ import com.fdev.nutrimindai.feature.dailyintake.data.local.dao.IntakeDao
 import com.fdev.nutrimindai.feature.dailyintake.data.local.dao.WaterDao
 import com.fdev.nutrimindai.feature.profile.data.local.dao.ProfileDao
 import com.fdev.nutrimindai.feature.progress.data.local.dao.WeightLogDao
+import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -49,11 +58,22 @@ class FirestoreSyncRepository @Inject constructor(
     private val preferenceManager: PreferenceManager
 ) {
 
+    private val syncMutex = Mutex()
+
     private val firestore: FirebaseFirestore? by lazy {
         try {
             FirebaseFirestore.getInstance()
         } catch (e: Exception) {
             Timber.w("FirestoreSyncRepository: Firestore is not initialized.")
+            null
+        }
+    }
+
+    private val storage: FirebaseStorage? by lazy {
+        try {
+            FirebaseStorage.getInstance()
+        } catch (e: Exception) {
+            Timber.w("FirestoreSyncRepository: FirebaseStorage is not initialized.")
             null
         }
     }
@@ -66,10 +86,71 @@ class FirestoreSyncRepository @Inject constructor(
         val exercises = exerciseDao.getUnsyncedExercises().size
         val foods = foodDao.getUnsyncedFoods().size
         val weights = weightLogDao.getUnsyncedWeightLogs().size
-        return profiles + dailyLogs + intakes + waters + exercises + foods + weights
+        val pendingDeletions = preferenceManager.getPendingCloudDeletions().size
+        val pendingReset = if (preferenceManager.isPendingCloudReset()) 1 else 0
+        return profiles + dailyLogs + intakes + waters + exercises + foods + weights + pendingDeletions + pendingReset
     }
 
-    suspend fun syncUnsyncedData(): SyncResult {
+    private suspend fun processPendingCloudDeletions(userRef: DocumentReference): Int {
+        var processedCount = 0
+
+        if (preferenceManager.isPendingCloudReset()) {
+            val collectionsToClear = listOf("intakes", "water_records", "exercises", "daily_logs", "foods")
+            for (collectionName in collectionsToClear) {
+                val snapshot = userRef.collection(collectionName).get().await()
+                for (doc in snapshot.documents) {
+                    doc.reference.delete().await()
+                    processedCount++
+                }
+            }
+            preferenceManager.setPendingCloudReset(false)
+            processedCount++
+        }
+
+        val pendingDeletions = preferenceManager.getPendingCloudDeletions()
+        if (pendingDeletions.isNotEmpty()) {
+            val completedEntries = mutableSetOf<String>()
+            for (entry in pendingDeletions) {
+                val parts = entry.split(":", limit = 2)
+                if (parts.size == 2) {
+                    val collection = parts[0]
+                    val docId = parts[1]
+                    if (collection.isNotBlank() && docId.isNotBlank()) {
+                        userRef.collection(collection).document(docId).delete().await()
+                    }
+                }
+                completedEntries.add(entry)
+            }
+            preferenceManager.removePendingCloudDeletions(completedEntries)
+            processedCount += completedEntries.size
+        }
+
+        return processedCount
+    }
+
+    private suspend fun uploadFoodImageIfNeeded(
+        userId: String,
+        docId: String,
+        imagePath: String?
+    ): String? {
+        if (imagePath.isNullOrBlank()) return null
+        if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) return imagePath
+
+        val localFile = File(imagePath)
+        if (!localFile.exists()) return null
+
+        val storageInstance = storage ?: return imagePath
+        return try {
+            val imageRef = storageInstance.reference.child("users/$userId/food_images/$docId.jpg")
+            imageRef.putFile(Uri.fromFile(localFile)).await()
+            imageRef.downloadUrl.await().toString()
+        } catch (e: Exception) {
+            Timber.w(e, "FirestoreSyncRepository: Failed to upload food image, keeping local path")
+            imagePath
+        }
+    }
+
+    suspend fun syncUnsyncedData(): SyncResult = syncMutex.withLock {
         val db = firestore
         if (db == null) {
             val remaining = getUnsyncedCount()
@@ -86,6 +167,9 @@ class FirestoreSyncRepository @Inject constructor(
         var totalSynced = 0
 
         try {
+            // 0. Process pending cloud deletions / progress resets first
+            totalSynced += processPendingCloudDeletions(userRef)
+
             // 1. Sync Profiles
             val unsyncedProfiles = profileDao.getUnsyncedProfiles()
             if (unsyncedProfiles.isNotEmpty()) {
@@ -119,10 +203,11 @@ class FirestoreSyncRepository @Inject constructor(
                 totalSynced += unsyncedProfiles.size
             }
 
-            // 2. Sync Daily Logs
+            // 2. Sync Daily Logs (using date as deterministic document ID)
             val unsyncedDailyLogs = dailyLogDao.getUnsyncedDailyLogs()
             if (unsyncedDailyLogs.isNotEmpty()) {
                 for (log in unsyncedDailyLogs) {
+                    val docId = log.date.ifBlank { log.id.toString() }
                     val data = mapOf(
                         "id" to log.id,
                         "date" to log.date,
@@ -133,19 +218,24 @@ class FirestoreSyncRepository @Inject constructor(
                         "aiScore" to log.aiScore,
                         "isSync" to true
                     )
-                    userRef.collection("daily_logs").document(log.id.toString()).set(data).await()
+                    userRef.collection("daily_logs").document(docId).set(data).await()
                 }
                 dailyLogDao.markDailyLogsSynced(unsyncedDailyLogs.map { it.id })
                 totalSynced += unsyncedDailyLogs.size
             }
 
-            // 3. Sync Intakes
+            val logIdToDate = dailyLogDao.getAllDailyLogsDirect().associate { it.id to it.date }
+
+            // 3. Sync Intakes (using composite createdAt_id document ID & uploading food photo)
             val unsyncedIntakes = intakeDao.getUnsyncedIntakes()
             if (unsyncedIntakes.isNotEmpty()) {
                 for (intake in unsyncedIntakes) {
+                    val docId = "${intake.createdAt}_${intake.id}"
+                    val syncedImagePath = uploadFoodImageIfNeeded(userId, docId, intake.imagePath)
                     val data = mapOf(
                         "id" to intake.id,
                         "dailyLogId" to intake.dailyLogId,
+                        "logDate" to (logIdToDate[intake.dailyLogId] ?: ""),
                         "mealType" to intake.mealType.name,
                         "foodName" to intake.foodName,
                         "servingSize" to intake.servingSize,
@@ -155,41 +245,45 @@ class FirestoreSyncRepository @Inject constructor(
                         "carbs" to intake.carbs,
                         "fat" to intake.fat,
                         "fiber" to intake.fiber,
-                        "imagePath" to intake.imagePath,
+                        "imagePath" to syncedImagePath,
                         "foodSource" to intake.foodSource.name,
                         "createdAt" to intake.createdAt,
                         "isSync" to true
                     )
-                    userRef.collection("intakes").document(intake.id.toString()).set(data).await()
+                    userRef.collection("intakes").document(docId).set(data).await()
                 }
                 intakeDao.markIntakesSynced(unsyncedIntakes.map { it.id })
                 totalSynced += unsyncedIntakes.size
             }
 
-            // 4. Sync Water Records
+            // 4. Sync Water Records (using composite createdAt_id document ID)
             val unsyncedWaters = waterDao.getUnsyncedWater()
             if (unsyncedWaters.isNotEmpty()) {
                 for (water in unsyncedWaters) {
+                    val docId = "${water.createdAt}_${water.id}"
                     val data = mapOf(
                         "id" to water.id,
                         "dailyLogId" to water.dailyLogId,
+                        "logDate" to (logIdToDate[water.dailyLogId] ?: ""),
                         "amountMl" to water.amountMl,
                         "createdAt" to water.createdAt,
                         "isSync" to true
                     )
-                    userRef.collection("water_records").document(water.id.toString()).set(data).await()
+                    userRef.collection("water_records").document(docId).set(data).await()
                 }
                 waterDao.markWaterSynced(unsyncedWaters.map { it.id })
                 totalSynced += unsyncedWaters.size
             }
 
-            // 5. Sync Exercises
+            // 5. Sync Exercises (using composite createdAt_id document ID)
             val unsyncedExercises = exerciseDao.getUnsyncedExercises()
             if (unsyncedExercises.isNotEmpty()) {
                 for (ex in unsyncedExercises) {
+                    val docId = "${ex.createdAt}_${ex.id}"
                     val data = mapOf(
                         "id" to ex.id,
                         "dailyLogId" to ex.dailyLogId,
+                        "logDate" to (logIdToDate[ex.dailyLogId] ?: ""),
                         "exerciseType" to ex.exerciseType,
                         "durationMinute" to ex.durationMinute,
                         "caloriesBurned" to ex.caloriesBurned,
@@ -197,16 +291,21 @@ class FirestoreSyncRepository @Inject constructor(
                         "createdAt" to ex.createdAt,
                         "isSync" to true
                     )
-                    userRef.collection("exercises").document(ex.id.toString()).set(data).await()
+                    userRef.collection("exercises").document(docId).set(data).await()
                 }
                 exerciseDao.markExercisesSynced(unsyncedExercises.map { it.id })
                 totalSynced += unsyncedExercises.size
             }
 
-            // 6. Sync Custom Foods
+            // 6. Sync Custom Foods (using normalized name document ID to avoid colliding with pre-seeded IDs)
             val unsyncedFoods = foodDao.getUnsyncedFoods()
             if (unsyncedFoods.isNotEmpty()) {
                 for (food in unsyncedFoods) {
+                    val normalizedName = food.name.trim()
+                        .lowercase(Locale.ROOT)
+                        .replace(Regex("[^a-z0-9]+"), "_")
+                        .trim('_')
+                    val docId = if (normalizedName.isNotBlank()) "food_$normalizedName" else "food_${food.id}"
                     val data = mapOf(
                         "id" to food.id,
                         "name" to food.name,
@@ -218,16 +317,17 @@ class FirestoreSyncRepository @Inject constructor(
                         "servingUnit" to food.servingUnit,
                         "isSync" to true
                     )
-                    userRef.collection("foods").document(food.id.toString()).set(data).await()
+                    userRef.collection("foods").document(docId).set(data).await()
                 }
                 foodDao.markFoodsSynced(unsyncedFoods.map { it.id })
                 totalSynced += unsyncedFoods.size
             }
 
-            // 7. Sync Weight Logs
+            // 7. Sync Weight Logs (using date as deterministic document ID)
             val unsyncedWeightLogs = weightLogDao.getUnsyncedWeightLogs()
             if (unsyncedWeightLogs.isNotEmpty()) {
                 for (log in unsyncedWeightLogs) {
+                    val docId = log.date.ifBlank { "${log.timestamp}_${log.id}" }
                     val data = mapOf(
                         "id" to log.id,
                         "date" to log.date,
@@ -236,7 +336,7 @@ class FirestoreSyncRepository @Inject constructor(
                         "timestamp" to log.timestamp,
                         "isSync" to true
                     )
-                    userRef.collection("weight_logs").document(log.id.toString()).set(data).await()
+                    userRef.collection("weight_logs").document(docId).set(data).await()
                 }
                 weightLogDao.markWeightLogsSynced(unsyncedWeightLogs.map { it.id })
                 totalSynced += unsyncedWeightLogs.size
@@ -262,12 +362,15 @@ class FirestoreSyncRepository @Inject constructor(
         }
     }
 
-    suspend fun downloadAndRestoreUserData(): Result<Unit> {
+    suspend fun downloadAndRestoreUserData(): Result<Unit> = syncMutex.withLock {
         val db = firestore ?: return Result.failure(Exception("Firebase Firestore is not initialized."))
         val userId = authManager.getOrCreateUserId()
         val userRef = db.collection("users").document(userId)
 
         return try {
+            // Apply any pending local deletions or resets before downloading from cloud
+            processPendingCloudDeletions(userRef)
+
             // 1. Fetch & Restore profiles
             val profileSnapshot = userRef.collection("profiles").get().await()
             val restoredProfiles = if (!profileSnapshot.isEmpty) {
@@ -276,7 +379,7 @@ class FirestoreSyncRepository @Inject constructor(
                         val genderStr = doc.getString("gender") ?: "Male"
                         val activityLevelStr = doc.getString("activityLevel") ?: "Sedentary"
                         val goalStr = doc.getString("goal") ?: "MaintainWeight"
-                        
+
                         ProfileEntity(
                             id = doc.getString("id") ?: ProfileEntity.DEFAULT_PROFILE_ID,
                             name = doc.getString("name") ?: "",
@@ -346,15 +449,25 @@ class FirestoreSyncRepository @Inject constructor(
                 preferenceManager.setOnboardingCompleted(true)
             }
 
-            // 2. Fetch & Restore Daily Logs
+            val remoteLogIdToDate = mutableMapOf<Long, String>()
+            val dateToLocalLogId = dailyLogDao.getAllDailyLogsDirect()
+                .associate { it.date to it.id }
+                .toMutableMap()
+
+            // 2. Fetch & Restore Daily Logs (deduplicated by date, preserving local primary keys)
             val dailyLogsSnapshot = userRef.collection("daily_logs").get().await()
             if (!dailyLogsSnapshot.isEmpty) {
-                val dailyLogs = dailyLogsSnapshot.documents.mapNotNull { doc ->
+                val parsedDailyLogs = dailyLogsSnapshot.documents.mapNotNull { doc ->
                     try {
                         val statusStr = doc.getString("status") ?: "DRAFT"
+                        val remoteId = doc.getLong("id") ?: doc.id.toLongOrNull() ?: 0L
+                        val dateStr = doc.getString("date") ?: ""
+                        if (remoteId > 0L && dateStr.isNotBlank()) {
+                            remoteLogIdToDate[remoteId] = dateStr
+                        }
                         DailyLogEntity(
-                            id = doc.getLong("id") ?: doc.id.toLongOrNull() ?: 0L,
-                            date = doc.getString("date") ?: "",
+                            id = remoteId,
+                            date = dateStr,
                             status = DailyLogStatus.valueOf(statusStr),
                             createdAt = doc.getLong("createdAt") ?: System.currentTimeMillis(),
                             completedAt = doc.getLong("completedAt"),
@@ -367,100 +480,226 @@ class FirestoreSyncRepository @Inject constructor(
                         null
                     }
                 }
-                for (log in dailyLogs) {
-                    dailyLogDao.insertDailyLog(log)
+
+                val deduplicatedByDate = parsedDailyLogs
+                    .filter { it.date.isNotBlank() }
+                    .groupBy { it.date }
+                    .mapValues { (_, logs) ->
+                        logs.maxWithOrNull(
+                            compareBy<DailyLogEntity> { it.status == DailyLogStatus.COMPLETED }
+                                .thenBy { !it.aiSummary.isNullOrBlank() }
+                                .thenBy { it.completedAt ?: 0L }
+                                .thenBy { it.createdAt }
+                        )!!
+                    }
+
+                for ((dateStr, log) in deduplicatedByDate) {
+                    val existingLocal = dailyLogDao.getDailyLogByDateDirect(dateStr)
+                    if (existingLocal != null) {
+                        val mergedStatus = if (
+                            existingLocal.status == DailyLogStatus.COMPLETED ||
+                            log.status == DailyLogStatus.COMPLETED
+                        ) {
+                            DailyLogStatus.COMPLETED
+                        } else {
+                            log.status
+                        }
+                        dailyLogDao.updateDailyLog(
+                            existingLocal.copy(
+                                status = mergedStatus,
+                                completedAt = log.completedAt ?: existingLocal.completedAt,
+                                aiSummary = log.aiSummary?.takeIf { it.isNotBlank() } ?: existingLocal.aiSummary,
+                                aiScore = log.aiScore ?: existingLocal.aiScore,
+                                isSync = true
+                            )
+                        )
+                        dateToLocalLogId[dateStr] = existingLocal.id
+                    } else {
+                        val insertedId = dailyLogDao.insertDailyLog(log.copy(id = 0L, isSync = true))
+                        val finalId = if (insertedId > 0L) {
+                            insertedId
+                        } else {
+                            dailyLogDao.getDailyLogByDateDirect(dateStr)?.id ?: 0L
+                        }
+                        if (finalId > 0L) {
+                            dateToLocalLogId[dateStr] = finalId
+                        }
+                    }
                 }
+            }
+
+            suspend fun resolveLocalDailyLogId(remoteDailyLogId: Long, logDate: String?): Long {
+                val resolvedDate = logDate?.takeIf { it.isNotBlank() }
+                    ?: remoteLogIdToDate[remoteDailyLogId]
+                    ?: SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+
+                dateToLocalLogId[resolvedDate]?.let { if (it > 0L) return it }
+
+                val existing = dailyLogDao.getDailyLogByDateDirect(resolvedDate)
+                if (existing != null) {
+                    dateToLocalLogId[resolvedDate] = existing.id
+                    return existing.id
+                }
+
+                val insertedId = dailyLogDao.insertDailyLog(
+                    DailyLogEntity(
+                        id = 0L,
+                        date = resolvedDate,
+                        status = DailyLogStatus.DRAFT,
+                        isSync = true
+                    )
+                )
+                val finalId = if (insertedId > 0L) {
+                    insertedId
+                } else {
+                    dailyLogDao.getDailyLogByDateDirect(resolvedDate)?.id ?: 0L
+                }
+                if (finalId > 0L) {
+                    dateToLocalLogId[resolvedDate] = finalId
+                }
+                return finalId
             }
 
             // 3. Fetch & Restore Intakes
             val intakesSnapshot = userRef.collection("intakes").get().await()
             if (!intakesSnapshot.isEmpty) {
-                val intakes = intakesSnapshot.documents.mapNotNull { doc ->
+                val existingIntakeKeysByLog = mutableMapOf<Long, MutableSet<String>>()
+                for (doc in intakesSnapshot.documents) {
                     try {
                         val mealTypeStr = doc.getString("mealType") ?: "BREAKFAST"
                         val foodSourceStr = doc.getString("foodSource") ?: "MANUAL"
-                        IntakeEntity(
-                            id = doc.getLong("id") ?: doc.id.toLongOrNull() ?: 0L,
-                            dailyLogId = doc.getLong("dailyLogId") ?: 0L,
-                            mealType = MealType.valueOf(mealTypeStr),
-                            foodName = doc.getString("foodName") ?: "",
-                            servingSize = doc.getDouble("servingSize") ?: 1.0,
-                            servingUnit = doc.getString("servingUnit") ?: "serving",
-                            calories = doc.getLong("calories")?.toInt() ?: 0,
-                            protein = doc.getDouble("protein") ?: 0.0,
-                            carbs = doc.getDouble("carbs") ?: 0.0,
-                            fat = doc.getDouble("fat") ?: 0.0,
-                            fiber = doc.getDouble("fiber") ?: 0.0,
-                            imagePath = doc.getString("imagePath"),
-                            foodSource = FoodSource.valueOf(foodSourceStr),
-                            createdAt = doc.getLong("createdAt") ?: System.currentTimeMillis(),
-                            isSync = true
-                        )
+                        val remoteDailyLogId = doc.getLong("dailyLogId") ?: 0L
+                        val logDate = doc.getString("logDate")
+                        val localDailyLogId = resolveLocalDailyLogId(remoteDailyLogId, logDate)
+                        if (localDailyLogId <= 0L) continue
+
+                        val existingKeys = existingIntakeKeysByLog.getOrPut(localDailyLogId) {
+                            intakeDao.getIntakesForDailyLogDirect(localDailyLogId)
+                                .map { "${it.createdAt}|${it.foodName}|${it.mealType.name}|${it.calories}" }
+                                .toMutableSet()
+                        }
+
+                        val createdAt = doc.getLong("createdAt") ?: System.currentTimeMillis()
+                        val foodName = doc.getString("foodName") ?: ""
+                        val calories = doc.getLong("calories")?.toInt() ?: 0
+                        val dedupKey = "$createdAt|$foodName|$mealTypeStr|$calories"
+
+                        if (existingKeys.add(dedupKey)) {
+                            val intake = IntakeEntity(
+                                id = 0L,
+                                dailyLogId = localDailyLogId,
+                                mealType = MealType.valueOf(mealTypeStr),
+                                foodName = foodName,
+                                servingSize = doc.getDouble("servingSize") ?: 1.0,
+                                servingUnit = doc.getString("servingUnit") ?: "serving",
+                                calories = calories,
+                                protein = doc.getDouble("protein") ?: 0.0,
+                                carbs = doc.getDouble("carbs") ?: 0.0,
+                                fat = doc.getDouble("fat") ?: 0.0,
+                                fiber = doc.getDouble("fiber") ?: 0.0,
+                                imagePath = doc.getString("imagePath"),
+                                foodSource = FoodSource.valueOf(foodSourceStr),
+                                createdAt = createdAt,
+                                isSync = true
+                            )
+                            intakeDao.insertIntake(intake)
+                        }
                     } catch (e: Exception) {
                         Timber.e(e, "Error parsing intake document")
-                        null
                     }
-                }
-                for (intake in intakes) {
-                    intakeDao.insertIntake(intake)
                 }
             }
 
             // 4. Fetch & Restore Water Records
             val waterSnapshot = userRef.collection("water_records").get().await()
             if (!waterSnapshot.isEmpty) {
-                val waters = waterSnapshot.documents.mapNotNull { doc ->
+                val existingWaterKeysByLog = mutableMapOf<Long, MutableSet<String>>()
+                for (doc in waterSnapshot.documents) {
                     try {
-                        WaterEntity(
-                            id = doc.getLong("id") ?: doc.id.toLongOrNull() ?: 0L,
-                            dailyLogId = doc.getLong("dailyLogId") ?: 0L,
-                            amountMl = doc.getLong("amountMl")?.toInt() ?: 0,
-                            createdAt = doc.getLong("createdAt") ?: System.currentTimeMillis(),
-                            isSync = true
-                        )
+                        val remoteDailyLogId = doc.getLong("dailyLogId") ?: 0L
+                        val logDate = doc.getString("logDate")
+                        val localDailyLogId = resolveLocalDailyLogId(remoteDailyLogId, logDate)
+                        if (localDailyLogId <= 0L) continue
+
+                        val existingKeys = existingWaterKeysByLog.getOrPut(localDailyLogId) {
+                            waterDao.getWaterRecordsForDailyLogDirect(localDailyLogId)
+                                .map { "${it.createdAt}|${it.amountMl}" }
+                                .toMutableSet()
+                        }
+
+                        val createdAt = doc.getLong("createdAt") ?: System.currentTimeMillis()
+                        val amountMl = doc.getLong("amountMl")?.toInt() ?: 0
+                        val dedupKey = "$createdAt|$amountMl"
+
+                        if (existingKeys.add(dedupKey)) {
+                            val water = WaterEntity(
+                                id = 0L,
+                                dailyLogId = localDailyLogId,
+                                amountMl = amountMl,
+                                createdAt = createdAt,
+                                isSync = true
+                            )
+                            waterDao.insertWater(water)
+                        }
                     } catch (e: Exception) {
                         Timber.e(e, "Error parsing water document")
-                        null
                     }
-                }
-                for (water in waters) {
-                    waterDao.insertWater(water)
                 }
             }
 
             // 5. Fetch & Restore Exercises
             val exerciseSnapshot = userRef.collection("exercises").get().await()
             if (!exerciseSnapshot.isEmpty) {
-                val exercises = exerciseSnapshot.documents.mapNotNull { doc ->
+                val existingExerciseKeysByLog = mutableMapOf<Long, MutableSet<String>>()
+                for (doc in exerciseSnapshot.documents) {
                     try {
-                        ExerciseEntity(
-                            id = doc.getLong("id") ?: doc.id.toLongOrNull() ?: 0L,
-                            dailyLogId = doc.getLong("dailyLogId") ?: 0L,
-                            exerciseType = doc.getString("exerciseType") ?: "",
-                            durationMinute = doc.getLong("durationMinute")?.toInt() ?: 0,
-                            caloriesBurned = doc.getLong("caloriesBurned")?.toInt() ?: 0,
-                            note = doc.getString("note"),
-                            createdAt = doc.getLong("createdAt") ?: System.currentTimeMillis(),
-                            isSync = true
-                        )
+                        val remoteDailyLogId = doc.getLong("dailyLogId") ?: 0L
+                        val logDate = doc.getString("logDate")
+                        val localDailyLogId = resolveLocalDailyLogId(remoteDailyLogId, logDate)
+                        if (localDailyLogId <= 0L) continue
+
+                        val existingKeys = existingExerciseKeysByLog.getOrPut(localDailyLogId) {
+                            exerciseDao.getExercisesForDailyLogDirect(localDailyLogId)
+                                .map { "${it.createdAt}|${it.exerciseType}|${it.durationMinute}|${it.caloriesBurned}" }
+                                .toMutableSet()
+                        }
+
+                        val createdAt = doc.getLong("createdAt") ?: System.currentTimeMillis()
+                        val exerciseType = doc.getString("exerciseType") ?: ""
+                        val durationMinute = doc.getLong("durationMinute")?.toInt() ?: 0
+                        val caloriesBurned = doc.getLong("caloriesBurned")?.toInt() ?: 0
+                        val dedupKey = "$createdAt|$exerciseType|$durationMinute|$caloriesBurned"
+
+                        if (existingKeys.add(dedupKey)) {
+                            val exercise = ExerciseEntity(
+                                id = 0L,
+                                dailyLogId = localDailyLogId,
+                                exerciseType = exerciseType,
+                                durationMinute = durationMinute,
+                                caloriesBurned = caloriesBurned,
+                                note = doc.getString("note"),
+                                createdAt = createdAt,
+                                isSync = true
+                            )
+                            exerciseDao.insertExercise(exercise)
+                        }
                     } catch (e: Exception) {
                         Timber.e(e, "Error parsing exercise document")
-                        null
                     }
-                }
-                for (ex in exercises) {
-                    exerciseDao.insertExercise(ex)
                 }
             }
 
-            // 6. Fetch & Restore Custom Foods
+            // 6. Fetch & Restore Custom Foods (matched by name so pre-populated foods are not overwritten)
             val foodsSnapshot = userRef.collection("foods").get().await()
             if (!foodsSnapshot.isEmpty) {
-                val foods = foodsSnapshot.documents.mapNotNull { doc ->
+                for (doc in foodsSnapshot.documents) {
                     try {
-                        FoodEntity(
-                            id = doc.getLong("id") ?: doc.id.toLongOrNull() ?: 0L,
-                            name = doc.getString("name") ?: "",
+                        val name = doc.getString("name")?.trim() ?: ""
+                        if (name.isBlank()) continue
+                        val existingFood = foodDao.findFoodByName(name)
+                        val foodEntity = FoodEntity(
+                            id = existingFood?.id ?: 0L,
+                            name = name,
                             calories = doc.getLong("calories")?.toInt() ?: 0,
                             protein = doc.getDouble("protein") ?: 0.0,
                             carbs = doc.getDouble("carbs") ?: 0.0,
@@ -469,18 +708,17 @@ class FirestoreSyncRepository @Inject constructor(
                             servingUnit = doc.getString("servingUnit") ?: "serving",
                             isSync = true
                         )
+                        foodDao.insertFood(foodEntity)
                     } catch (e: Exception) {
                         Timber.e(e, "Error parsing custom food document")
-                        null
                     }
                 }
-                foodDao.insertFoods(foods)
             }
 
-            // 7. Fetch & Restore Weight Logs
+            // 7. Fetch & Restore Weight Logs (deduplicated by date)
             val weightsSnapshot = userRef.collection("weight_logs").get().await()
             if (!weightsSnapshot.isEmpty) {
-                val weights = weightsSnapshot.documents.mapNotNull { doc ->
+                val parsedWeights = weightsSnapshot.documents.mapNotNull { doc ->
                     try {
                         WeightLogEntity(
                             id = doc.getLong("id") ?: doc.id.toLongOrNull() ?: 0L,
@@ -495,8 +733,20 @@ class FirestoreSyncRepository @Inject constructor(
                         null
                     }
                 }
-                for (weight in weights) {
-                    weightLogDao.insertWeightLog(weight)
+
+                val deduplicatedWeights = parsedWeights
+                    .filter { it.date.isNotBlank() }
+                    .groupBy { it.date }
+                    .mapValues { (_, logs) -> logs.maxByOrNull { it.timestamp }!! }
+
+                for ((dateStr, weight) in deduplicatedWeights) {
+                    val existingLocal = weightLogDao.getWeightLogByDateDirect(dateStr)
+                    weightLogDao.insertWeightLog(
+                        weight.copy(
+                            id = existingLocal?.id ?: 0L,
+                            isSync = true
+                        )
+                    )
                 }
             }
 

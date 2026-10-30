@@ -1,5 +1,6 @@
 package com.fdev.nutrimindai.feature.dailyintake.data.repository
 
+import com.fdev.nutrimindai.core.datastore.PreferenceManager
 import com.fdev.nutrimindai.feature.dailyintake.data.local.datasource.LocalIntakeDataSource
 import com.fdev.nutrimindai.feature.dailyintake.data.mapper.toDomain
 import com.fdev.nutrimindai.feature.dailyintake.data.mapper.toEntity
@@ -10,7 +11,8 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class IntakeRepositoryImpl @Inject constructor(
-    private val localDataSource: LocalIntakeDataSource
+    private val localDataSource: LocalIntakeDataSource,
+    private val preferenceManager: PreferenceManager
 ) : IntakeRepository {
 
     override fun getIntakesForDailyLog(dailyLogId: Long): Flow<List<Intake>> {
@@ -30,6 +32,18 @@ class IntakeRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteIntake(intake: Intake) {
-        localDataSource.deleteIntake(intake.toEntity())
+        val existingEntity = localDataSource.getIntakesForDailyLogDirect(intake.dailyLogId)
+            .find { it.id == intake.id }
+        val createdAt = existingEntity?.createdAt?.takeIf { it > 0L } ?: intake.createdAt
+        val docIds = buildList {
+            if (intake.id > 0L) {
+                add(intake.id.toString())
+                if (createdAt > 0L) {
+                    add("${createdAt}_${intake.id}")
+                }
+            }
+        }
+        localDataSource.deleteIntake(existingEntity ?: intake.toEntity())
+        preferenceManager.queueCloudDeletion("intakes", docIds)
     }
 }

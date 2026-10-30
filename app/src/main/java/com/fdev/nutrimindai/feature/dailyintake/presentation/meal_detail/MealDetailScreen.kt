@@ -218,10 +218,18 @@ fun FoodItemDetailDialog(
             }
         },
         text = {
+            val imageModel = remember(intake.imagePath) {
+                val path = intake.imagePath
+                when {
+                    path.isNullOrBlank() -> null
+                    path.startsWith("http://") || path.startsWith("https://") -> path
+                    else -> File(path).takeIf { it.exists() }
+                }
+            }
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                if (!intake.imagePath.isNullOrBlank() && File(intake.imagePath).exists()) {
+                if (imageModel != null) {
                     AsyncImage(
-                        model = File(intake.imagePath),
+                        model = imageModel,
                         contentDescription = intake.foodName,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
@@ -477,9 +485,17 @@ fun FoodItemCard(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            if (!intake.imagePath.isNullOrBlank() && File(intake.imagePath).exists()) {
+            val imageModel = remember(intake.imagePath) {
+                val path = intake.imagePath
+                when {
+                    path.isNullOrBlank() -> null
+                    path.startsWith("http://") || path.startsWith("https://") -> path
+                    else -> File(path).takeIf { it.exists() }
+                }
+            }
+            if (imageModel != null) {
                 AsyncImage(
-                    model = File(intake.imagePath),
+                    model = imageModel,
                     contentDescription = intake.foodName,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier

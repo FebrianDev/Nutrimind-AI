@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.fdev.nutrimindai.core.util.Constants.PREFERENCES_NAME
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -76,6 +77,8 @@ class PreferenceManager @Inject constructor(
 
         val ACTIVE_AI_PROVIDER = stringPreferencesKey("active_ai_provider")
         val DB_VERSION = intPreferencesKey("saved_db_version")
+        val PENDING_CLOUD_DELETIONS = stringSetPreferencesKey("pending_cloud_deletions")
+        val PENDING_CLOUD_RESET = booleanPreferencesKey("pending_cloud_reset")
     }
 
     val isOnboardingCompleted: Flow<Boolean> = dataStore.data
@@ -133,6 +136,44 @@ class PreferenceManager @Inject constructor(
     suspend fun setSavedDbVersion(version: Int) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.DB_VERSION] = version
+        }
+    }
+
+    suspend fun getPendingCloudDeletions(): Set<String> {
+        return dataStore.data.firstOrNull()?.get(PreferencesKeys.PENDING_CLOUD_DELETIONS) ?: emptySet()
+    }
+
+    suspend fun queueCloudDeletion(collection: String, documentIds: List<String>) {
+        val validEntries = documentIds
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+            .map { "$collection:$it" }
+        if (validEntries.isEmpty()) return
+
+        dataStore.edit { preferences ->
+            val current = preferences[PreferencesKeys.PENDING_CLOUD_DELETIONS] ?: emptySet()
+            preferences[PreferencesKeys.PENDING_CLOUD_DELETIONS] = current + validEntries
+        }
+    }
+
+    suspend fun removePendingCloudDeletions(entries: Set<String>) {
+        if (entries.isEmpty()) return
+        dataStore.edit { preferences ->
+            val current = preferences[PreferencesKeys.PENDING_CLOUD_DELETIONS] ?: emptySet()
+            preferences[PreferencesKeys.PENDING_CLOUD_DELETIONS] = current - entries
+        }
+    }
+
+    suspend fun isPendingCloudReset(): Boolean {
+        return dataStore.data.firstOrNull()?.get(PreferencesKeys.PENDING_CLOUD_RESET) ?: false
+    }
+
+    suspend fun setPendingCloudReset(pending: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.PENDING_CLOUD_RESET] = pending
+            if (pending) {
+                preferences.remove(PreferencesKeys.PENDING_CLOUD_DELETIONS)
+            }
         }
     }
 

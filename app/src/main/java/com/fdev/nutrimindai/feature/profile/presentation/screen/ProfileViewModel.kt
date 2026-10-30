@@ -320,7 +320,16 @@ class ProfileViewModel @Inject constructor(
                         db.execSQL("DELETE FROM food_table")
                         db.execSQL("DELETE FROM chat_message_table")
                     }
+                    // Clean up local food image files
+                    runCatching {
+                        val foodImagesDir = File(context.filesDir, "food_images")
+                        if (foodImagesDir.exists()) {
+                            foodImagesDir.deleteRecursively()
+                        }
+                    }
                 }
+                preferenceManager.setPendingCloudReset(true)
+                syncManager.triggerManualSync()
                 refreshUnsyncedCount()
                 _syncState.value = _syncState.value.copy(
                     lastSyncMessage = context.getString(R.string.profile_reset_data_success)

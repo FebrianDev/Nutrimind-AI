@@ -65,7 +65,8 @@ class DailyLogRepositoryImpl @Inject constructor(
             localDataSource.updateDailyLog(
                 log.copy(
                     status = newStatus,
-                    completedAt = if (newStatus == DailyLogStatus.COMPLETED) System.currentTimeMillis() else null
+                    completedAt = if (newStatus == DailyLogStatus.COMPLETED) System.currentTimeMillis() else null,
+                    isSync = false
                 )
             )
         }
