@@ -904,7 +904,8 @@ fun TrendSection(
                         }
                         DropdownMenu(
                             expanded = expanded,
-                            onDismissRequest = { expanded = false }
+                            onDismissRequest = { expanded = false },
+                            containerColor = MaterialTheme.colorScheme.surface
                         ) {
                             metrics.forEach { metric ->
                                 val label = when (metric) {
