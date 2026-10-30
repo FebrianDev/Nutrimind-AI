@@ -1,5 +1,6 @@
 package com.fdev.nutrimindai
 
+import com.fdev.nutrimindai.core.database.DB_VERSION
 import com.fdev.nutrimindai.feature.dailyintake.data.seeder.DefaultFoodCatalog
 import kotlinx.serialization.json.*
 import org.junit.Test
@@ -12,7 +13,7 @@ class PrepopulatedDbGeneratorTest {
     fun generatePrepopulatedDb() {
         val projectDir = File(".").absoluteFile
         val rootAppDir = if (File(projectDir, "app").exists()) File(projectDir, "app") else projectDir
-        val schemaFile = File(rootAppDir, "schemas/com.fdev.nutrimindai.core.database.NutriMindDatabase/12.json")
+        val schemaFile = File(rootAppDir, "schemas/com.fdev.nutrimindai.core.database.NutriMindDatabase/$DB_VERSION.json")
         val assetsDbDir = File(rootAppDir, "src/main/assets/database")
         assetsDbDir.mkdirs()
         val dbFile = File(assetsDbDir, "nutrimind.db")
@@ -30,6 +31,7 @@ class PrepopulatedDbGeneratorTest {
         DriverManager.getConnection(url).use { conn ->
             conn.autoCommit = false
             val statement = conn.createStatement()
+            statement.execute("PRAGMA user_version = $DB_VERSION")
 
             // 1. Create all entity tables and indices
             for (element in entities) {
@@ -56,19 +58,20 @@ class PrepopulatedDbGeneratorTest {
 
             // 3. Prepopulate food_table with DefaultFoodCatalog
             val insertFoodSql = """
-                INSERT INTO food_table (name, calories, protein, carbs, fat, servingSize, servingUnit, isSync)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO food_table (id, name, calories, protein, carbs, fat, servingSize, servingUnit, isSync)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """.trimIndent()
             val prepStatement = conn.prepareStatement(insertFoodSql)
             for (food in DefaultFoodCatalog.foods) {
-                prepStatement.setString(1, food.name)
-                prepStatement.setInt(2, food.calories)
-                prepStatement.setDouble(3, food.protein)
-                prepStatement.setDouble(4, food.carbs)
-                prepStatement.setDouble(5, food.fat)
-                prepStatement.setDouble(6, food.servingSize)
-                prepStatement.setString(7, food.servingUnit)
-                prepStatement.setInt(8, 1)
+                prepStatement.setString(1, food.id)
+                prepStatement.setString(2, food.name)
+                prepStatement.setInt(3, food.calories)
+                prepStatement.setDouble(4, food.protein)
+                prepStatement.setDouble(5, food.carbs)
+                prepStatement.setDouble(6, food.fat)
+                prepStatement.setDouble(7, food.servingSize)
+                prepStatement.setString(8, food.servingUnit)
+                prepStatement.setInt(9, if (food.isSync) 1 else 0)
                 prepStatement.addBatch()
             }
             prepStatement.executeBatch()

@@ -1,6 +1,7 @@
 package com.fdev.nutrimindai.feature.dailyintake.data.seeder
 
 import com.fdev.nutrimindai.feature.dailyintake.data.local.entity.FoodEntity
+import java.util.UUID
 
 object DefaultFoodCatalog {
     val foods: List<FoodEntity> = listOf(
@@ -80,5 +81,9 @@ object DefaultFoodCatalog {
         FoodEntity(name = "Quinoa Vegetable Buddha Bowl", calories = 360, protein = 14.0, carbs = 54.0, fat = 11.0, servingSize = 1.0, servingUnit = "bowl", isSync = true),
         FoodEntity(name = "Hearty Lentil Vegetable Soup", calories = 230, protein = 14.0, carbs = 38.0, fat = 3.0, servingSize = 1.0, servingUnit = "bowl", isSync = true),
         FoodEntity(name = "Spaghetti Bolognese (Lean Beef)", calories = 490, protein = 32.0, carbs = 58.0, fat = 14.0, servingSize = 1.0, servingUnit = "plate", isSync = true)
-    )
+    ).map { food ->
+        food.copy(
+            id = UUID.nameUUIDFromBytes("default_food:${food.name}".toByteArray(Charsets.UTF_8)).toString()
+        )
+    }
 }
