@@ -24,7 +24,7 @@ import javax.inject.Singleton
 class WeightLogRepositoryImpl @Inject constructor(
     private val weightLogDao: WeightLogDao,
     private val preferenceManager: PreferenceManager,
-    @param:ApplicationScope private val appScope: CoroutineScope
+    @ApplicationScope private val appScope: CoroutineScope
 ) : WeightLogRepository {
 
     constructor(
@@ -41,6 +41,10 @@ class WeightLogRepositoryImpl @Inject constructor(
 
     @Volatile
     private var hasAllLogsUpstream: Boolean = false
+
+    init {
+        ensureObserved()
+    }
 
     private fun ensureObserved() {
         if (observerStarted.get()) return

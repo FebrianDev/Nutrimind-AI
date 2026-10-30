@@ -28,7 +28,7 @@ import javax.inject.Singleton
 @Singleton
 class ProfileRepositoryImpl @Inject constructor(
     private val profileDao: ProfileDao,
-    @param:ApplicationScope private val appScope: CoroutineScope
+    @ApplicationScope private val appScope: CoroutineScope
 ) : ProfileRepository {
 
     constructor(profileDao: ProfileDao) : this(
@@ -38,6 +38,10 @@ class ProfileRepositoryImpl @Inject constructor(
 
     private val cache = MutableStateFlow<Cached<ProfileEntity?>>(Cached.NotLoaded)
     private val observerStarted = AtomicBoolean(false)
+
+    init {
+        ensureObserved()
+    }
 
     private fun ensureObserved() {
         if (observerStarted.get()) return

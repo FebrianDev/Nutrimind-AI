@@ -24,7 +24,7 @@ import javax.inject.Singleton
 @Singleton
 class FoodRepositoryImpl @Inject constructor(
     private val localDataSource: LocalFoodDataSource,
-    @param:ApplicationScope private val appScope: CoroutineScope
+    @ApplicationScope private val appScope: CoroutineScope
 ) : FoodRepository {
 
     constructor(localDataSource: LocalFoodDataSource) : this(
@@ -34,6 +34,10 @@ class FoodRepositoryImpl @Inject constructor(
 
     private val cache = MutableStateFlow<Cached<List<Food>>>(Cached.NotLoaded)
     private val observerStarted = AtomicBoolean(false)
+
+    init {
+        ensureObserved()
+    }
 
     private fun ensureObserved() {
         if (observerStarted.get()) return
