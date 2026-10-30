@@ -1,5 +1,7 @@
 package com.fdev.nutrimindai.feature.coach.domain
 
+import com.fdev.nutrimindai.core.sync.SyncManager
+import com.fdev.nutrimindai.feature.dailyintake.domain.model.DailyLogStatus
 import com.fdev.nutrimindai.feature.coach.domain.model.CoachAction
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.Exercise
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.FoodSource
@@ -30,7 +32,8 @@ class CoachActionExecutor @Inject constructor(
     private val exerciseRepository: ExerciseRepository,
     private val weightLogRepository: WeightLogRepository,
     private val profileRepository: ProfileRepository,
-    private val actionParser: CoachActionParser
+    private val actionParser: CoachActionParser,
+    private val syncManager: SyncManager
 ) {
 
     /**
@@ -43,6 +46,9 @@ class CoachActionExecutor @Inject constructor(
         if (actions.isEmpty()) return null
 
         val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val todayLog = dailyLogRepository.getDailyLogByDateDirect(currentDate)
+        val isTodayCompleted = todayLog?.status == DailyLogStatus.COMPLETED
+
         val dailyLogId = try {
             dailyLogRepository.getOrCreateDailyLog(currentDate)
         } catch (e: Exception) {
@@ -50,9 +56,17 @@ class CoachActionExecutor @Inject constructor(
             return null
         }
 
+        val executedActions = mutableListOf<CoachAction>()
+        var skippedDueToCompleted = false
+
         for (action in actions) {
             when (action) {
                 is CoachAction.LogFood -> {
+                    if (isTodayCompleted) {
+                        Timber.w("CoachActionExecutor: Cannot log food '${action.foodName}' because today's journal is COMPLETED.")
+                        skippedDueToCompleted = true
+                        continue
+                    }
                     try {
                         val intake = Intake(
                             id = 0,
@@ -71,12 +85,18 @@ class CoachActionExecutor @Inject constructor(
                             createdAt = System.currentTimeMillis()
                         )
                         intakeRepository.addIntake(intake)
+                        executedActions.add(action)
                         Timber.d("CoachActionExecutor: Successfully logged food '${action.foodName}' (${action.calories} kcal) to daily log #$dailyLogId")
                     } catch (e: Exception) {
                         Timber.e(e, "CoachActionExecutor: Failed to log food '${action.foodName}'")
                     }
                 }
                 is CoachAction.LogWater -> {
+                    if (isTodayCompleted) {
+                        Timber.w("CoachActionExecutor: Cannot log water +${action.amountMl}ml because today's journal is COMPLETED.")
+                        skippedDueToCompleted = true
+                        continue
+                    }
                     try {
                         val currentTime = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
                         val water = Water(
@@ -86,12 +106,18 @@ class CoachActionExecutor @Inject constructor(
                             time = currentTime
                         )
                         waterRepository.addWater(water)
+                        executedActions.add(action)
                         Timber.d("CoachActionExecutor: Successfully logged water +${action.amountMl}ml to daily log #$dailyLogId")
                     } catch (e: Exception) {
                         Timber.e(e, "CoachActionExecutor: Failed to log water ${action.amountMl}ml")
                     }
                 }
                 is CoachAction.LogExercise -> {
+                    if (isTodayCompleted) {
+                        Timber.w("CoachActionExecutor: Cannot log exercise '${action.exerciseType}' because today's journal is COMPLETED.")
+                        skippedDueToCompleted = true
+                        continue
+                    }
                     try {
                         val exercise = Exercise(
                             id = 0,
@@ -103,6 +129,7 @@ class CoachActionExecutor @Inject constructor(
                             createdAt = System.currentTimeMillis()
                         )
                         exerciseRepository.addExercise(exercise)
+                        executedActions.add(action)
                         Timber.d("CoachActionExecutor: Successfully logged exercise '${action.exerciseType}' (${action.durationMinute}m, ${action.caloriesBurned} kcal) to daily log #$dailyLogId")
                     } catch (e: Exception) {
                         Timber.e(e, "CoachActionExecutor: Failed to log exercise '${action.exerciseType}'")
@@ -138,6 +165,7 @@ class CoachActionExecutor @Inject constructor(
                                 )
                             )
                         }
+                        executedActions.add(action)
                         Timber.d("CoachActionExecutor: Successfully logged weight ${action.weightKg} kg and updated profile")
                     } catch (e: Exception) {
                         Timber.e(e, "CoachActionExecutor: Failed to log weight ${action.weightKg} kg")
@@ -146,6 +174,14 @@ class CoachActionExecutor @Inject constructor(
             }
         }
 
-        return actionParser.formatActionSummary(actions)
+        if (executedActions.isNotEmpty()) {
+            syncManager.triggerManualSync()
+        }
+
+        return when {
+            executedActions.isNotEmpty() -> actionParser.formatActionSummary(executedActions)
+            skippedDueToCompleted -> "Today's journal is already completed (read-only). Reopen today in Activity to record meals."
+            else -> null
+        }
     }
 }

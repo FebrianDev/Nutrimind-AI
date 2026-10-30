@@ -34,6 +34,7 @@ import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.DeleteOutline
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -95,9 +96,11 @@ fun CoachScreen(
         }
     }
 
-    // Handle initial prompt from deep navigation if provided
+    // Handle initial prompt from deep navigation if provided (guarded against screen rotations)
+    var hasHandledInitialPrompt by rememberSaveable(initialPrompt) { mutableStateOf(false) }
     LaunchedEffect(initialPrompt) {
-        if (!initialPrompt.isNullOrBlank()) {
+        if (!initialPrompt.isNullOrBlank() && !hasHandledInitialPrompt) {
+            hasHandledInitialPrompt = true
             viewModel.sendMessage(initialPrompt)
         }
     }
