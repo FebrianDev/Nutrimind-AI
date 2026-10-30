@@ -206,5 +206,5 @@ fun CoachChatBubble(
 
 @Composable
 private fun rememberTime(timestamp: Long): String {
-    return SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(timestamp))
+    return SimpleDateFormat("HH:mm", Locale.US).format(Date(timestamp))
 }

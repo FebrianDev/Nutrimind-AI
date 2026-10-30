@@ -67,7 +67,7 @@ object NutritionPdfReportGenerator {
         y += 20f
         canvas.drawText("NUTRIMINDAI - NUTRITION & HEALTH REPORT", 40f, y, titlePaint)
         y += 16f
-        val currentDateStr = SimpleDateFormat("EEEE, dd MMMM yyyy HH:mm", Locale.getDefault()).format(Date())
+        val currentDateStr = SimpleDateFormat("EEEE, dd MMMM yyyy HH:mm", Locale.US).format(Date())
         canvas.drawText("Generated on: $currentDateStr | Client / User: $userName", 40f, y, subPaint)
         y += 8f
         canvas.drawText("Report Period: ${data.selectedFilter.getLabel()} | Goal: ${data.goalData.goalTitle}", 40f, y, subPaint)

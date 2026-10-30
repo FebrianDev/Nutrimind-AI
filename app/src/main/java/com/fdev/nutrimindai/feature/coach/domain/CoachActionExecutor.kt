@@ -45,7 +45,7 @@ class CoachActionExecutor @Inject constructor(
     suspend fun executeActions(actions: List<CoachAction>): String? {
         if (actions.isEmpty()) return null
 
-        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
         val todayLog = dailyLogRepository.getDailyLogByDateDirect(currentDate)
         val isTodayCompleted = todayLog?.status == DailyLogStatus.COMPLETED
 
@@ -97,7 +97,7 @@ class CoachActionExecutor @Inject constructor(
                         continue
                     }
                     try {
-                        val currentTime = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
+                        val currentTime = SimpleDateFormat("HH:mm", Locale.US).format(Date())
                         val water = Water(
                             dailyLogId = dailyLogId,
                             amountMl = action.amountMl,

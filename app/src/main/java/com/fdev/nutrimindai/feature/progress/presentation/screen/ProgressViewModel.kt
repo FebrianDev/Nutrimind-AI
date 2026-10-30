@@ -133,9 +133,9 @@ class ProgressViewModel @Inject constructor(
 
 
 
-    private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-    private val dayLabelFormat = SimpleDateFormat("EEE", Locale.getDefault())
-    private val dateDisplayFormat = SimpleDateFormat("MMM dd", Locale.getDefault())
+    private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+    private val dayLabelFormat = SimpleDateFormat("EEE", Locale.US)
+    private val dateDisplayFormat = SimpleDateFormat("MMM dd", Locale.US)
     private val currentDate: String
         get() = dateFormat.format(Date())
 
@@ -333,7 +333,7 @@ class ProgressViewModel @Inject constructor(
             )
         } else 2200.0
 
-        val shortDatePattern = SimpleDateFormat("dd/MM", Locale.getDefault())
+        val shortDatePattern = SimpleDateFormat("dd/MM", Locale.US)
         val weightByDate = weightLogs.associateBy { it.date }
         val firstDateStr = dayRecords.firstOrNull()?.dateStr ?: ""
         var lastKnownActualWeight = weightLogs

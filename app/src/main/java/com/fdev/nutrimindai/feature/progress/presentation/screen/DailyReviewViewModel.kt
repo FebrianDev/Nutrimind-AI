@@ -69,7 +69,7 @@ class DailyReviewViewModel @Inject constructor(
 
     init {
         val dateParam: String? = savedStateHandle["date"]
-        val targetDate = dateParam ?: SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val targetDate = dateParam ?: SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
         loadReviewForDate(targetDate)
     }
 

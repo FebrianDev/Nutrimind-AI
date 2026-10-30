@@ -76,7 +76,7 @@ class MainActivity : ComponentActivity() {
                                     NotificationHelper.NAV_DEST_DINNER -> navController.navigate(NavigationDestination.MealDetail("Dinner"))
                                     NotificationHelper.NAV_DEST_WATER -> navController.navigate(NavigationDestination.Water)
                                     NotificationHelper.NAV_DEST_DAILY_REVIEW -> {
-                                        val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                                        val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
                                         navController.navigate(NavigationDestination.DailyReview(todayStr))
                                     }
                                     NotificationHelper.NAV_DEST_CAMERA_BREAKFAST -> navController.navigate(NavigationDestination.CameraScan("Breakfast"))

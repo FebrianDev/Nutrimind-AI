@@ -129,7 +129,7 @@ fun ActivityScreen(
                             val month = calendar.get(Calendar.MONTH) + 1
                             val day = calendar.get(Calendar.DAY_OF_MONTH)
                             val formattedDate = String.format(
-                                Locale.getDefault(),
+                                Locale.US,
                                 "%04d-%02d-%02d",
                                 year,
                                 month,
@@ -371,14 +371,14 @@ fun ActivityScreen(
                                 fullDate = daySummary.fullDate,
                                 status = daySummary.status,
                                 calories = String.format(
-                                    Locale.getDefault(),
+                                    Locale.US,
                                     "%,d",
                                     daySummary.totalCalories
                                 ),
                                 protein = stringResource(R.string.macro_val_g, daySummary.totalProtein.toInt()),
                                 water = "${
                                     String.format(
-                                        Locale.getDefault(),
+                                        Locale.US,
                                         "%.1f",
                                         daySummary.totalWaterMl / 1000.0
                                     )
@@ -505,11 +505,11 @@ fun CalendarStrip(
     onWeekOffsetChange: (Int) -> Unit,
     onMonthHeaderClick: () -> Unit
 ) {
-    val dateFormat = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) }
-    val startMonthFormat = remember { SimpleDateFormat("MMM", Locale.getDefault()) }
-    val fullMonthYearFormat = remember { SimpleDateFormat("MMMM yyyy", Locale.getDefault()) }
-    val shortYearFormat = remember { SimpleDateFormat("MMM yyyy", Locale.getDefault()) }
-    val dayNameFormat = remember { SimpleDateFormat("EEE", Locale.getDefault()) }
+    val dateFormat = remember { SimpleDateFormat("yyyy-MM-dd", Locale.US) }
+    val startMonthFormat = remember { SimpleDateFormat("MMM", Locale.US) }
+    val fullMonthYearFormat = remember { SimpleDateFormat("MMMM yyyy", Locale.US) }
+    val shortYearFormat = remember { SimpleDateFormat("MMM yyyy", Locale.US) }
+    val dayNameFormat = remember { SimpleDateFormat("EEE", Locale.US) }
     val todayDateStr = remember { dateFormat.format(Date()) }
 
     // Anchor calendar around selectedDate if set, or today's date

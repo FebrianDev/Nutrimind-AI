@@ -84,9 +84,9 @@ class AlarmReceiver : BroadcastReceiver() {
     }
 
     private suspend fun handleQuickLogWater(context: Context, amountMl: Int) {
-        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
         val dailyLogId = dailyLogRepository.getOrCreateDailyLog(today)
-        val timeStr = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
+        val timeStr = SimpleDateFormat("HH:mm", Locale.US).format(Date())
 
         val water = Water(
             dailyLogId = dailyLogId,
@@ -118,7 +118,7 @@ class AlarmReceiver : BroadcastReceiver() {
     }
 
     private suspend fun handleMealReminder(context: Context, mealType: String) {
-        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
         val dailyLog = dailyLogRepository.getDailyLogByDateDirect(today)
         val dailyLogId = dailyLog?.id
 
@@ -231,7 +231,7 @@ class AlarmReceiver : BroadcastReceiver() {
     }
 
     private suspend fun handleWaterReminder(context: Context) {
-        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
         val dailyLog = dailyLogRepository.getDailyLogByDateDirect(today)
         val dailyLogId = dailyLog?.id
 
@@ -280,7 +280,7 @@ class AlarmReceiver : BroadcastReceiver() {
     }
 
     private suspend fun handleDailyReviewReminder(context: Context) {
-        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val today = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
         val dailyLog = dailyLogRepository.getDailyLogByDateDirect(today)
         val dailyLogId = dailyLog?.id
 

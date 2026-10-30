@@ -82,7 +82,7 @@ class MealDetailViewModel @Inject constructor(
                     val mealIntakes = allIntakes.filter { it.mealType.name.equals(mealType, ignoreCase = true) }
 
                     MealDetailUiState.Success(
-                        mealType = mealType.lowercase().replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() },
+                        mealType = mealType.lowercase().replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.US) else it.toString() },
                         status = status,
                         intakes = mealIntakes,
                         totalCalories = mealIntakes.sumOf { it.calories },

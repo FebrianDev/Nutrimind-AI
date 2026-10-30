@@ -69,8 +69,8 @@ class ActivityViewModel @Inject constructor(
 
     private val currentDate: String
         get() = LocalDate.now().toString()
-    private val displayDateFormatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy", Locale.getDefault())
-    private val dayHeaderFormatter = DateTimeFormatter.ofPattern("EEE, MMMM dd", Locale.getDefault())
+    private val displayDateFormatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy", Locale.US)
+    private val dayHeaderFormatter = DateTimeFormatter.ofPattern("EEE, MMMM dd", Locale.US)
 
     init {
         loadActivity()

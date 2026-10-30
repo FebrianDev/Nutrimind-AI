@@ -110,8 +110,8 @@ class ActivityDetailViewModel @Inject constructor(
 
     private val generatingAiSummaryForLogIds = mutableSetOf<String>()
 
-    private val displayDateFormatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy", Locale.getDefault())
-    private val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.getDefault())
+    private val displayDateFormatter = DateTimeFormatter.ofPattern("MMMM dd, yyyy", Locale.US)
+    private val timeFormatter = DateTimeFormatter.ofPattern("hh:mm a", Locale.US)
     private val currentDate: String
         get() = LocalDate.now().toString()
 

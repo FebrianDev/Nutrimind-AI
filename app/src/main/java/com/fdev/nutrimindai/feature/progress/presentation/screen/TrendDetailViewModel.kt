@@ -60,7 +60,7 @@ class TrendDetailViewModel @Inject constructor(
 
 
     private val metricParam: String = savedStateHandle["metric"] ?: "Calories"
-    private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
 
     init {
         loadMetricTrend(metricParam, 0)
@@ -108,7 +108,7 @@ class TrendDetailViewModel @Inject constructor(
                 val weightLogs = if (metric == "Weight") weightLogRepository.getAllWeightLogsDirect() else emptyList()
                 val weightByDate = if (metric == "Weight") weightLogs.associateBy { it.date } else emptyMap()
 
-                val dayLabelFormat = if (dayCount <= 7) SimpleDateFormat("EEE", Locale.getDefault()) else SimpleDateFormat("dd/MM", Locale.getDefault())
+                val dayLabelFormat = if (dayCount <= 7) SimpleDateFormat("EEE", Locale.US) else SimpleDateFormat("dd/MM", Locale.US)
 
                 val points = mutableListOf<Float>()
                 val labels = mutableListOf<String>()

@@ -29,7 +29,7 @@ class NutriCoachContextBuilder @Inject constructor(
 ) {
 
     suspend fun buildSystemPrompt(aiProviderName: String = "AI"): String {
-        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
         val profile = profileDao.getProfileDirect()
         val dailyLog = dailyLogDao.getDailyLogByDateDirect(currentDate)
 

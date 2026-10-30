@@ -34,7 +34,7 @@ class ContextualQuickPromptGenerator @Inject constructor(
      */
     suspend fun getContextualPrompts(overrideHour: Int? = null): List<ContextualPrompt> {
         val hour = overrideHour ?: Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
 
         val profile = profileDao.getProfileDirect()
         val dailyLog = dailyLogDao.getDailyLogByDateDirect(currentDate)

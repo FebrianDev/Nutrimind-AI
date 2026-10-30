@@ -213,7 +213,7 @@ class OnboardingViewModel @Inject constructor(
             profileRepository.saveProfile(profile)
 
             // Record baseline weight log for today
-            val todayDateStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+            val todayDateStr = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
             weightLogRepository.logWeight(
                 date = todayDateStr,
                 weightKg = currentWeightVal,

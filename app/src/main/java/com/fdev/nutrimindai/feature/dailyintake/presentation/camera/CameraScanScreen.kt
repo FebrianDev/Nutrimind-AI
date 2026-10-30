@@ -883,4 +883,4 @@ private fun rotateAndScaleBitmap(bitmap: Bitmap, degrees: Int, maxDimension: Int
     return Bitmap.createBitmap(bitmap, 0, 0, width, height, matrix, true)
 }
 
-private fun String.capitalized(): String = replaceFirstChar { if (it.isLowerCase()) it.titlecase(java.util.Locale.getDefault()) else it.toString() }
+private fun String.capitalized(): String = replaceFirstChar { if (it.isLowerCase()) it.titlecase(java.util.Locale.US) else it.toString() }

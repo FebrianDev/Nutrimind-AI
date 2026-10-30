@@ -56,7 +56,7 @@ fun Intake.toEntity() = IntakeEntity(
 )
 
 fun WaterEntity.toDomain(): Water {
-    val formatter = SimpleDateFormat("HH:mm", Locale.getDefault())
+    val formatter = SimpleDateFormat("HH:mm", Locale.US)
     val timeString = formatter.format(Date(createdAt))
     return Water(
         id = id,

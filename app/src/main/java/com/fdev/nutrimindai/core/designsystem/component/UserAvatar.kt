@@ -47,7 +47,7 @@ fun UserAvatar(
     val initialLetter = userName.trim()
         .ifEmpty { "User" }
         .take(1)
-        .uppercase(Locale.getDefault())
+        .uppercase(Locale.US)
 
     val clickableModifier = if (onClick != null && !isUploading) {
         Modifier.clickable { onClick() }

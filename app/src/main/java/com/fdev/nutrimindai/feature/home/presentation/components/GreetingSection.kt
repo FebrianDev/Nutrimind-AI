@@ -47,18 +47,18 @@ fun GreetingSection(
                 val parsed = SimpleDateFormat("yyyy-MM-dd", Locale.US).parse(date)
                 if (parsed != null) {
                     val todayStr = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
-                    val dayMonth = SimpleDateFormat("EEE, d MMM", Locale.getDefault()).format(parsed)
+                    val dayMonth = SimpleDateFormat("EEE, d MMM", Locale.US).format(parsed)
                     if (date == todayStr) "Today • $dayMonth" else dayMonth
                 } else {
-                    val dayMonth = SimpleDateFormat("EEE, d MMM", Locale.getDefault()).format(Date())
+                    val dayMonth = SimpleDateFormat("EEE, d MMM", Locale.US).format(Date())
                     "Today • $dayMonth"
                 }
             } else {
-                val dayMonth = SimpleDateFormat("EEE, d MMM", Locale.getDefault()).format(Date())
+                val dayMonth = SimpleDateFormat("EEE, d MMM", Locale.US).format(Date())
                 "Today • $dayMonth"
             }
         } catch (_: Exception) {
-            val dayMonth = SimpleDateFormat("EEE, d MMM", Locale.getDefault()).format(Date())
+            val dayMonth = SimpleDateFormat("EEE, d MMM", Locale.US).format(Date())
             "Today • $dayMonth"
         }
     }

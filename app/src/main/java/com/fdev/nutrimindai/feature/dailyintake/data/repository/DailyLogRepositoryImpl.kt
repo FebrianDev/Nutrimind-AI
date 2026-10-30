@@ -48,7 +48,7 @@ class DailyLogRepositoryImpl @Inject constructor(
     }
 
     override suspend fun autoCompletePastLogs() {
-        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
         val pastDrafts = localDataSource.getPastDraftLogs(currentDate)
 
         for (log in pastDrafts) {
@@ -97,7 +97,7 @@ class DailyLogRepositoryImpl @Inject constructor(
     }
 
     override suspend fun completeToday(aiSummary: String?) {
-        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
         getOrCreateDailyLog(currentDate)
         completeDailyLog(currentDate, aiSummary)
     }
@@ -107,7 +107,7 @@ class DailyLogRepositoryImpl @Inject constructor(
     }
 
     override suspend fun reopenToday() {
-        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val currentDate = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
         getOrCreateDailyLog(currentDate)
         reopenDailyLog(currentDate)
     }

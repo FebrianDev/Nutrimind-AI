@@ -247,7 +247,7 @@ class ProfileViewModel @Inject constructor(
                 profileRepository.updateProfile(updated)
 
                 // Seamlessly log weight into WeightLog table for today's date
-                val todayDateStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                val todayDateStr = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
                 weightLogRepository.logWeight(
                     date = todayDateStr,
                     weightKg = weight,

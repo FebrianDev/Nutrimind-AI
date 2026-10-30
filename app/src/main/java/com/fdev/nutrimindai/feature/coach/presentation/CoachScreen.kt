@@ -380,7 +380,7 @@ fun CoachScreen(
                             val minutes = uiState.voiceDurationSeconds / 60
                             val seconds = uiState.voiceDurationSeconds % 60
                             Text(
-                                text = String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds),
+                                text = String.format(Locale.US, "%02d:%02d", minutes, seconds),
                                 style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant

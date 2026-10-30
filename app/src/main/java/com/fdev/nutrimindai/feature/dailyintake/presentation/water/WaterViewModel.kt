@@ -51,7 +51,7 @@ class WaterViewModel @Inject constructor(
     private var lastLoadedDate: String = ""
     private var loadJob: Job? = null
 
-    private val timeFormatter = DateTimeFormatter.ofPattern("HH:mm", Locale.getDefault())
+    private val timeFormatter = DateTimeFormatter.ofPattern("HH:mm", Locale.US)
     private val currentDate: String
         get() = LocalDate.now().toString()
 

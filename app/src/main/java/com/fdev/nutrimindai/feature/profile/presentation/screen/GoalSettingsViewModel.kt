@@ -87,7 +87,7 @@ data class GoalSettingsUiState(
             val cal = Calendar.getInstance().apply {
                 add(Calendar.WEEK_OF_YEAR, weeks)
             }
-            return SimpleDateFormat("MMMM d, yyyy", Locale.getDefault()).format(cal.time)
+            return SimpleDateFormat("MMMM d, yyyy", Locale.US).format(cal.time)
         }
 
     val dailyWaterLiters: Float
@@ -306,7 +306,7 @@ class GoalSettingsViewModel @Inject constructor(
                 profileRepository.saveProfile(updatedEntity)
 
                 // Record weight log entry for today
-                val todayDateStr = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                val todayDateStr = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
                 weightLogRepository.logWeight(
                     date = todayDateStr,
                     weightKg = currentWeight,
