@@ -91,12 +91,7 @@ fun HomeScreen(
             onDismissRequest = { showCompleteDialog = false },
             onConfirm = {
                 showCompleteDialog = false
-                val targetDate = (uiState as? HomeUiState.Success)?.summary?.date
-                viewModel.completeToday {
-                    if (!targetDate.isNullOrBlank()) {
-                        onNavigateToDailyReview(targetDate)
-                    }
-                }
+                viewModel.completeToday()
             }
         )
     }

@@ -326,32 +326,89 @@ class HomeViewModel @Inject constructor(
                     else -> "Solid effort today. Consistent daily tracking builds long-term health."
                 }
 
-                val generatedAiSummary = aiRepository.generateDailyReviewSummary(
-                    userGoal = userGoalName,
-                    score = score,
-                    calories = totalCalories,
-                    targetCalories = targetCal,
-                    protein = totalProtein,
-                    targetProtein = targetProtein,
-                    carbs = totalCarbs,
-                    targetCarbs = targetCarbs,
-                    fat = totalFat,
-                    targetFat = targetFat,
-                    waterMl = totalWater,
-                    targetWaterMl = targetWater,
-                    exerciseMinutes = totalExerciseMinutes,
-                    targetExerciseMinutes = targetExercise,
-                    fallbackSummary = fallbackSummary
-                )
-
-                dailyLogRepository.completeToday(generatedAiSummary)
+                // 1. Complete instantly with the local fallback summary (no network wait)
+                dailyLogRepository.completeToday(fallbackSummary)
                 syncManager.triggerManualSync()
                 onCompleted()
+
+                // 2. Generate the AI summary in the background and replace the fallback when ready
+                val dailyLogId = currentSummary?.dailyLogId
+                if (!dailyLogId.isNullOrBlank()) {
+                    generateAiSummaryInBackground(
+                        dailyLogId = dailyLogId,
+                        userGoal = userGoalName,
+                        score = score,
+                        calories = totalCalories,
+                        targetCalories = targetCal,
+                        protein = totalProtein,
+                        targetProtein = targetProtein,
+                        carbs = totalCarbs,
+                        targetCarbs = targetCarbs,
+                        fat = totalFat,
+                        targetFat = targetFat,
+                        waterMl = totalWater,
+                        targetWaterMl = targetWater,
+                        exerciseMinutes = totalExerciseMinutes,
+                        targetExerciseMinutes = targetExercise,
+                        fallbackSummary = fallbackSummary
+                    )
+                }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
-                Timber.e(e, "Error completing today with AI summary")
+                Timber.e(e, "Error completing today")
                 dailyLogRepository.completeToday(null)
                 syncManager.triggerManualSync()
                 onCompleted()
+            }
+        }
+    }
+
+    private fun generateAiSummaryInBackground(
+        dailyLogId: String,
+        userGoal: String,
+        score: Int,
+        calories: Int,
+        targetCalories: Int,
+        protein: Double,
+        targetProtein: Double,
+        carbs: Double,
+        targetCarbs: Double,
+        fat: Double,
+        targetFat: Double,
+        waterMl: Int,
+        targetWaterMl: Int,
+        exerciseMinutes: Int,
+        targetExerciseMinutes: Int,
+        fallbackSummary: String
+    ) {
+        viewModelScope.launch {
+            try {
+                val generated = aiRepository.generateDailyReviewSummary(
+                    userGoal = userGoal,
+                    score = score,
+                    calories = calories,
+                    targetCalories = targetCalories,
+                    protein = protein,
+                    targetProtein = targetProtein,
+                    carbs = carbs,
+                    targetCarbs = targetCarbs,
+                    fat = fat,
+                    targetFat = targetFat,
+                    waterMl = waterMl,
+                    targetWaterMl = targetWaterMl,
+                    exerciseMinutes = exerciseMinutes,
+                    targetExerciseMinutes = targetExerciseMinutes,
+                    fallbackSummary = fallbackSummary
+                )
+                if (generated.isNotBlank() && generated != fallbackSummary) {
+                    dailyLogRepository.saveAiSummary(dailyLogId, generated)
+                    syncManager.triggerManualSync()
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.w(e, "Background AI daily summary failed, keeping fallback")
             }
         }
     }
