@@ -26,7 +26,8 @@ fun IntakeSection(
     onMealClick: (String) -> Unit,
     modifier: Modifier = Modifier,
     isWaterLogged: Boolean = false,
-    isExerciseLogged: Boolean = false
+    isExerciseLogged: Boolean = false,
+    onOpenNutriChef: (() -> Unit)? = null
 ) {
     val notLoggedText = stringResource(R.string.home_intake_not_logged)
 
@@ -89,9 +90,10 @@ fun IntakeSection(
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
-            // Header with Title
+            // Header with Title & NutriChef Action
             Row(
                 modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
@@ -100,6 +102,26 @@ fun IntakeSection(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
+                if (onOpenNutriChef != null) {
+                    TextButton(
+                        onClick = onOpenNutriChef,
+                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.AutoAwesome,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "NutriChef AI",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(10.dp))

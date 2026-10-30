@@ -22,6 +22,7 @@ import com.fdev.nutrimindai.feature.profile.data.local.entity.ProfileEntity
 import com.fdev.nutrimindai.feature.progress.domain.repository.WeightLogRepository
 import com.fdev.nutrimindai.feature.progress.data.local.entity.WeightLogEntity
 import com.fdev.nutrimindai.core.model.Goal
+import com.fdev.nutrimindai.core.sync.SyncManager
 import com.fdev.nutrimindai.core.util.NutritionCalculator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
@@ -54,7 +55,8 @@ class HomeViewModel @Inject constructor(
     private val weightLogRepository: WeightLogRepository,
     private val demoDataSeeder: DemoDataSeeder,
     private val aiRepository: AiRepository,
-    private val healthConnectManager: com.fdev.nutrimindai.core.health.HealthConnectManager
+    private val healthConnectManager: com.fdev.nutrimindai.core.health.HealthConnectManager,
+    private val syncManager: SyncManager
 ) : ViewModel() {
 
     val isHealthConnectAvailable: Boolean
@@ -82,7 +84,8 @@ class HomeViewModel @Inject constructor(
             try {
                 val metrics = healthConnectManager.readTodayMetrics()
                 val currentDailyLogId = (uiState.value as? HomeUiState.Success)?.summary?.dailyLogId
-                if (currentDailyLogId != null) {
+                    ?: dailyLogRepository.getOrCreateDailyLog(currentDate)
+                if (currentDailyLogId > 0L) {
                     val existing = exerciseRepository.getExercisesForDailyLogDirect(currentDailyLogId)
                         .find { it.exerciseType == com.fdev.nutrimindai.core.health.HealthConnectManager.HEALTH_CONNECT_EXERCISE_TYPE }
 
@@ -97,9 +100,11 @@ class HomeViewModel @Inject constructor(
                                 note = "Synced from Google Health Connect (${metrics.steps} steps)"
                             )
                         )
+                        syncManager.triggerManualSync()
                         onResult("Successfully synced ${metrics.steps} steps & ${metrics.activeCalories} active kcal!")
                     } else if (existing != null) {
                         exerciseRepository.deleteExercise(existing)
+                        syncManager.triggerManualSync()
                         onResult("Health Connect: No steps or active calorie data logged today.")
                     } else {
                         onResult("Health Connect: No steps or active calorie data logged today.")
@@ -194,7 +199,11 @@ class HomeViewModel @Inject constructor(
 
     private suspend fun loadData(dateToLoad: String) {
         try {
+            demoDataSeeder.seedIfNeeded()
             val dailyLogId = dailyLogRepository.getOrCreateDailyLog(dateToLoad)
+            if (healthConnectManager.isAvailable && healthConnectManager.hasAllPermissions()) {
+                syncHealthConnect()
+            }
 
             combine(
                 dailyLogRepository.getDailyLogByDate(dateToLoad),
@@ -338,10 +347,12 @@ class HomeViewModel @Inject constructor(
                 )
 
                 dailyLogRepository.completeToday(generatedAiSummary)
+                syncManager.triggerManualSync()
                 onCompleted()
             } catch (e: Exception) {
                 Timber.e(e, "Error completing today with AI summary")
                 dailyLogRepository.completeToday(null)
+                syncManager.triggerManualSync()
                 onCompleted()
             }
         }
@@ -350,6 +361,7 @@ class HomeViewModel @Inject constructor(
     fun reopenToday() {
         viewModelScope.launch {
             dailyLogRepository.reopenToday()
+            syncManager.triggerManualSync()
         }
     }
 }

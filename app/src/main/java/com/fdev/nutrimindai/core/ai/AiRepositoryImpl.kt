@@ -2,9 +2,13 @@ package com.fdev.nutrimindai.core.ai
 
 import android.graphics.Bitmap
 import com.fdev.nutrimindai.core.datastore.PreferenceManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -12,16 +16,37 @@ import javax.inject.Singleton
 @Singleton
 class AiRepositoryImpl @Inject constructor(
     private val metaAiService: MetaAiService,
-    @Suppress("unused") private val preferenceManager: PreferenceManager
+    private val preferenceManager: PreferenceManager
 ) : AiRepository {
 
+    private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val _activeProvider = MutableStateFlow(AiProvider.META_LLAMA)
     override val activeProviderFlow: StateFlow<AiProvider> = _activeProvider.asStateFlow()
+
+    init {
+        repositoryScope.launch {
+            runCatching {
+                preferenceManager.activeAiProvider.collect { savedProvider ->
+                    if (!savedProvider.isNullOrBlank()) {
+                        val parsed = runCatching { AiProvider.valueOf(savedProvider) }.getOrNull()
+                        if (parsed != null) {
+                            _activeProvider.value = parsed
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     override fun getActiveProvider(): AiProvider = _activeProvider.value
 
     override fun setActiveProvider(provider: AiProvider) {
         _activeProvider.value = provider
+        repositoryScope.launch {
+            runCatching {
+                preferenceManager.setActiveAiProvider(provider.name)
+            }
+        }
         Timber.i("AiRepository: Active AI provider set to ${provider.displayName}")
     }
 
