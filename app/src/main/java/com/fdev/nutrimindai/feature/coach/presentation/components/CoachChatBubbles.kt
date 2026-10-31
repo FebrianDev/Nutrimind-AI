@@ -24,6 +24,9 @@ import androidx.compose.ui.unit.sp
 import com.fdev.nutrimindai.R
 import com.fdev.nutrimindai.feature.coach.domain.model.ChatMessage
 import com.fdev.nutrimindai.feature.coach.domain.model.ChatRole
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -145,6 +148,18 @@ fun CoachChatBubble(
                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
                 ) {
                     if (isUser) {
+                        if (!message.imageUri.isNullOrBlank()) {
+                            AsyncImage(
+                                model = File(message.imageUri),
+                                contentDescription = "Attached meal or menu photo",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(max = 220.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .padding(bottom = 8.dp)
+                            )
+                        }
                         Text(
                             text = message.content,
                             style = MaterialTheme.typography.bodyMedium.copy(lineHeight = 22.sp),

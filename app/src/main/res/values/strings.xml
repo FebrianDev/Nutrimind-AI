@@ -324,6 +324,12 @@
     <string name="coach_voice_cancel">Cancel recording</string>
     <string name="coach_voice_done">Done recording</string>
     <string name="coach_voice_permission_needed">Microphone permission is required for voice input.</string>
+    <string name="coach_attach_photo_title">Attach Photo</string>
+    <string name="coach_attach_photo_desc">Ask about a meal, fridge ingredients, restaurant menu, or nutrition label</string>
+    <string name="coach_photo_attached_title">Photo Attached</string>
+    <string name="coach_photo_attached_subtitle">Ready to send with your question</string>
+    <string name="coach_cd_attach_image">Attach meal or menu image</string>
+    <string name="coach_cd_remove_image">Remove attached image</string>
 
     <!-- Camera AI Scan -->
     <string name="scan_food_title">Scan Food</string>
@@ -393,6 +399,12 @@
     <string name="meal_detail_empty_subtitle">Tap Add Food to start logging today\'s meal.</string>
     <string name="meal_detail_total_nutrition">Total Nutrition</string>
     <string name="meal_detail_delete_food_desc">Delete food item</string>
+    <string name="meal_detail_delete_confirm_title">Delete Food</string>
+    <string name="meal_detail_delete_confirm_msg">Are you sure you want to delete \"%1$s\" from this meal?</string>
+    <string name="exercise_delete_confirm_title">Delete Exercise</string>
+    <string name="exercise_delete_confirm_msg">Are you sure you want to delete \"%1$s\"?</string>
+    <string name="water_delete_confirm_title">Delete Water Record</string>
+    <string name="water_delete_confirm_msg">Are you sure you want to delete this water record?</string>
 
     <!-- Authentication -->
     <string name="auth_logo_desc">NutriMind AI Logo</string>
@@ -535,6 +547,7 @@
     <string name="coach_cd_select_ai_model">Select AI Model</string>
     <string name="coach_cd_clear_history">Clear History</string>
     <string name="coach_cd_send">Send</string>
+    <string name="coach_cd_stop">Stop generating</string>
     <string name="coach_cd_avatar">Coach Avatar</string>
     <string name="coach_dialog_clear_title">Clear Chat History?</string>
     <string name="coach_dialog_clear_desc">All conversation history with NutriCoach will be deleted from this device.</string>
