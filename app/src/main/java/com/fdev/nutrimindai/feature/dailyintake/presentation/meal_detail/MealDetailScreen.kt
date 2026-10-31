@@ -33,6 +33,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.res.stringResource
 import com.fdev.nutrimindai.R
 import coil.compose.AsyncImage
+import com.fdev.nutrimindai.core.designsystem.component.NutriMindConfirmationDialog
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.DailyLogStatus
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.Intake
 import java.io.File
@@ -47,6 +48,8 @@ fun MealDetailScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var selectedIntakeForDetail by remember { mutableStateOf<Intake?>(null) }
+    var intakeToDelete by remember { mutableStateOf<Intake?>(null) }
+
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -67,8 +70,29 @@ fun MealDetailScreen(
             isDraft = (uiState as? MealDetailUiState.Success)?.status == DailyLogStatus.DRAFT,
             onDismiss = { selectedIntakeForDetail = null },
             onDelete = {
+                intakeToDelete = intake
+            }
+        )
+    }
+
+    if (intakeToDelete != null) {
+        val intake = intakeToDelete!!
+        NutriMindConfirmationDialog(
+            title = stringResource(R.string.meal_detail_delete_confirm_title),
+            description = stringResource(R.string.meal_detail_delete_confirm_msg, intake.foodName),
+            icon = Icons.Default.Delete,
+            isDanger = true,
+            confirmButtonText = stringResource(R.string.meal_detail_btn_delete_item),
+            dismissButtonText = stringResource(R.string.dialog_cancel),
+            onConfirm = {
                 viewModel.deleteIntake(intake)
-                selectedIntakeForDetail = null
+                if (selectedIntakeForDetail?.id == intake.id) {
+                    selectedIntakeForDetail = null
+                }
+                intakeToDelete = null
+            },
+            onDismissRequest = {
+                intakeToDelete = null
             }
         )
     }
@@ -185,7 +209,7 @@ fun MealDetailScreen(
                                     intake = intake,
                                     isDraft = state.status == DailyLogStatus.DRAFT,
                                     onClick = { selectedIntakeForDetail = intake },
-                                    onDelete = { viewModel.deleteIntake(intake) }
+                                    onDelete = { intakeToDelete = intake }
                                 )
                             }
                         }

@@ -18,6 +18,7 @@ import com.fdev.nutrimindai.feature.dailyintake.domain.model.MealType
 import com.fdev.nutrimindai.feature.profile.data.local.dao.ProfileDao
 import com.fdev.nutrimindai.feature.profile.data.local.entity.ProfileEntity
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -36,7 +37,7 @@ class ContextualQuickPromptGeneratorTest {
     private val fakeProfileDao = object : ProfileDao {
         override suspend fun insertProfile(profile: ProfileEntity) {}
         override suspend fun updateProfile(profile: ProfileEntity) {}
-        override fun getProfile(id: String): Flow<ProfileEntity?> = flowOf(profileResult)
+        override fun getProfile(id: String): Flow<ProfileEntity?> = flow { emit(profileResult) }
         override suspend fun getProfileDirect(id: String): ProfileEntity? = profileResult
         override suspend fun getUnsyncedProfiles(): List<ProfileEntity> = emptyList()
         override suspend fun markProfilesSynced(ids: List<String>) {}
@@ -44,11 +45,11 @@ class ContextualQuickPromptGeneratorTest {
     }
 
     private val fakeDailyLogDao = object : DailyLogDao {
-        override fun getDailyLogByDate(date: String): Flow<DailyLogEntity?> = flowOf(dailyLogResult)
+        override fun getDailyLogByDate(date: String): Flow<DailyLogEntity?> = flow { emit(dailyLogResult) }
         override suspend fun getDailyLogByDateDirect(date: String): DailyLogEntity? = dailyLogResult
-        override fun getAllDailyLogs(): Flow<List<DailyLogEntity>> = flowOf(listOfNotNull(dailyLogResult))
+        override fun getAllDailyLogs(): Flow<List<DailyLogEntity>> = flow { emit(listOfNotNull(dailyLogResult)) }
         override suspend fun getAllDailyLogsDirect(): List<DailyLogEntity> = listOfNotNull(dailyLogResult)
-        override fun getDailyLogsBetweenDates(startDate: String, endDate: String): Flow<List<DailyLogEntity>> = flowOf(listOfNotNull(dailyLogResult))
+        override fun getDailyLogsBetweenDates(startDate: String, endDate: String): Flow<List<DailyLogEntity>> = flow { emit(listOfNotNull(dailyLogResult)) }
         override suspend fun getDailyLogsBetweenDatesDirect(startDate: String, endDate: String): List<DailyLogEntity> = listOfNotNull(dailyLogResult)
         override suspend fun insertDailyLog(dailyLog: DailyLogEntity) {}
         override suspend fun updateDailyLog(dailyLog: DailyLogEntity) {}
@@ -132,6 +133,12 @@ class ContextualQuickPromptGeneratorTest {
 
     @Before
     fun setup() {
+        profileResult = sampleProfile
+        dailyLogResult = sampleLog
+        intakesResult = emptyList()
+        watersResult = emptyList()
+        exercisesResult = emptyList()
+
         generator = ContextualQuickPromptGenerator(
             profileDao = fakeProfileDao,
             dailyLogDao = fakeDailyLogDao,
@@ -139,12 +146,6 @@ class ContextualQuickPromptGeneratorTest {
             waterDao = fakeWaterDao,
             exerciseDao = fakeExerciseDao
         )
-
-        profileResult = sampleProfile
-        dailyLogResult = sampleLog
-        intakesResult = emptyList()
-        watersResult = emptyList()
-        exercisesResult = emptyList()
     }
 
     @Test

@@ -46,6 +46,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.fdev.nutrimindai.core.designsystem.component.NutriMindConfirmationDialog
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.DailyLogStatus
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.Exercise
 
@@ -57,6 +58,7 @@ fun ExerciseScreen(
     onNavigateToAddExercise: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var exerciseToDelete by remember { mutableStateOf<Exercise?>(null) }
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -98,6 +100,25 @@ fun ExerciseScreen(
                 }
             }
         }
+    }
+
+    if (exerciseToDelete != null) {
+        val exercise = exerciseToDelete!!
+        NutriMindConfirmationDialog(
+            title = stringResource(R.string.exercise_delete_confirm_title),
+            description = stringResource(R.string.exercise_delete_confirm_msg, exercise.exerciseType),
+            icon = Icons.Default.Delete,
+            isDanger = true,
+            confirmButtonText = stringResource(R.string.meal_detail_btn_delete_item),
+            dismissButtonText = stringResource(R.string.dialog_cancel),
+            onConfirm = {
+                viewModel.deleteExercise(exercise)
+                exerciseToDelete = null
+            },
+            onDismissRequest = {
+                exerciseToDelete = null
+            }
+        )
     }
 
     Scaffold(
@@ -207,7 +228,7 @@ fun ExerciseScreen(
                                 ExerciseItemCard(
                                     exercise = exercise,
                                     isDraft = state.status == DailyLogStatus.DRAFT,
-                                    onDelete = { viewModel.deleteExercise(exercise) }
+                                    onDelete = { exerciseToDelete = exercise }
                                 )
                             }
                         }

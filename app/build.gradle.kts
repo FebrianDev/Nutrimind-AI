@@ -82,7 +82,7 @@ kotlin {
     jvmToolchain(17)
 }
 
-val dbVersion = 14
+val dbVersion = 15
 
 androidComponents {
     onVariants { variant ->
