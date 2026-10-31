@@ -7,7 +7,11 @@ import kotlinx.coroutines.flow.StateFlow
 
 interface CoachRepository {
     fun getAllMessages(): Flow<List<ChatMessage>>
-    suspend fun sendMessage(userText: String): Result<String>
+    suspend fun sendMessage(
+        userText: String,
+        imageUri: String? = null,
+        imageBitmap: android.graphics.Bitmap? = null
+    ): Result<String>
     suspend fun clearHistory()
     fun getActiveProvider(): AiProvider
     fun setActiveProvider(provider: AiProvider)

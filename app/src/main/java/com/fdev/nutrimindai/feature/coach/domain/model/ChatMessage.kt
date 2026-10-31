@@ -12,5 +12,6 @@ data class ChatMessage(
     val role: ChatRole,
     val content: String,
     val timestamp: Long = System.currentTimeMillis(),
-    val actionSummary: String? = null
+    val actionSummary: String? = null,
+    val imageUri: String? = null
 )
