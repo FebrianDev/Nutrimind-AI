@@ -28,6 +28,9 @@ sealed interface NavigationDestination {
     data class TrendDetail(val metric: String) : NavigationDestination
 
     @Serializable
+    data object DailyMissionHistory : NavigationDestination
+
+    @Serializable
     data object GoalSettings : NavigationDestination
 
     @Serializable

@@ -913,4 +913,36 @@
     <string name="home_intake_badge">Daily Tracker</string>
     <string name="home_calories_remaining">%1$,d kcal left</string>
     <string name="home_calories_over">%1$,d kcal over</string>
+
+    <!-- Mission History & Rewards in Progress -->
+    <string name="progress_mission_reward_title">Daily Mission &amp; Rewards</string>
+    <string name="progress_mission_reward_subtitle">Habit streaks, NutriPoints, and adherence history</string>
+    <string name="progress_mission_streak_label">Current Streak</string>
+    <string name="progress_mission_streak_unit">%1$d Days</string>
+    <string name="progress_mission_streak_sub">Keep the fire burning!</string>
+    <string name="progress_mission_points_label">NutriPoints</string>
+    <string name="progress_mission_points_val">%1$,d pts</string>
+    <string name="progress_mission_perfect_label">Perfect Days</string>
+    <string name="progress_mission_perfect_unit">%1$d Days</string>
+    <string name="progress_mission_view_badges">View Badges (%1$d/%2$d)</string>
+    <string name="progress_mission_history_title">Daily Completion History</string>
+    <string name="progress_mission_badge_dialog_title">Mission Achievement Badges</string>
+    <string name="progress_mission_badge_dialog_desc">Earn badges and NutriPoints by staying consistent with your daily health missions.</string>
+    <string name="progress_mission_badge_unlocked">Unlocked! 🎉</string>
+    <string name="progress_mission_detail_dialog_title">Daily Mission Breakdown</string>
+    <string name="progress_mission_detail_dialog_points">Earned: +%1$d NutriPoints</string>
+    <string name="progress_mission_perfect_day_badge">Perfect Day! 🎉</string>
+    <string name="progress_mission_points_earned_format">+%1$d pts</string>
+    <string name="progress_mission_completed_format">%1$d/%2$d Done</string>
+    <string name="progress_mission_no_history">No mission activity recorded in this period.</string>
+    <string name="progress_mission_close">Close</string>
+    <string name="progress_mission_view_history">Daily Completion History</string>
+    <string name="progress_mission_view_history_sub">View past days &amp; breakdown</string>
+    <string name="mission_history_screen_title">Mission Completion History</string>
+    <string name="mission_history_filter_all">All Days</string>
+    <string name="mission_history_filter_perfect">Perfect Only</string>
+    <string name="mission_history_tab_7d">7 Days</string>
+    <string name="mission_history_tab_30d">30 Days</string>
+    <string name="mission_history_tab_90d">90 Days</string>
+    <string name="mission_history_adherence_label">Adherence</string>
 </resources>

@@ -75,7 +75,8 @@ data class DailyMissionItem(
     val title: String,
     val description: String,
     val currentProgressText: String,
-    val isCompleted: Boolean
+    val isCompleted: Boolean,
+    val progressFraction: Float = 0f
 )
 
 data class TodaySummary(
