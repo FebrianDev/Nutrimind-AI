@@ -201,8 +201,8 @@ fun TrendSummarySection(
                 )
             }
             val avgPeriodLabel = when (selectedPeriodTab) {
-                1 -> "Average this month"
-                2 -> "Average last 3 months"
+                1 -> stringResource(R.string.avg_this_month)
+                2 -> stringResource(R.string.avg_last_3_months)
                 else -> stringResource(R.string.avg_this_week)
             }
             Text(
@@ -229,8 +229,8 @@ fun TrendSummarySection(
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 val vsPeriodLabel = when (selectedPeriodTab) {
-                    1 -> "vs last month"
-                    2 -> "vs last 3 months"
+                    1 -> stringResource(R.string.vs_last_month)
+                    2 -> stringResource(R.string.vs_last_3_months)
                     else -> stringResource(R.string.vs_last_week)
                 }
                 Text(

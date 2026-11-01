@@ -105,7 +105,14 @@
     <string name="label_mission">Mission</string>
     <string name="label_trend">TREND</string>
     <string name="avg_this_week">Average this week</string>
+    <string name="avg_this_month">Average this month</string>
+    <string name="avg_last_3_months">Average last 3 months</string>
+    <string name="vs_yesterday">vs yesterday</string>
+    <string name="vs_last_3_days">vs last 3 days</string>
     <string name="vs_last_week">vs last week</string>
+    <string name="vs_last_month">vs last month</string>
+    <string name="vs_last_3_months">vs last 3 months</string>
+    <string name="vs_prev_period">vs prev period</string>
     <string name="label_ai_insight">AI INSIGHT</string>
     <string name="label_daily_reviews">DAILY REVIEWS</string>
     <string name="btn_view_all">View All</string>

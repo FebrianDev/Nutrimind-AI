@@ -93,7 +93,7 @@ fun ProgressTrendChart(
                     detectTapGestures { tapOffset ->
                         val width = size.width
                         val stepX = width / (dataPoints.size - 1).coerceAtLeast(1)
-                        val index = (tapOffset.x / stepX).toInt().coerceIn(0, dataPoints.lastIndex)
+                        val index = kotlin.math.round(tapOffset.x / stepX).toInt().coerceIn(0, dataPoints.lastIndex)
                         selectedIndex = if (selectedIndex == index) -1 else index
                     }
                 }
@@ -185,62 +185,85 @@ fun ProgressTrendChart(
                 style = Stroke(width = 3.dp.toPx(), cap = StrokeCap.Round)
             )
 
-            // Draw data points
+            // Draw vertical indicator line for selected point
+            if (selectedIndex in points.indices) {
+                val selectedPoint = points[selectedIndex]
+                drawLine(
+                    color = lineColor.copy(alpha = 0.4f),
+                    start = Offset(selectedPoint.x, 0f),
+                    end = Offset(selectedPoint.x, chartHeight),
+                    strokeWidth = 1.dp.toPx(),
+                    pathEffect = PathEffect.dashPathEffect(floatArrayOf(6f, 6f), 0f)
+                )
+            }
+
+            // Draw data points: only draw unselected dots when point count is reasonable (<= 30)
+            // to avoid overlapping clustered dots on long periods (2+ months)
+            val showAllPoints = dataPoints.size <= 30
             points.forEachIndexed { index, point ->
                 val isSelected = index == selectedIndex
                 val isActual = pointTypes?.getOrNull(index) ?: true
 
-                if (isActual) {
-                    drawCircle(
-                        color = if (isSelected) lineColor else surfaceVariantColor,
-                        radius = if (isSelected) 7.dp.toPx() else 4.5.dp.toPx(),
-                        center = point
-                    )
-                    drawCircle(
-                        color = lineColor,
-                        radius = if (isSelected) 5.dp.toPx() else 3.dp.toPx(),
-                        center = point,
-                        style = Stroke(width = 2.dp.toPx())
-                    )
-                } else {
-                    drawCircle(
-                        color = surfaceVariantColor.copy(alpha = 0.9f),
-                        radius = if (isSelected) 6.dp.toPx() else 3.5.dp.toPx(),
-                        center = point
-                    )
-                    drawCircle(
-                        color = lineColor.copy(alpha = 0.6f),
-                        radius = if (isSelected) 4.5.dp.toPx() else 2.5.dp.toPx(),
-                        center = point,
-                        style = Stroke(width = 1.5.dp.toPx())
-                    )
+                if (isSelected || showAllPoints) {
+                    if (isActual) {
+                        drawCircle(
+                            color = if (isSelected) lineColor else surfaceVariantColor,
+                            radius = if (isSelected) 7.dp.toPx() else 4.5.dp.toPx(),
+                            center = point
+                        )
+                        drawCircle(
+                            color = lineColor,
+                            radius = if (isSelected) 5.dp.toPx() else 3.dp.toPx(),
+                            center = point,
+                            style = Stroke(width = 2.dp.toPx())
+                        )
+                    } else {
+                        drawCircle(
+                            color = surfaceVariantColor.copy(alpha = 0.9f),
+                            radius = if (isSelected) 6.dp.toPx() else 3.5.dp.toPx(),
+                            center = point
+                        )
+                        drawCircle(
+                            color = lineColor.copy(alpha = 0.6f),
+                            radius = if (isSelected) 4.5.dp.toPx() else 2.5.dp.toPx(),
+                            center = point,
+                            style = Stroke(width = 1.5.dp.toPx())
+                        )
+                    }
                 }
             }
         }
 
-        // Labels row below canvas
+        // Labels row below canvas: evenly distribute at most 5 date checkpoints for periods > 7 days
+        // so that dates never crowd, wrap, or overlap even for 2+ months, 3 months, or 1 year filters
+        val displayIndices = remember(labels.size) {
+            when {
+                labels.size <= 7 -> labels.indices.toList()
+                else -> {
+                    val count = 5
+                    (0 until count).map { i ->
+                        (i * (labels.size - 1) / (count - 1)).coerceIn(0, labels.lastIndex)
+                    }.distinct()
+                }
+            }
+        }
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 6.dp),
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = if (displayIndices.size > 1) Arrangement.SpaceBetween else Arrangement.Center
         ) {
-            val step = when {
-                labels.size > 20 -> 5
-                labels.size > 10 -> 2
-                else -> 1
-            }
-
-            labels.forEachIndexed { index, label ->
-                if (index == 0 || index == labels.lastIndex || index % step == 0) {
-                    Text(
-                        text = label,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = if (index == selectedIndex) lineColor else labelTextColor,
-                        fontWeight = if (index == selectedIndex) FontWeight.Bold else FontWeight.Normal,
-                        fontSize = 10.sp
-                    )
-                }
+            displayIndices.forEach { index ->
+                Text(
+                    text = labels[index],
+                    style = MaterialTheme.typography.labelSmall,
+                    color = if (index == selectedIndex) lineColor else labelTextColor,
+                    fontWeight = if (index == selectedIndex) FontWeight.Bold else FontWeight.Normal,
+                    fontSize = 10.sp,
+                    maxLines = 1,
+                    softWrap = false
+                )
             }
         }
     }

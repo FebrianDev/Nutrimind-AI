@@ -252,6 +252,7 @@ private fun ProgressContent(
         WeeklySummarySection(data = data)
         TrendSection(
             trendPoints = data.weeklyTrendPoints,
+            selectedFilter = data.selectedFilter,
             onDetailClick = onNavigateToTrendDetail
         )
 
@@ -777,6 +778,7 @@ fun StatisticCard(
 @Composable
 fun TrendSection(
     trendPoints: List<DailyTrendPoint>,
+    selectedFilter: DateRangeFilter = DateRangeFilter.Last7Days,
     onDetailClick: (String) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -881,8 +883,15 @@ fun TrendSection(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
+                    val avgPeriodSubtitle = when (selectedFilter) {
+                        is DateRangeFilter.Last1Day -> stringResource(R.string.progress_filter_today)
+                        is DateRangeFilter.Last3Days -> stringResource(R.string.progress_filter_last_3_days)
+                        is DateRangeFilter.Last7Days -> stringResource(R.string.avg_this_week)
+                        is DateRangeFilter.Last30Days -> stringResource(R.string.progress_filter_last_30_days)
+                        is DateRangeFilter.Custom -> stringResource(R.string.progress_filter_period_summary)
+                    }
                     Text(
-                        text = stringResource(R.string.avg_this_week),
+                        text = avgPeriodSubtitle,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -950,8 +959,15 @@ fun TrendSection(
                                 fontWeight = FontWeight.Bold
                             )
                             Spacer(modifier = Modifier.width(2.dp))
+                            val vsPeriodLabel = when (selectedFilter) {
+                                is DateRangeFilter.Last1Day -> stringResource(R.string.vs_yesterday)
+                                is DateRangeFilter.Last3Days -> stringResource(R.string.vs_last_3_days)
+                                is DateRangeFilter.Last7Days -> stringResource(R.string.vs_last_week)
+                                is DateRangeFilter.Last30Days -> stringResource(R.string.vs_last_month)
+                                is DateRangeFilter.Custom -> stringResource(R.string.vs_prev_period)
+                            }
                             Text(
-                                text = stringResource(R.string.vs_last_week),
+                                text = vsPeriodLabel,
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                                 fontSize = 8.sp
