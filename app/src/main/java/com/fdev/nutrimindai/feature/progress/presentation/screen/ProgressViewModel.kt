@@ -64,6 +64,8 @@ data class DailyTrendPoint(
     val dateStr: String,
     val calories: Float,
     val protein: Float,
+    val carbs: Float = 0f,
+    val fat: Float = 0f,
     val water: Float,
     val weight: Float,
     val exercise: Float,
@@ -357,6 +359,8 @@ class ProgressViewModel @Inject constructor(
 
             val cals = record.intakes.sumOf { it.calories }
             val protein = record.intakes.sumOf { it.protein }
+            val carbs = record.intakes.sumOf { it.carbs }
+            val fat = record.intakes.sumOf { it.fat }
             val water = record.waters.sumOf { it.amountMl }
             val exerciseMinutes = record.exercises.sumOf { it.durationMinute }
             val exerciseCalories = record.exercises.sumOf { it.caloriesBurned }
@@ -388,6 +392,8 @@ class ProgressViewModel @Inject constructor(
                     dateStr = record.dateStr,
                     calories = cals.toFloat(),
                     protein = protein.toFloat(),
+                    carbs = carbs.toFloat(),
+                    fat = fat.toFloat(),
                     water = water.toFloat(),
                     weight = actualWeight,
                     exercise = exerciseCalories.toFloat(),

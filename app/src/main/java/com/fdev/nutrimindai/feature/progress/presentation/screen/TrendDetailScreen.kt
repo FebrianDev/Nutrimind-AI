@@ -42,8 +42,18 @@ fun TrendDetailScreen(
         topBar = {
             TopAppBar(
                 title = {
+                    val titleText = when (metric) {
+                        "Calories" -> stringResource(R.string.home_label_calories)
+                        "Protein" -> stringResource(R.string.label_protein)
+                        "Carbs" -> stringResource(R.string.label_carbs)
+                        "Fat" -> stringResource(R.string.label_fat)
+                        "Water" -> stringResource(R.string.label_water)
+                        "Weight" -> stringResource(R.string.label_weight)
+                        "Exercise" -> stringResource(R.string.label_activity)
+                        else -> metric
+                    }
                     Text(
-                        metric,
+                        titleText,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
@@ -87,6 +97,8 @@ fun TrendDetailScreen(
                 val lineColor = when (metric) {
                     "Calories" -> NutritionCalories
                     "Protein" -> NutritionProtein
+                    "Carbs" -> NutritionCarbs
+                    "Fat" -> NutritionFat
                     "Water" -> NutritionWater
                     "Weight" -> MaterialTheme.colorScheme.primary
                     "Exercise" -> NutritionExercise
@@ -306,9 +318,22 @@ fun StatItem(modifier: Modifier, label: String, value: String, unit: String, sub
 
 @Composable
 fun AboutMetricSection(metric: String) {
+    val metricLabel = when (metric) {
+        "Calories" -> stringResource(R.string.home_label_calories)
+        "Protein" -> stringResource(R.string.label_protein)
+        "Carbs" -> stringResource(R.string.label_carbs)
+        "Fat" -> stringResource(R.string.label_fat)
+        "Water" -> stringResource(R.string.label_water)
+        "Weight" -> stringResource(R.string.label_weight)
+        "Exercise" -> stringResource(R.string.label_activity)
+        else -> metric
+    }
+
     val description = when (metric) {
         "Calories" -> stringResource(R.string.trend_desc_calories)
         "Protein" -> stringResource(R.string.trend_desc_protein)
+        "Carbs" -> stringResource(R.string.trend_desc_carbs)
+        "Fat" -> stringResource(R.string.trend_desc_fat)
         "Water" -> stringResource(R.string.trend_desc_water)
         "Weight" -> stringResource(R.string.trend_desc_weight)
         "Exercise" -> stringResource(R.string.trend_desc_exercise)
@@ -318,7 +343,7 @@ fun AboutMetricSection(metric: String) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = stringResource(R.string.trend_about_metric, metric),
+                text = stringResource(R.string.trend_about_metric, metricLabel),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold
             )

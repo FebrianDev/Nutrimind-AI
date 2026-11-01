@@ -80,7 +80,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fdev.nutrimindai.R
 import com.fdev.nutrimindai.core.designsystem.LightSuccess
 import com.fdev.nutrimindai.core.designsystem.NutritionCalories
+import com.fdev.nutrimindai.core.designsystem.NutritionCarbs
 import com.fdev.nutrimindai.core.designsystem.NutritionExercise
+import com.fdev.nutrimindai.core.designsystem.NutritionFat
 import com.fdev.nutrimindai.core.designsystem.NutritionProtein
 import com.fdev.nutrimindai.core.designsystem.NutritionWater
 import com.fdev.nutrimindai.core.util.NutritionPdfReportGenerator
@@ -783,13 +785,15 @@ fun TrendSection(
 ) {
     var expanded by remember { mutableStateOf(false) }
     var selectedMetric by remember { mutableStateOf("Calories") }
-    val metrics = listOf("Calories", "Protein", "Water", "Weight", "Exercise")
+    val metrics = listOf("Calories", "Protein", "Carbs", "Fat", "Water", "Weight", "Exercise")
 
     val labels = trendPoints.map { it.dayLabel }
     val dataPoints = trendPoints.map { point ->
         when (selectedMetric) {
             "Calories" -> point.calories
             "Protein" -> point.protein
+            "Carbs" -> point.carbs
+            "Fat" -> point.fat
             "Water" -> point.water / 1000f // in liters
             "Weight" -> point.weight
             "Exercise" -> point.exercise
@@ -800,6 +804,8 @@ fun TrendSection(
     val selectedMetricLabel = when (selectedMetric) {
         "Calories" -> stringResource(R.string.home_label_calories)
         "Protein" -> stringResource(R.string.label_protein)
+        "Carbs" -> stringResource(R.string.label_carbs)
+        "Fat" -> stringResource(R.string.label_fat)
         "Water" -> stringResource(R.string.label_water)
         "Weight" -> stringResource(R.string.label_weight)
         "Exercise" -> stringResource(R.string.label_activity)
@@ -808,7 +814,7 @@ fun TrendSection(
 
     val unit = when (selectedMetric) {
         "Calories" -> stringResource(R.string.unit_kcal)
-        "Protein" -> stringResource(R.string.unit_grams)
+        "Protein", "Carbs", "Fat" -> stringResource(R.string.unit_grams)
         "Water" -> stringResource(R.string.unit_liters)
         "Weight" -> stringResource(R.string.unit_kg)
         "Exercise" -> stringResource(R.string.unit_minutes)
@@ -825,6 +831,8 @@ fun TrendSection(
     val lineColor = when (selectedMetric) {
         "Calories" -> NutritionCalories
         "Protein" -> NutritionProtein
+        "Carbs" -> NutritionCarbs
+        "Fat" -> NutritionFat
         "Water" -> NutritionWater
         "Weight" -> MaterialTheme.colorScheme.primary
         "Exercise" -> NutritionExercise
@@ -928,6 +936,8 @@ fun TrendSection(
                                 val label = when (metric) {
                                     "Calories" -> stringResource(R.string.home_label_calories)
                                     "Protein" -> stringResource(R.string.label_protein)
+                                    "Carbs" -> stringResource(R.string.label_carbs)
+                                    "Fat" -> stringResource(R.string.label_fat)
                                     "Water" -> stringResource(R.string.label_water)
                                     "Weight" -> stringResource(R.string.label_weight)
                                     "Exercise" -> stringResource(R.string.label_activity)

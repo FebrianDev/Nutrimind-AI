@@ -169,6 +169,18 @@ class TrendDetailViewModel @Inject constructor(
                                 valForDay = intakes.sumOf { it.protein }.toFloat()
                             }
                         }
+                        "Carbs" -> {
+                            if (log != null) {
+                                val intakes = intakesByLogId[log.id].orEmpty()
+                                valForDay = intakes.sumOf { it.carbs }.toFloat()
+                            }
+                        }
+                        "Fat" -> {
+                            if (log != null) {
+                                val intakes = intakesByLogId[log.id].orEmpty()
+                                valForDay = intakes.sumOf { it.fat }.toFloat()
+                            }
+                        }
                         "Water" -> {
                             if (log != null) {
                                 val waters = watersByLogId[log.id].orEmpty()
@@ -259,6 +271,8 @@ class TrendDetailViewModel @Inject constructor(
                 val goalValStr = when (metric) {
                     "Calories" -> "${profile?.dailyCalories ?: 2200}"
                     "Protein" -> "${profile?.dailyProtein ?: 140}"
+                    "Carbs" -> "${profile?.dailyCarbs ?: 245}"
+                    "Fat" -> "${profile?.dailyFat ?: 65}"
                     "Water" -> {
                         val waterTargetMl = com.fdev.nutrimindai.core.util.NutritionCalculator.calculateDynamicWaterTarget(
                             profile?.currentWeight ?: 70f,

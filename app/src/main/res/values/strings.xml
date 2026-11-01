@@ -763,6 +763,8 @@
     <string name="trend_about_metric">About %1$s</string>
     <string name="trend_desc_calories">Calories are the energy you get from food and drinks. Staying within your caloric goal helps you reach your target weight.</string>
     <string name="trend_desc_protein">Protein helps build and repair body tissue. It also supports muscle growth and maintenance.</string>
+    <string name="trend_desc_carbs">Carbohydrates provide your body with its primary source of energy, fueling your brain, kidneys, heart muscles, and central nervous system.</string>
+    <string name="trend_desc_fat">Healthy fats support cell structure, hormone production, and nutrient absorption, while providing long-lasting energy.</string>
     <string name="trend_desc_water">Water keeps your body functioning properly and helps maintain energy and focus.</string>
     <string name="trend_desc_weight">Tracking your weight helps you see your progress toward your goal and adjust your plan as needed.</string>
     <string name="trend_desc_exercise">Regular exercise improves your health, strength, and overall well-being.</string>
