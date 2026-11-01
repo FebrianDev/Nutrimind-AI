@@ -17,6 +17,9 @@ import com.fdev.nutrimindai.feature.dailyintake.domain.repository.WaterRepositor
 import com.fdev.nutrimindai.feature.profile.data.local.entity.ProfileEntity
 import com.fdev.nutrimindai.feature.profile.domain.repository.ProfileRepository
 import com.fdev.nutrimindai.core.model.Goal
+import com.fdev.nutrimindai.core.util.DailyMissionEvaluator
+import com.fdev.nutrimindai.core.util.EvaluatedDayMissions
+import com.fdev.nutrimindai.core.util.MissionRewardData
 import com.fdev.nutrimindai.core.util.NutritionCalculator
 import com.fdev.nutrimindai.core.sync.SyncManager
 import com.fdev.nutrimindai.feature.progress.data.local.entity.WeightLogEntity
@@ -94,7 +97,8 @@ data class ProgressData(
     val dailyReviews: List<DailyReviewData> = emptyList(),
     val aiInsight: String = "",
     val selectedFilter: DateRangeFilter = DateRangeFilter.Last7Days,
-    val userName: String = "Champion"
+    val userName: String = "Champion",
+    val missionRewardData: MissionRewardData = MissionRewardData()
 )
 
 sealed class ProgressUiState {
@@ -306,11 +310,11 @@ class ProgressViewModel @Inject constructor(
         val goalData = buildGoalData(profile, weightLogs, dayRecords)
         val trendPoints = mutableListOf<DailyTrendPoint>()
         val reviews = mutableListOf<DailyReviewData>()
+        val evaluatedDays = mutableListOf<EvaluatedDayMissions>()
 
         var totalCalSum = 0
         var activeCalDays = 0
         var totalWaterSum = 0
-        var missionCompletedCount = 0
 
         val targetCal = profile?.dailyCalories ?: NutritionSummary.DEFAULT_GOAL_CALORIES
         val targetProtein = profile?.dailyProtein?.toDouble() ?: NutritionSummary.DEFAULT_GOAL_PROTEIN.toDouble()
@@ -417,9 +421,20 @@ class ProgressViewModel @Inject constructor(
                 else -> "$dayLabel, $dateDisplay"
             }
 
-            if (cals > 0 || water > 0 || exerciseMinutes > 0) {
-                missionCompletedCount++
-            }
+            val evaluatedDay = DailyMissionEvaluator.evaluateDay(
+                goal = profile?.goal ?: Goal.MaintainWeight,
+                calories = cals,
+                goalCalories = targetCal,
+                protein = protein,
+                goalProtein = targetProtein.toInt(),
+                waterMl = water,
+                goalWaterMl = targetWater,
+                exerciseMinutes = exerciseMinutes,
+                intakes = record.intakes,
+                dateStr = record.dateStr,
+                dayLabel = dayTitle
+            )
+            evaluatedDays.add(evaluatedDay)
 
             reviews.add(
                 DailyReviewData(
@@ -435,7 +450,8 @@ class ProgressViewModel @Inject constructor(
         val completedDays = dayRecords.count { it.dailyLog?.status == DailyLogStatus.COMPLETED }
         val avgCalories = if (activeCalDays > 0) totalCalSum / activeCalDays else 0
         val waterGoalPercent = ((totalWaterSum.toFloat() / (targetWater * totalDays)) * 100).toInt().coerceAtMost(100)
-        val missionPercent = ((missionCompletedCount.toFloat() / totalDays) * 100).toInt()
+        val missionRewardData = DailyMissionEvaluator.calculateMissionRewards(evaluatedDays)
+        val missionPercent = missionRewardData.adherencePercent
 
         val aiInsight = generateAiInsight(avgCalories, targetCal, waterGoalPercent, completedDays, totalDays)
 
@@ -475,7 +491,8 @@ class ProgressViewModel @Inject constructor(
             dailyReviews = reviews.asReversed(),
             aiInsight = aiInsight,
             selectedFilter = filter,
-            userName = userName
+            userName = userName,
+            missionRewardData = missionRewardData
         )
     }
 

@@ -84,6 +84,7 @@ import com.fdev.nutrimindai.core.designsystem.NutritionExercise
 import com.fdev.nutrimindai.core.designsystem.NutritionProtein
 import com.fdev.nutrimindai.core.designsystem.NutritionWater
 import com.fdev.nutrimindai.core.util.NutritionPdfReportGenerator
+import com.fdev.nutrimindai.feature.progress.presentation.components.MissionRewardSection
 import com.fdev.nutrimindai.feature.progress.presentation.components.ProgressTrendChart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -96,7 +97,8 @@ fun ProgressScreen(
     viewModel: ProgressViewModel = hiltViewModel(),
     onNavigateToDailyReview: (String) -> Unit = {},
     onNavigateToTrendDetail: (String) -> Unit,
-    onNavigateToGoalSettings: () -> Unit
+    onNavigateToGoalSettings: () -> Unit,
+    onNavigateToMissionHistory: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -183,7 +185,8 @@ fun ProgressScreen(
                     onNavigateToDailyReview = onNavigateToDailyReview,
                     onNavigateToTrendDetail = onNavigateToTrendDetail,
                     onNavigateToGoalSettings = onNavigateToGoalSettings,
-                    onLogWeightClick = { showLogWeightDialog = true }
+                    onLogWeightClick = { showLogWeightDialog = true },
+                    onNavigateToMissionHistory = onNavigateToMissionHistory
                 )
             }
         }
@@ -227,7 +230,8 @@ private fun ProgressContent(
     onNavigateToDailyReview: (String) -> Unit = {},
     onNavigateToTrendDetail: (String) -> Unit,
     onNavigateToGoalSettings: () -> Unit,
-    onLogWeightClick: () -> Unit
+    onLogWeightClick: () -> Unit,
+    onNavigateToMissionHistory: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
@@ -236,6 +240,10 @@ private fun ProgressContent(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(24.dp)
     ) {
+        MissionRewardSection(
+            missionRewardData = data.missionRewardData,
+            onViewHistoryClick = onNavigateToMissionHistory
+        )
         GoalProgressCard(
             goalData = data.goalData,
             onEditGoalClick = onNavigateToGoalSettings,
