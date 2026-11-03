@@ -191,6 +191,9 @@ private fun ActivityDetailContent(
                 .screenPadding(),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
+
+            Spacer(modifier = Modifier.height(8.dp))
+
             ActivityStatsSummary(data = data)
 
             if (data.isToday) {

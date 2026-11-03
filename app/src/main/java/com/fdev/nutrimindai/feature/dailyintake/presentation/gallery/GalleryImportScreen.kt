@@ -170,7 +170,7 @@ fun GalleryImportScreen(
                 if (selectedUri != null) {
                     Card(
                         shape = RoundedCornerShape(AppSpacing.l),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(260.dp)
@@ -213,27 +213,14 @@ fun GalleryImportScreen(
                     }
 
                     // Action buttons when image is chosen
-                    Row(
+                    Column(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)
+                        verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
                     ) {
-                        OutlinedButton(
-                            onClick = { galleryLauncher.launch("image/*") },
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(48.dp),
-                            shape = RoundedCornerShape(AppSpacing.sm),
-                            colors = ButtonDefaults.outlinedButtonColors(contentColor = FoodInputGallery)
-                        ) {
-                            Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Spacer(modifier = Modifier.width(AppSpacing.s))
-                            Text(stringResource(R.string.gallery_btn_change_photo))
-                        }
-
                         Button(
                             onClick = { selectedUri?.let { viewModel.analyzeGalleryUri(it) } },
                             modifier = Modifier
-                                .weight(1.3f)
+                                .fillMaxWidth()
                                 .height(48.dp),
                             shape = RoundedCornerShape(AppSpacing.sm),
                             colors = ButtonDefaults.buttonColors(containerColor = FoodInputGallery)
@@ -241,6 +228,19 @@ fun GalleryImportScreen(
                             Icon(Icons.Rounded.AutoAwesome, contentDescription = null, modifier = Modifier.size(18.dp))
                             Spacer(modifier = Modifier.width(AppSpacing.s))
                             Text(stringResource(R.string.gallery_btn_analyze), fontWeight = FontWeight.Bold)
+                        }
+
+                        OutlinedButton(
+                            onClick = { galleryLauncher.launch("image/*") },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp),
+                            shape = RoundedCornerShape(AppSpacing.sm),
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = FoodInputGallery)
+                        ) {
+                            Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(AppSpacing.s))
+                            Text(stringResource(R.string.gallery_btn_change_photo))
                         }
                     }
                 } else {

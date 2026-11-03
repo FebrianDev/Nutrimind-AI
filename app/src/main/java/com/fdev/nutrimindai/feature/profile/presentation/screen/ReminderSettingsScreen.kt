@@ -111,8 +111,8 @@ fun ReminderSettingsScreen(
                 .padding(paddingValues)
                 .verticalScroll(scrollState)
                 .screenPadding()
-                .padding(vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(vertical = AppSpacing.s),
+            verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
         ) {
             // Permission Notice Card (if permission not yet granted on Android 13+)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !hasNotificationPermission) {
@@ -123,17 +123,19 @@ fun ReminderSettingsScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(
-                        modifier = Modifier.cardPadding(),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                        modifier = Modifier.padding(AppSpacing.m),
+                        verticalArrangement = Arrangement.spacedBy(AppSpacing.s)
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(AppSpacing.s)
+                        ) {
                             Icon(
                                 imageVector = Icons.Default.NotificationsOff,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.error,
                                 modifier = Modifier.size(22.dp)
                             )
-                            Spacer(modifier = Modifier.width(10.dp))
                             Text(
                                 text = stringResource(R.string.reminder_permission_needed_title),
                                 style = MaterialTheme.typography.titleSmall,
@@ -159,260 +161,280 @@ fun ReminderSettingsScreen(
             }
 
             // --- MEAL REMINDERS SECTION ---
-            SectionHeader(
-                title = stringResource(R.string.reminder_section_meals_title),
-                subtitle = stringResource(R.string.reminder_section_meals_subtitle)
-            )
+            Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)) {
+                SectionHeader(
+                    title = stringResource(R.string.reminder_section_meals_title),
+                    subtitle = stringResource(R.string.reminder_section_meals_subtitle)
+                )
 
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                color = MaterialTheme.colorScheme.surface,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
-            ) {
-                Column {
-                    ReminderRow(
-                        icon = Icons.Default.WbSunny,
-                        iconTint = Color(0xFFFFB300),
-                        title = stringResource(R.string.reminder_breakfast_title),
-                        subtitle = stringResource(R.string.reminder_breakfast_subtitle),
-                        timeString = settings.breakfastTime,
-                        isEnabled = settings.breakfastEnabled,
-                        onToggle = { enabled -> viewModel.updateBreakfast(enabled, settings.breakfastTime) },
-                        onTimeClick = {
-                            showTimePickerDialog = TimePickerTarget.Breakfast(settings.breakfastTime)
-                        }
-                    )
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.screenPadding())
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(20.dp),
+                    color = MaterialTheme.colorScheme.surface,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                ) {
+                    Column {
+                        ReminderRow(
+                            icon = Icons.Default.WbSunny,
+                            iconTint = Color(0xFFFFB300),
+                            title = stringResource(R.string.reminder_breakfast_title),
+                            subtitle = stringResource(R.string.reminder_breakfast_subtitle),
+                            timeString = settings.breakfastTime,
+                            isEnabled = settings.breakfastEnabled,
+                            onToggle = { enabled -> viewModel.updateBreakfast(enabled, settings.breakfastTime) },
+                            onTimeClick = {
+                                showTimePickerDialog = TimePickerTarget.Breakfast(settings.breakfastTime)
+                            }
+                        )
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outlineVariant,
+                            modifier = Modifier.padding(horizontal = AppSpacing.m)
+                        )
 
-                    ReminderRow(
-                        icon = Icons.Default.Restaurant,
-                        iconTint = NutritionCalories,
-                        title = stringResource(R.string.reminder_lunch_title),
-                        subtitle = stringResource(R.string.reminder_lunch_subtitle),
-                        timeString = settings.lunchTime,
-                        isEnabled = settings.lunchEnabled,
-                        onToggle = { enabled -> viewModel.updateLunch(enabled, settings.lunchTime) },
-                        onTimeClick = {
-                            showTimePickerDialog = TimePickerTarget.Lunch(settings.lunchTime)
-                        }
-                    )
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.screenPadding())
+                        ReminderRow(
+                            icon = Icons.Default.Restaurant,
+                            iconTint = NutritionCalories,
+                            title = stringResource(R.string.reminder_lunch_title),
+                            subtitle = stringResource(R.string.reminder_lunch_subtitle),
+                            timeString = settings.lunchTime,
+                            isEnabled = settings.lunchEnabled,
+                            onToggle = { enabled -> viewModel.updateLunch(enabled, settings.lunchTime) },
+                            onTimeClick = {
+                                showTimePickerDialog = TimePickerTarget.Lunch(settings.lunchTime)
+                            }
+                        )
+                        HorizontalDivider(
+                            color = MaterialTheme.colorScheme.outlineVariant,
+                            modifier = Modifier.padding(horizontal = AppSpacing.m)
+                        )
 
-                    ReminderRow(
-                        icon = Icons.Default.NightsStay,
-                        iconTint = Color(0xFF5C6BC0),
-                        title = stringResource(R.string.reminder_dinner_title),
-                        subtitle = stringResource(R.string.reminder_dinner_subtitle),
-                        timeString = settings.dinnerTime,
-                        isEnabled = settings.dinnerEnabled,
-                        onToggle = { enabled -> viewModel.updateDinner(enabled, settings.dinnerTime) },
-                        onTimeClick = {
-                            showTimePickerDialog = TimePickerTarget.Dinner(settings.dinnerTime)
-                        }
-                    )
+                        ReminderRow(
+                            icon = Icons.Default.NightsStay,
+                            iconTint = Color(0xFF5C6BC0),
+                            title = stringResource(R.string.reminder_dinner_title),
+                            subtitle = stringResource(R.string.reminder_dinner_subtitle),
+                            timeString = settings.dinnerTime,
+                            isEnabled = settings.dinnerEnabled,
+                            onToggle = { enabled -> viewModel.updateDinner(enabled, settings.dinnerTime) },
+                            onTimeClick = {
+                                showTimePickerDialog = TimePickerTarget.Dinner(settings.dinnerTime)
+                            }
+                        )
+                    }
                 }
             }
 
             // --- HYDRATION REMINDERS SECTION ---
-            SectionHeader(
-                title = stringResource(R.string.reminder_section_hydration_title),
-                subtitle = stringResource(R.string.reminder_section_hydration_subtitle)
-            )
+            Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)) {
+                SectionHeader(
+                    title = stringResource(R.string.reminder_section_hydration_title),
+                    subtitle = stringResource(R.string.reminder_section_hydration_subtitle)
+                )
 
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                color = MaterialTheme.colorScheme.surface,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
-            ) {
-                Column(modifier = Modifier.cardPadding()) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(20.dp),
+                    color = MaterialTheme.colorScheme.surface,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                ) {
+                    Column {
+                        Row(
                             modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(NutritionWater.copy(alpha = 0.15f)),
-                            contentAlignment = Alignment.Center
+                                .fillMaxWidth()
+                                .padding(horizontal = AppSpacing.m, vertical = AppSpacing.sm),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.WaterDrop,
-                                contentDescription = null,
-                                tint = NutritionWater,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(14.dp))
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = stringResource(R.string.reminder_water_title),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            Text(
-                                text = stringResource(R.string.reminder_water_subtitle),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        Switch(
-                            checked = settings.waterEnabled,
-                            onCheckedChange = { enabled ->
-                                viewModel.updateWater(
-                                    enabled = enabled,
-                                    intervalHours = settings.waterIntervalHours,
-                                    startTime = settings.waterStartTime,
-                                    endTime = settings.waterEndTime
-                                )
-                            },
-                            colors = SwitchDefaults.colors(
-                                checkedThumbColor = Color.White,
-                                checkedTrackColor = MaterialTheme.colorScheme.primary
-                            )
-                        )
-                    }
-
-                    AnimatedVisibility(visible = settings.waterEnabled) {
-                        Column(modifier = Modifier.padding(top = 16.dp)) {
-                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                            Spacer(modifier = Modifier.height(14.dp))
-
-                            Text(
-                                text = stringResource(R.string.reminder_water_interval_label),
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-
-                            // Interval selector chips
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(CircleShape)
+                                    .background(NutritionWater.copy(alpha = 0.15f)),
+                                contentAlignment = Alignment.Center
                             ) {
-                                val intervals = listOf(
-                                    Pair(stringResource(R.string.reminder_water_interval_1h), 1.0f),
-                                    Pair(stringResource(R.string.reminder_water_interval_1_5h), 1.5f),
-                                    Pair(stringResource(R.string.reminder_water_interval_2h), 2.0f),
-                                    Pair(stringResource(R.string.reminder_water_interval_3h), 3.0f)
+                                Icon(
+                                    imageVector = Icons.Default.WaterDrop,
+                                    contentDescription = null,
+                                    tint = NutritionWater,
+                                    modifier = Modifier.size(20.dp)
                                 )
-                                intervals.forEach { (label, value) ->
-                                    val isSelected = settings.waterIntervalHours == value
-                                    Surface(
-                                        onClick = {
-                                            viewModel.updateWater(
-                                                enabled = true,
-                                                intervalHours = value,
-                                                startTime = settings.waterStartTime,
-                                                endTime = settings.waterEndTime
-                                            )
-                                        },
-                                        shape = RoundedCornerShape(10.dp),
-                                        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                                        border = BorderStroke(
-                                            width = 1.dp,
-                                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
-                                        ),
-                                        modifier = Modifier.weight(1f)
-                                    ) {
-                                        Box(
-                                            modifier = Modifier.padding(horizontal = 0.dp, vertical = 4.dp),
-                                            contentAlignment = Alignment.Center
+                            }
+                            Spacer(modifier = Modifier.width(AppSpacing.sm))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = stringResource(R.string.reminder_water_title),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = stringResource(R.string.reminder_water_subtitle),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(AppSpacing.s))
+                            Switch(
+                                checked = settings.waterEnabled,
+                                onCheckedChange = { enabled ->
+                                    viewModel.updateWater(
+                                        enabled = enabled,
+                                        intervalHours = settings.waterIntervalHours,
+                                        startTime = settings.waterStartTime,
+                                        endTime = settings.waterEndTime
+                                    )
+                                },
+                                colors = SwitchDefaults.colors(
+                                    checkedThumbColor = Color.White,
+                                    checkedTrackColor = MaterialTheme.colorScheme.primary
+                                )
+                            )
+                        }
+
+                        AnimatedVisibility(visible = settings.waterEnabled) {
+                            Column(
+                                modifier = Modifier.padding(
+                                    start = AppSpacing.m,
+                                    end = AppSpacing.m,
+                                    bottom = AppSpacing.sm,
+                                    top = AppSpacing.xs
+                                )
+                            ) {
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                                Spacer(modifier = Modifier.height(AppSpacing.sm))
+
+                                Text(
+                                    text = stringResource(R.string.reminder_water_interval_label),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.height(AppSpacing.xs))
+
+                                // Interval selector chips
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.s)
+                                ) {
+                                    val intervals = listOf(
+                                        Pair(stringResource(R.string.reminder_water_interval_1h), 1.0f),
+                                        Pair(stringResource(R.string.reminder_water_interval_1_5h), 1.5f),
+                                        Pair(stringResource(R.string.reminder_water_interval_2h), 2.0f),
+                                        Pair(stringResource(R.string.reminder_water_interval_3h), 3.0f)
+                                    )
+                                    intervals.forEach { (label, value) ->
+                                        val isSelected = settings.waterIntervalHours == value
+                                        Surface(
+                                            onClick = {
+                                                viewModel.updateWater(
+                                                    enabled = true,
+                                                    intervalHours = value,
+                                                    startTime = settings.waterStartTime,
+                                                    endTime = settings.waterEndTime
+                                                )
+                                            },
+                                            shape = RoundedCornerShape(10.dp),
+                                            color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                                            border = BorderStroke(
+                                                width = 1.dp,
+                                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+                                            ),
+                                            modifier = Modifier.weight(1f)
                                         ) {
-                                            Text(
-                                                text = label,
-                                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                                fontSize = 11.sp,
-                                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                                maxLines = 1,
-                                                softWrap = false
-                                            )
+                                            Box(
+                                                modifier = Modifier.padding(vertical = AppSpacing.s, horizontal = AppSpacing.xs),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Text(
+                                                    text = label,
+                                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                                    fontSize = 11.sp,
+                                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    maxLines = 1,
+                                                    softWrap = false
+                                                )
+                                            }
                                         }
                                     }
                                 }
-                            }
 
-                            Spacer(modifier = Modifier.height(16.dp))
+                                Spacer(modifier = Modifier.height(AppSpacing.sm))
 
-                            // Active window
-                            Surface(
-                                shape = RoundedCornerShape(12.dp),
-                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { showWaterWindowDialog = true }
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween
+                                // Active window
+                                Surface(
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { showWaterWindowDialog = true }
                                 ) {
-                                    Column {
-                                        Text(
-                                            text = stringResource(R.string.reminder_water_window_title),
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = MaterialTheme.colorScheme.onSurface
-                                        )
-                                        Text(
-                                            text = "${settings.waterStartTime} – ${settings.waterEndTime}",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.primary,
-                                            fontWeight = FontWeight.Bold
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = AppSpacing.m, vertical = AppSpacing.s),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.xxs)) {
+                                            Text(
+                                                text = stringResource(R.string.reminder_water_window_title),
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                fontWeight = FontWeight.SemiBold,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                            Text(
+                                                text = "${settings.waterStartTime} – ${settings.waterEndTime}",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.primary,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+                                        Icon(
+                                            imageVector = Icons.Default.Edit,
+                                            contentDescription = stringResource(R.string.reminder_water_window_edit_desc),
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(16.dp)
                                         )
                                     }
-                                    Icon(
-                                        imageVector = Icons.Default.Edit,
-                                        contentDescription = stringResource(R.string.reminder_water_window_edit_desc),
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(16.dp)
-                                    )
                                 }
-                            }
 
-                            Spacer(modifier = Modifier.height(14.dp))
+                                Spacer(modifier = Modifier.height(AppSpacing.sm))
 
-                            Text(
-                                text = stringResource(R.string.reminder_water_quick_log_label),
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.SemiBold,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = stringResource(R.string.reminder_water_quick_log_label),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.height(AppSpacing.xs))
 
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(6.dp)
-                            ) {
-                                val quickAmounts = listOf(200, 250, 330, 500)
-                                quickAmounts.forEach { amount ->
-                                    val isSelected = settings.quickLogWaterAmountMl == amount
-                                    Surface(
-                                        onClick = { viewModel.updateQuickLogAmount(amount) },
-                                        shape = RoundedCornerShape(10.dp),
-                                        color = if (isSelected) NutritionWater.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-                                        border = BorderStroke(
-                                            width = 1.dp,
-                                            color = if (isSelected) NutritionWater else MaterialTheme.colorScheme.outlineVariant
-                                        ),
-                                        modifier = Modifier.weight(1f)
-                                    ) {
-                                        Box(
-                                            modifier = Modifier.padding(horizontal = 0.dp, vertical = 4.dp),
-                                            contentAlignment = Alignment.Center
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.s)
+                                ) {
+                                    val quickAmounts = listOf(200, 250, 330, 500)
+                                    quickAmounts.forEach { amount ->
+                                        val isSelected = settings.quickLogWaterAmountMl == amount
+                                        Surface(
+                                            onClick = { viewModel.updateQuickLogAmount(amount) },
+                                            shape = RoundedCornerShape(10.dp),
+                                            color = if (isSelected) NutritionWater.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                                            border = BorderStroke(
+                                                width = 1.dp,
+                                                color = if (isSelected) NutritionWater else MaterialTheme.colorScheme.outlineVariant
+                                            ),
+                                            modifier = Modifier.weight(1f)
                                         ) {
-                                            Text(
-                                                text = "+$amount ml",
-                                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                                fontSize = 11.sp,
-                                                color = if (isSelected) NutritionWater else MaterialTheme.colorScheme.onSurfaceVariant,
-                                                maxLines = 1,
-                                                softWrap = false
-                                            )
+                                            Box(
+                                                modifier = Modifier.padding(vertical = AppSpacing.s, horizontal = AppSpacing.xs),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Text(
+                                                    text = "+$amount ml",
+                                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                                    fontSize = 11.sp,
+                                                    color = if (isSelected) NutritionWater else MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    maxLines = 1,
+                                                    softWrap = false
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -423,29 +445,31 @@ fun ReminderSettingsScreen(
             }
 
             // --- DAILY REVIEW SECTION ---
-            SectionHeader(
-                title = stringResource(R.string.reminder_section_daily_review_title),
-                subtitle = stringResource(R.string.reminder_section_daily_review_subtitle)
-            )
-
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
-                color = MaterialTheme.colorScheme.surface,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
-            ) {
-                ReminderRow(
-                    icon = Icons.Default.AutoAwesome,
-                    iconTint = MaterialTheme.colorScheme.primary,
-                    title = stringResource(R.string.reminder_daily_review_title),
-                    subtitle = stringResource(R.string.reminder_daily_review_subtitle),
-                    timeString = settings.dailyReviewTime,
-                    isEnabled = settings.dailyReviewEnabled,
-                    onToggle = { enabled -> viewModel.updateDailyReview(enabled, settings.dailyReviewTime) },
-                    onTimeClick = {
-                        showTimePickerDialog = TimePickerTarget.DailyReview(settings.dailyReviewTime)
-                    }
+            Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.xs)) {
+                SectionHeader(
+                    title = stringResource(R.string.reminder_section_daily_review_title),
+                    subtitle = stringResource(R.string.reminder_section_daily_review_subtitle)
                 )
+
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(20.dp),
+                    color = MaterialTheme.colorScheme.surface,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                ) {
+                    ReminderRow(
+                        icon = Icons.Default.AutoAwesome,
+                        iconTint = MaterialTheme.colorScheme.primary,
+                        title = stringResource(R.string.reminder_daily_review_title),
+                        subtitle = stringResource(R.string.reminder_daily_review_subtitle),
+                        timeString = settings.dailyReviewTime,
+                        isEnabled = settings.dailyReviewEnabled,
+                        onToggle = { enabled -> viewModel.updateDailyReview(enabled, settings.dailyReviewTime) },
+                        onTimeClick = {
+                            showTimePickerDialog = TimePickerTarget.DailyReview(settings.dailyReviewTime)
+                        }
+                    )
+                }
             }
 
             // --- SMART CONTEXT SECTION ---
@@ -458,7 +482,7 @@ fun ReminderSettingsScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .cardPadding(),
+                        .padding(horizontal = AppSpacing.m, vertical = AppSpacing.sm),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(
@@ -476,7 +500,7 @@ fun ReminderSettingsScreen(
                         )
                     }
 
-                    Spacer(modifier = Modifier.width(14.dp))
+                    Spacer(modifier = Modifier.width(AppSpacing.sm))
 
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
@@ -491,6 +515,8 @@ fun ReminderSettingsScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
+
+                    Spacer(modifier = Modifier.width(AppSpacing.s))
 
                     Switch(
                         checked = settings.smartSkipIfLogged,
@@ -512,18 +538,20 @@ fun ReminderSettingsScreen(
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
                 ) {
                     Column(
-                        modifier = Modifier.cardPadding(),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                        modifier = Modifier.padding(AppSpacing.m),
+                        verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)
+                        ) {
                             Icon(
                                 imageVector = Icons.Default.NotificationsActive,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(24.dp)
                             )
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Column {
+                            Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.xxs)) {
                                 Text(
                                     text = stringResource(R.string.reminder_test_title),
                                     style = MaterialTheme.typography.titleSmall,
@@ -540,7 +568,7 @@ fun ReminderSettingsScreen(
 
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            horizontalArrangement = Arrangement.spacedBy(AppSpacing.s)
                         ) {
                             OutlinedButton(
                                 onClick = {
@@ -572,7 +600,7 @@ fun ReminderSettingsScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(AppSpacing.sm))
         }
     }
 
@@ -599,7 +627,7 @@ fun ReminderSettingsScreen(
             title = {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)
                 ) {
                     Box(
                         modifier = Modifier
@@ -627,7 +655,7 @@ fun ReminderSettingsScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 8.dp),
+                        .padding(top = AppSpacing.s),
                     contentAlignment = Alignment.Center
                 ) {
                     TimePicker(
@@ -712,7 +740,7 @@ fun ReminderSettingsScreen(
             title = {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)
                 ) {
                     Box(
                         modifier = Modifier
@@ -737,7 +765,7 @@ fun ReminderSettingsScreen(
                 }
             },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
                     Text(
                         text = stringResource(R.string.reminder_dialog_water_window_desc),
                         style = MaterialTheme.typography.bodySmall,
@@ -859,22 +887,26 @@ fun ReminderSettingsScreen(
 
 @Composable
 private fun SectionHeader(title: String, subtitle: String) {
-    Column {
+
+    Spacer(modifier = Modifier.height(AppSpacing.xs))
+
+    Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.xxs)) {
         Text(
             text = title,
             style = MaterialTheme.typography.labelMedium.copy(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                letterSpacing = 1.sp
+                letterSpacing = 0.5.sp
             )
         )
-        Spacer(modifier = Modifier.height(2.dp))
         Text(
             text = subtitle,
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
         )
     }
+
+    Spacer(modifier = Modifier.height(AppSpacing.xs))
 }
 
 @Composable
@@ -891,7 +923,7 @@ private fun ReminderRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .cardPadding(),
+            .padding(horizontal = AppSpacing.m, vertical = AppSpacing.sm),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
@@ -909,7 +941,7 @@ private fun ReminderRow(
             )
         }
 
-        Spacer(modifier = Modifier.width(14.dp))
+        Spacer(modifier = Modifier.width(AppSpacing.sm))
 
         Column(modifier = Modifier.weight(1f)) {
             Text(
@@ -924,7 +956,7 @@ private fun ReminderRow(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             if (isEnabled) {
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(AppSpacing.xs))
                 Surface(
                     onClick = onTimeClick,
                     shape = RoundedCornerShape(8.dp),
@@ -940,7 +972,7 @@ private fun ReminderRow(
                             tint = iconTint,
                             modifier = Modifier.size(12.dp)
                         )
-                        Spacer(modifier = Modifier.width(4.dp))
+                        Spacer(modifier = Modifier.width(AppSpacing.xs))
                         Text(
                             text = timeString,
                             style = MaterialTheme.typography.labelSmall,
@@ -951,6 +983,8 @@ private fun ReminderRow(
                 }
             }
         }
+
+        Spacer(modifier = Modifier.width(AppSpacing.s))
 
         Switch(
             checked = isEnabled,
