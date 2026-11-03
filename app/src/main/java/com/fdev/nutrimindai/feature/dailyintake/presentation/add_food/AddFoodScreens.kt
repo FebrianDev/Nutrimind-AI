@@ -1,5 +1,6 @@
 package com.fdev.nutrimindai.feature.dailyintake.presentation.add_food
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
@@ -30,6 +31,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fdev.nutrimindai.R
 import com.fdev.nutrimindai.core.designsystem.*
+import com.fdev.nutrimindai.core.designsystem.component.NutriMindConfirmationDialog
 import com.fdev.nutrimindai.core.designsystem.component.NutriMindInfoDialog
 import com.fdev.nutrimindai.core.ai.FoodRecognitionResult
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.Food
@@ -55,7 +57,7 @@ fun AddFoodBottomSheet(
             modifier = Modifier
                 .fillMaxSize()
                 .screenPadding()
-                .padding(vertical = 16.dp)
+                .padding(vertical = AppSpacing.m)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -64,57 +66,57 @@ fun AddFoodBottomSheet(
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold
             )
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(AppSpacing.l))
 
             AddFoodOption(
                 icon = Icons.Default.CameraAlt,
                 title = stringResource(R.string.food_take_photo_title),
                 subtitle = stringResource(R.string.food_take_photo_subtitle),
-                iconTint = Color(0xFF2196F3),
+                iconTint = FoodInputCamera,
                 onClick = {
                     onDismiss()
                     onNavigateToCamera()
                 }
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(AppSpacing.s))
             AddFoodOption(
                 icon = Icons.Default.QrCodeScanner,
                 title = stringResource(R.string.food_scan_barcode_title),
                 subtitle = stringResource(R.string.food_scan_barcode_subtitle),
-                iconTint = Color(0xFF00BCD4),
+                iconTint = FoodInputBarcode,
                 onClick = {
                     onDismiss()
                     onNavigateToBarcode()
                 }
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(AppSpacing.s))
             AddFoodOption(
                 icon = Icons.Default.PhotoLibrary,
                 title = stringResource(R.string.food_choose_gallery_title),
                 subtitle = stringResource(R.string.food_choose_gallery_subtitle),
-                iconTint = Color(0xFF9C27B0),
+                iconTint = FoodInputGallery,
                 onClick = {
                     onDismiss()
                     onNavigateToGallery()
                 }
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(AppSpacing.s))
             AddFoodOption(
                 icon = Icons.Default.Search,
                 title = stringResource(R.string.food_search_food_title),
                 subtitle = stringResource(R.string.food_search_food_subtitle),
-                iconTint = Color(0xFF4CAF50),
+                iconTint = FoodInputSearch,
                 onClick = {
                     onDismiss()
                     onNavigateToSearch()
                 }
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(AppSpacing.s))
             AddFoodOption(
                 icon = Icons.Default.Edit,
                 title = stringResource(R.string.food_manual_entry_title),
                 subtitle = stringResource(R.string.food_manual_entry_subtitle),
-                iconTint = Color(0xFFFF9800),
+                iconTint = FoodInputManual,
                 onClick = {
                     onDismiss()
                     onNavigateToManual()
@@ -122,14 +124,14 @@ fun AddFoodBottomSheet(
             )
 
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(AppSpacing.xl))
             TextButton(
                 onClick = onDismiss,
                 modifier = Modifier.fillMaxWidth().height(48.dp)
             ) {
                 Text(stringResource(R.string.dialog_cancel), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(AppSpacing.m))
         }
     }
 }
@@ -193,8 +195,13 @@ fun SearchFoodScreen(
     mealType: String,
     viewModel: AddFoodViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit,
+    onSaveSuccess: () -> Unit = onNavigateBack,
     onNavigateToBarcode: () -> Unit = {}
 ) {
+    BackHandler {
+        onNavigateBack()
+    }
+
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val foods by viewModel.foods.collectAsStateWithLifecycle()
     var selectedFoodForConfirmation by remember { mutableStateOf<Food?>(null) }
@@ -205,43 +212,35 @@ fun SearchFoodScreen(
     // 1. Confirmation Dialog for Catalog Food
     if (selectedFoodForConfirmation != null) {
         val food = selectedFoodForConfirmation!!
-        AlertDialog(
+        NutriMindConfirmationDialog(
+            title = food.name,
+            icon = Icons.Default.Restaurant,
+            iconTint = FoodInputSearch,
+            confirmButtonText = stringResource(R.string.food_add_food_title),
+            dismissButtonText = stringResource(R.string.dialog_cancel),
+            onConfirm = {
+                val foodToSave = selectedFoodForConfirmation!!
+                selectedFoodForConfirmation = null
+                viewModel.saveFood(
+                    mealTypeString = mealType,
+                    foodName = foodToSave.name,
+                    servingSizeText = foodToSave.servingSize.toString(),
+                    servingUnit = foodToSave.servingUnit,
+                    caloriesText = foodToSave.calories.toString(),
+                    proteinText = foodToSave.protein.toString(),
+                    carbsText = foodToSave.carbs.toString(),
+                    fatText = foodToSave.fat.toString(),
+                    foodSource = FoodSource.SEARCH,
+                    onSuccess = onSaveSuccess
+                )
+            },
             onDismissRequest = { selectedFoodForConfirmation = null },
-            containerColor = MaterialTheme.colorScheme.surface,
-            title = { Text(text = food.name, fontWeight = FontWeight.Bold) },
             text = {
                 Column {
                     Text(text = stringResource(R.string.food_serving_label, food.servingSize, food.servingUnit))
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(AppSpacing.s))
                     Text(text = stringResource(R.string.food_calories_label, food.calories))
                     Text(text = stringResource(R.string.food_macros_label, food.protein, food.carbs, food.fat))
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        val foodToSave = selectedFoodForConfirmation!!
-                        selectedFoodForConfirmation = null
-                        viewModel.saveFood(
-                            mealTypeString = mealType,
-                            foodName = foodToSave.name,
-                            servingSizeText = foodToSave.servingSize.toString(),
-                            servingUnit = foodToSave.servingUnit,
-                            caloriesText = foodToSave.calories.toString(),
-                            proteinText = foodToSave.protein.toString(),
-                            carbsText = foodToSave.carbs.toString(),
-                            fatText = foodToSave.fat.toString(),
-                            foodSource = FoodSource.SEARCH,
-                            onSuccess = onNavigateBack
-                        )
-                    }
-                ) {
-                    Text(stringResource(R.string.food_add_food_title))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { selectedFoodForConfirmation = null }) {
-                    Text(stringResource(R.string.dialog_cancel))
                 }
             }
         )
@@ -250,28 +249,34 @@ fun SearchFoodScreen(
     // 2. Confirmation Dialog for Meta AI Estimated Food
     if (estimatedFood != null) {
         val result = estimatedFood!!
-        AlertDialog(
-            onDismissRequest = { viewModel.clearEstimatedFood() },
-            containerColor = MaterialTheme.colorScheme.surface,
-            icon = {
-                Icon(
-                    imageVector = Icons.Rounded.AutoAwesome,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(28.dp)
+        NutriMindConfirmationDialog(
+            title = result.name,
+            icon = Icons.Rounded.AutoAwesome,
+            iconTint = MaterialTheme.colorScheme.primary,
+            confirmButtonText = stringResource(R.string.food_add_food_title),
+            dismissButtonText = stringResource(R.string.dialog_cancel),
+            onConfirm = {
+                val foodToSave = result
+                viewModel.clearEstimatedFood()
+                viewModel.saveFood(
+                    mealTypeString = mealType,
+                    foodName = foodToSave.name,
+                    servingSizeText = foodToSave.servingSize.toString(),
+                    servingUnit = foodToSave.servingUnit,
+                    caloriesText = foodToSave.calories.toString(),
+                    proteinText = foodToSave.protein.toString(),
+                    carbsText = foodToSave.carbs.toString(),
+                    fatText = foodToSave.fat.toString(),
+                    fiberText = foodToSave.fiber.toString(),
+                    foodSource = FoodSource.SEARCH,
+                    onSuccess = onSaveSuccess
                 )
             },
-            title = {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = result.name,
-                        fontWeight = FontWeight.Bold,
-                        style = MaterialTheme.typography.titleLarge,
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(modifier = Modifier.height(6.dp))
+            onDismissRequest = { viewModel.clearEstimatedFood() },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(AppSpacing.s)) {
                     Surface(
-                        shape = RoundedCornerShape(8.dp),
+                        shape = RoundedCornerShape(AppSpacing.s),
                         color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
                     ) {
                         Text(
@@ -282,17 +287,12 @@ fun SearchFoodScreen(
                             modifier = Modifier.badgePadding()
                         )
                     }
-                }
-            },
-            text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (result.description.isNotBlank()) {
                         Text(
                             text = result.description,
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        Spacer(modifier = Modifier.height(4.dp))
                     }
                     Text(text = stringResource(R.string.food_serving_label, result.servingSize, result.servingUnit))
                     Text(
@@ -308,34 +308,6 @@ fun SearchFoodScreen(
                             result.fat.toInt()
                         )
                     )
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        val foodToSave = result
-                        viewModel.clearEstimatedFood()
-                        viewModel.saveFood(
-                            mealTypeString = mealType,
-                            foodName = foodToSave.name,
-                            servingSizeText = foodToSave.servingSize.toString(),
-                            servingUnit = foodToSave.servingUnit,
-                            caloriesText = foodToSave.calories.toString(),
-                            proteinText = foodToSave.protein.toString(),
-                            carbsText = foodToSave.carbs.toString(),
-                            fatText = foodToSave.fat.toString(),
-                            fiberText = foodToSave.fiber.toString(),
-                            foodSource = FoodSource.SEARCH,
-                            onSuccess = onNavigateBack
-                        )
-                    }
-                ) {
-                    Text(stringResource(R.string.food_add_food_title))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { viewModel.clearEstimatedFood() }) {
-                    Text(stringResource(R.string.dialog_cancel))
                 }
             }
         )
@@ -353,45 +325,41 @@ fun SearchFoodScreen(
         )
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.food_search_food_title), fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.btn_back))
-                    }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        TopAppBar(
+            title = { Text(stringResource(R.string.food_search_food_title), fontWeight = FontWeight.Bold) },
+            navigationIcon = {
+                IconButton(onClick = onNavigateBack) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.btn_back))
                 }
-            )
-        }
-    ) { paddingValues ->
-        Column(
+            }
+        )
+
+        OutlinedTextField(
+            value = searchQuery,
+            onValueChange = { viewModel.onSearchQueryChange(it) },
             modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .background(MaterialTheme.colorScheme.background)
-        ) {
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = { viewModel.onSearchQueryChange(it) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .screenPadding()
-                    .padding(vertical = AppSpacing.s),
-                placeholder = { Text(stringResource(R.string.food_search_placeholder)) },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                trailingIcon = {
-                    IconButton(onClick = onNavigateToBarcode) {
-                        Icon(
-                            imageVector = Icons.Default.QrCodeScanner,
-                            contentDescription = stringResource(R.string.scan_barcode_btn_tooltip),
-                            tint = Color(0xFF00BCD4)
-                        )
-                    }
-                },
-                shape = RoundedCornerShape(16.dp),
-                singleLine = true
-            )
+                .fillMaxWidth()
+                .screenPadding()
+                .padding(vertical = AppSpacing.s),
+            placeholder = { Text(stringResource(R.string.food_search_placeholder)) },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+            trailingIcon = {
+                IconButton(onClick = onNavigateToBarcode) {
+                    Icon(
+                        imageVector = Icons.Default.QrCodeScanner,
+                        contentDescription = stringResource(R.string.scan_barcode_btn_tooltip),
+                        tint = FoodInputBarcode
+                    )
+                }
+            },
+            shape = RoundedCornerShape(AppSpacing.m),
+            singleLine = true
+        )
 
             // Optional shortcut to estimate via Meta AI even if local items exist
             if (searchQuery.isNotBlank() && foods.isNotEmpty()) {
@@ -570,15 +538,19 @@ fun SearchFoodScreen(
             }
         }
     }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ManualEntryScreen(
     mealType: String,
     viewModel: AddFoodViewModel = hiltViewModel(),
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onSaveSuccess: () -> Unit = onNavigateBack
 ) {
+    BackHandler {
+        onNavigateBack()
+    }
+
     var foodName by remember { mutableStateOf("") }
     var servingSize by remember { mutableStateOf("1") }
     var servingUnit by remember { mutableStateOf("serving") }
@@ -595,62 +567,27 @@ fun ManualEntryScreen(
         viewModel.resetState()
     }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.food_manual_title), fontWeight = FontWeight.Bold) },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.btn_back))
-                    }
-                }
-            )
-        },
-        bottomBar = {
-            Surface(
-                color = MaterialTheme.colorScheme.surface,
-                shadowElevation = 8.dp
-            ) {
-                Button(
-                    onClick = {
-                        viewModel.saveFood(
-                            mealTypeString = mealType,
-                            foodName = foodName,
-                            servingSizeText = servingSize,
-                            servingUnit = servingUnit,
-                            caloriesText = calories,
-                            proteinText = protein,
-                            carbsText = carbs,
-                            fatText = fat,
-                            fiberText = fiber,
-                            foodSource = FoodSource.MANUAL,
-                            onSuccess = onNavigateBack
-                        )
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .screenPadding()
-                        .padding(bottom = 16.dp)
-                        .height(52.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    enabled = foodName.isNotBlank() && calories.isNotBlank() && uiState !is AddFoodUiState.Loading && !isEstimating
-                ) {
-                    if (uiState is AddFoodUiState.Loading) {
-                        CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
-                    } else {
-                        Text(stringResource(R.string.food_btn_save), fontWeight = FontWeight.Bold)
-                    }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
+        TopAppBar(
+            title = { Text(stringResource(R.string.food_manual_title), fontWeight = FontWeight.Bold) },
+            navigationIcon = {
+                IconButton(onClick = onNavigateBack) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.btn_back))
                 }
             }
-        }
-    ) { paddingValues ->
+        )
+
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
+                .weight(1f)
+                .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
                 .screenPadding(),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(AppSpacing.m)
         ) {
             if (uiState is AddFoodUiState.ValidationError) {
                 Card(
@@ -686,7 +623,7 @@ fun ManualEntryScreen(
                 label = { Text(stringResource(R.string.food_label_name)) },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(AppSpacing.sm)
             )
 
             // One-tap Auto-Fill Nutrition with Meta AI
@@ -704,7 +641,7 @@ fun ManualEntryScreen(
                     }
                 },
                 enabled = foodName.isNotBlank() && !isEstimating,
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(AppSpacing.sm),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     contentColor = MaterialTheme.colorScheme.primary
@@ -719,7 +656,7 @@ fun ManualEntryScreen(
                         strokeWidth = 2.dp,
                         color = MaterialTheme.colorScheme.primary
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(AppSpacing.s))
                     Text(stringResource(R.string.food_estimating_ai))
                 } else {
                     Icon(
@@ -727,7 +664,7 @@ fun ManualEntryScreen(
                         contentDescription = null,
                         modifier = Modifier.size(18.dp)
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(AppSpacing.s))
                     Text(
                         text = stringResource(R.string.food_auto_fill_ai),
                         fontWeight = FontWeight.SemiBold
@@ -735,7 +672,7 @@ fun ManualEntryScreen(
                 }
             }
 
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
                 OutlinedTextField(
                     value = servingSize,
                     onValueChange = { servingSize = it },
@@ -743,7 +680,7 @@ fun ManualEntryScreen(
                     modifier = Modifier.weight(1f),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(AppSpacing.sm)
                 )
                 OutlinedTextField(
                     value = servingUnit,
@@ -751,7 +688,7 @@ fun ManualEntryScreen(
                     label = { Text(stringResource(R.string.food_label_serving_unit)) },
                     modifier = Modifier.weight(1f),
                     singleLine = true,
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(AppSpacing.sm)
                 )
             }
 
@@ -762,10 +699,10 @@ fun ManualEntryScreen(
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(AppSpacing.sm)
             )
 
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
                 OutlinedTextField(
                     value = protein,
                     onValueChange = { protein = it },
@@ -773,7 +710,7 @@ fun ManualEntryScreen(
                     modifier = Modifier.weight(1f),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(AppSpacing.sm)
                 )
                 OutlinedTextField(
                     value = carbs,
@@ -782,11 +719,11 @@ fun ManualEntryScreen(
                     modifier = Modifier.weight(1f),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(AppSpacing.sm)
                 )
             }
 
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(AppSpacing.sm)) {
                 OutlinedTextField(
                     value = fat,
                     onValueChange = { fat = it },
@@ -794,7 +731,7 @@ fun ManualEntryScreen(
                     modifier = Modifier.weight(1f),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(AppSpacing.sm)
                 )
                 OutlinedTextField(
                     value = fiber,
@@ -803,8 +740,44 @@ fun ManualEntryScreen(
                     modifier = Modifier.weight(1f),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     singleLine = true,
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(AppSpacing.sm)
                 )
+            }
+        }
+
+        Surface(
+            color = MaterialTheme.colorScheme.surface,
+            shadowElevation = 8.dp
+        ) {
+            Button(
+                onClick = {
+                    viewModel.saveFood(
+                        mealTypeString = mealType,
+                        foodName = foodName,
+                        servingSizeText = servingSize,
+                        servingUnit = servingUnit,
+                        caloriesText = calories,
+                        proteinText = protein,
+                        carbsText = carbs,
+                        fatText = fat,
+                        fiberText = fiber,
+                        foodSource = FoodSource.MANUAL,
+                        onSuccess = onSaveSuccess
+                    )
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .screenPadding()
+                    .padding(vertical = AppSpacing.m)
+                    .height(52.dp),
+                shape = RoundedCornerShape(AppSpacing.m),
+                enabled = foodName.isNotBlank() && calories.isNotBlank() && uiState !is AddFoodUiState.Loading && !isEstimating
+            ) {
+                if (uiState is AddFoodUiState.Loading) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
+                } else {
+                    Text(stringResource(R.string.food_btn_save), fontWeight = FontWeight.Bold)
+                }
             }
         }
     }

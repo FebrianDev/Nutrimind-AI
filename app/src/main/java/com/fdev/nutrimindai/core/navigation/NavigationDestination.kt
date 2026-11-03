@@ -65,6 +65,16 @@ sealed interface NavigationDestination {
     ) : NavigationDestination
 
     @Serializable
+    data class BarcodeScan(
+        val mealType: String
+    ) : NavigationDestination
+
+    @Serializable
+    data class GalleryImport(
+        val mealType: String
+    ) : NavigationDestination
+
+    @Serializable
     data object ReminderSettings : NavigationDestination
 
     @Serializable

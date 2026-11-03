@@ -372,6 +372,47 @@
     <string name="scan_nutrition_card_title">Nutritional Value</string>
     <string name="scan_total_calories_label">Total Calories (kcal)</string>
 
+    <!-- Barcode Scanner -->
+    <string name="barcode_scan_title">Scan Product Barcode</string>
+    <string name="barcode_scan_subtitle">Product Database • %1$s</string>
+    <string name="barcode_manual_input_btn">Enter Barcode Manually</string>
+    <string name="barcode_manual_dialog_title">Enter Barcode Manually</string>
+    <string name="barcode_manual_dialog_desc">Enter the barcode digits found on the food or beverage packaging:</string>
+    <string name="barcode_manual_dialog_hint">e.g. 8992753211234</string>
+    <string name="barcode_manual_search_btn">Search Product</string>
+    <string name="barcode_verified_badge">Barcode Verified</string>
+    <string name="barcode_btn_scan_again">Scan Another</string>
+    <string name="barcode_searching_subtitle">Searching product database on Open Food Facts...</string>
+    <string name="barcode_not_found_title">Product Not Found</string>
+    <string name="barcode_not_found_desc">Product barcode was not found in the database. Please try scanning again or enter details manually.</string>
+    <string name="barcode_manual_entry_btn">Manual Entry</string>
+
+    <!-- Gallery Food Import -->
+    <string name="gallery_import_title">Import from Gallery</string>
+    <string name="gallery_import_subtitle">Food Photo Analysis • %1$s</string>
+    <string name="gallery_hero_title">Select Food Photo from Gallery</string>
+    <string name="gallery_hero_subtitle">Choose an existing meal photo saved on your device to estimate calories and macronutrients with Meta AI.</string>
+    <string name="gallery_btn_open_gallery">Open Photo Gallery</string>
+    <string name="gallery_btn_change_photo">Change Photo</string>
+    <string name="gallery_btn_analyze">Analyze with Meta AI</string>
+    <string name="gallery_tips_title">Tips for Best Results</string>
+    <string name="gallery_tip_1">Ensure the whole dish or plate is clearly visible</string>
+    <string name="gallery_tip_2">Use clear lighting without heavy blur or shadows</string>
+    <string name="gallery_tip_3">Focus on a single meal or plate per photo</string>
+    <string name="gallery_analyzing_title">Analyzing Gallery Photo...</string>
+    <string name="gallery_analyzing_subtitle">Meta AI is detecting ingredients, portion size, and nutrients</string>
+    <string name="gallery_verified_badge">Gallery AI Verified</string>
+    <string name="gallery_btn_pick_again">Choose Another Photo</string>
+
+    <!-- Camera Food Photo -->
+    <string name="camera_photo_title">Food Photo AI</string>
+    <string name="camera_photo_subtitle">NutriMind Vision • %1$s</string>
+    <string name="camera_frame_hint">Frame your meal inside the guide</string>
+    <string name="camera_ai_hint">Meta AI will automatically identify foods &amp; portion sizes</string>
+    <string name="camera_analyzing_title">NutriMind AI is analyzing your food photo...</string>
+    <string name="camera_analyzing_subtitle">Estimating calories and nutritional breakdown</string>
+    <string name="camera_btn_retake">Retake</string>
+
     <!-- Exercise Tracker -->
     <string name="exercise_title">Exercise Tracker</string>
     <string name="exercise_todays_title">Today\'s Exercises</string>
