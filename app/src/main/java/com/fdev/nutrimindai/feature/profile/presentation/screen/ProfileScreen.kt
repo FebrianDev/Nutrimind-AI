@@ -31,6 +31,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.res.stringResource
 import com.fdev.nutrimindai.core.datastore.AppThemeMode
+import com.fdev.nutrimindai.BuildConfig
 import com.fdev.nutrimindai.R
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -419,29 +420,117 @@ fun ProfileScreen(
             title = stringResource(R.string.label_about_app),
             buttonText = stringResource(R.string.btn_close),
             onDismiss = { showAboutDialog = false },
+            icon = Icons.Default.AutoAwesome,
+            iconTint = MaterialTheme.colorScheme.primary,
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                     Text(
-                        stringResource(R.string.profile_about_desc),
+                        text = stringResource(R.string.profile_about_desc),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
+                        lineHeight = 20.sp
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.profile_about_version, BuildConfig.VERSION_NAME),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.profile_about_powered_by),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outlineVariant,
+                        modifier = Modifier.padding(vertical = 2.dp)
+                    )
+
                     Text(
-                        stringResource(R.string.profile_about_version),
+                        text = stringResource(R.string.profile_about_features_header),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+
+                    AboutFeatureItem(
+                        icon = Icons.Default.CameraAlt,
+                        iconTint = MaterialTheme.colorScheme.primary,
+                        title = stringResource(R.string.about_feature_logging_title),
+                        description = stringResource(R.string.about_feature_logging_desc)
+                    )
+
+                    AboutFeatureItem(
+                        icon = Icons.Default.AutoAwesome,
+                        iconTint = LightSuccess,
+                        title = stringResource(R.string.about_feature_coach_title),
+                        description = stringResource(R.string.about_feature_coach_desc)
+                    )
+
+                    AboutFeatureItem(
+                        icon = Icons.Default.TrackChanges,
+                        iconTint = NutritionCalories,
+                        title = stringResource(R.string.about_feature_missions_title),
+                        description = stringResource(R.string.about_feature_missions_desc)
+                    )
+
+                    AboutFeatureItem(
+                        icon = Icons.Default.Scale,
+                        iconTint = NutritionWater,
+                        title = stringResource(R.string.about_feature_analytics_title),
+                        description = stringResource(R.string.about_feature_analytics_desc)
+                    )
+
+                    AboutFeatureItem(
+                        icon = Icons.Default.Shield,
+                        iconTint = MaterialTheme.colorScheme.tertiary,
+                        title = stringResource(R.string.about_feature_privacy_title),
+                        description = stringResource(R.string.about_feature_privacy_desc)
+                    )
+
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outlineVariant,
+                        modifier = Modifier.padding(vertical = 2.dp)
+                    )
+
+                    Text(
+                        text = stringResource(R.string.profile_about_storage_note),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+
                     Text(
-                        stringResource(R.string.profile_about_storage_note),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), color = MaterialTheme.colorScheme.outlineVariant)
-                    Text(
-                        stringResource(R.string.medical_disclaimer_full),
+                        text = stringResource(R.string.medical_disclaimer_full),
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.outline
+                        color = MaterialTheme.colorScheme.outline,
+                        lineHeight = 15.sp
                     )
                 }
             }
@@ -726,16 +815,6 @@ private fun ProfileMainContent(
                         AppThemeMode.DARK -> stringResource(R.string.profile_theme_sub_dark)
                     },
                     onClick = onThemeClick
-                )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.screenPadding())
-
-                QuickMenuItem(
-                    icon = Icons.Default.Person,
-                    iconContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    iconTint = MaterialTheme.colorScheme.secondary,
-                    title = stringResource(R.string.profile_edit_physical_title),
-                    subtitle = stringResource(R.string.profile_edit_physical_sub),
-                    onClick = onEditProfileClick
                 )
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.screenPadding())
 
@@ -1417,6 +1496,55 @@ private fun ThemeOptionItem(
                     )
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun AboutFeatureItem(
+    icon: ImageVector,
+    iconTint: Color,
+    title: String,
+    description: String,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .background(
+                    color = iconTint.copy(alpha = 0.12f),
+                    shape = RoundedCornerShape(10.dp)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = iconTint,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                lineHeight = 16.sp
+            )
         }
     }
 }
