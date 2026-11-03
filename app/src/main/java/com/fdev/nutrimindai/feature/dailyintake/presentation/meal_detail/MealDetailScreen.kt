@@ -33,6 +33,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.res.stringResource
 import com.fdev.nutrimindai.R
 import coil.compose.AsyncImage
+import com.fdev.nutrimindai.core.designsystem.*
+import com.fdev.nutrimindai.core.designsystem.component.NutriMindConfirmationDialog
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.DailyLogStatus
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.Intake
 import java.io.File
@@ -47,6 +49,9 @@ fun MealDetailScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var selectedIntakeForDetail by remember { mutableStateOf<Intake?>(null) }
+    var intakeToDelete by remember { mutableStateOf<Intake?>(null) }
+    var showCoachIdeasDialog by remember { mutableStateOf(false) }
+
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -67,8 +72,46 @@ fun MealDetailScreen(
             isDraft = (uiState as? MealDetailUiState.Success)?.status == DailyLogStatus.DRAFT,
             onDismiss = { selectedIntakeForDetail = null },
             onDelete = {
+                intakeToDelete = intake
+            }
+        )
+    }
+
+    if (intakeToDelete != null) {
+        val intake = intakeToDelete!!
+        NutriMindConfirmationDialog(
+            title = stringResource(R.string.meal_detail_delete_confirm_title),
+            description = stringResource(R.string.meal_detail_delete_confirm_msg, intake.foodName),
+            icon = Icons.Default.Delete,
+            isDanger = true,
+            confirmButtonText = stringResource(R.string.meal_detail_btn_delete_item),
+            dismissButtonText = stringResource(R.string.dialog_cancel),
+            onConfirm = {
                 viewModel.deleteIntake(intake)
-                selectedIntakeForDetail = null
+                if (selectedIntakeForDetail?.id == intake.id) {
+                    selectedIntakeForDetail = null
+                }
+                intakeToDelete = null
+            },
+            onDismissRequest = {
+                intakeToDelete = null
+            }
+        )
+    }
+
+    if (showCoachIdeasDialog && onNavigateToCoachIdeas != null) {
+        NutriMindConfirmationDialog(
+            title = stringResource(R.string.meal_detail_coach_dialog_title),
+            description = stringResource(R.string.meal_detail_coach_dialog_desc, viewModel.mealType),
+            icon = Icons.Rounded.AutoAwesome,
+            confirmButtonText = stringResource(R.string.meal_detail_coach_dialog_confirm),
+            dismissButtonText = stringResource(R.string.dialog_cancel),
+            onConfirm = {
+                showCoachIdeasDialog = false
+                onNavigateToCoachIdeas("Can you suggest 3 healthy, balanced ${viewModel.mealType} meal ideas tailored to my daily nutrition targets?")
+            },
+            onDismissRequest = {
+                showCoachIdeasDialog = false
             }
         )
     }
@@ -90,9 +133,7 @@ fun MealDetailScreen(
                 actions = {
                     if (onNavigateToCoachIdeas != null) {
                         IconButton(
-                            onClick = {
-                                onNavigateToCoachIdeas("Can you suggest 3 healthy, balanced ${viewModel.mealType} meal ideas tailored to my daily nutrition targets?")
-                            }
+                            onClick = { showCoachIdeasDialog = true }
                         ) {
                             Icon(
                                 imageVector = Icons.Rounded.AutoAwesome,
@@ -134,7 +175,7 @@ fun MealDetailScreen(
                     Column(
                         modifier = Modifier
                             .align(Alignment.Center)
-                            .padding(24.dp),
+                            .padding(AppSpacing.xl),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
@@ -151,16 +192,14 @@ fun MealDetailScreen(
                             isDraft = state.status == DailyLogStatus.DRAFT,
                             onAddFoodClick = { onNavigateToAddFood(viewModel.mealType) },
                             onMealIdeasClick = if (onNavigateToCoachIdeas != null) {
-                                {
-                                    onNavigateToCoachIdeas("Can you suggest 3 healthy, balanced ${viewModel.mealType} meal ideas tailored to my daily nutrition targets?")
-                                }
+                                { showCoachIdeasDialog = true }
                             } else null
                         )
                     } else {
                         LazyColumn(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .padding(horizontal = 16.dp),
+                                .screenPadding(),
                             verticalArrangement = Arrangement.spacedBy(16.dp),
                             contentPadding = PaddingValues(top = 8.dp, bottom = 88.dp)
                         ) {
@@ -185,7 +224,7 @@ fun MealDetailScreen(
                                     intake = intake,
                                     isDraft = state.status == DailyLogStatus.DRAFT,
                                     onClick = { selectedIntakeForDetail = intake },
-                                    onDelete = { viewModel.deleteIntake(intake) }
+                                    onDelete = { intakeToDelete = intake }
                                 )
                             }
                         }
@@ -227,7 +266,7 @@ fun FoodItemDetailDialog(
                         text = intake.foodSource.name.lowercase().replaceFirstChar { it.titlecase() },
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        modifier = Modifier.badgePadding()
                     )
                 }
             }
@@ -263,7 +302,7 @@ fun FoodItemDetailDialog(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
-                        modifier = Modifier.padding(16.dp),
+                        modifier = Modifier.cardPadding(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -420,7 +459,7 @@ fun MealSummaryCard(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(20.dp)) {
+        Column(modifier = Modifier.cardPadding()) {
             Text(
                 text = stringResource(R.string.meal_detail_total_nutrition),
                 style = MaterialTheme.typography.titleMedium,
@@ -499,7 +538,7 @@ fun FoodItemCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .cardPadding(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             val imageModel = remember(intake.imagePath) {

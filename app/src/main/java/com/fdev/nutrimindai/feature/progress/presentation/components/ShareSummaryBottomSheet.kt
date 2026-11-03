@@ -21,7 +21,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.fdev.nutrimindai.R
-import com.fdev.nutrimindai.core.designsystem.BrandPrimary
+import com.fdev.nutrimindai.core.designsystem.*
 import com.fdev.nutrimindai.feature.progress.presentation.screen.DailyReviewDetailData
 import kotlinx.coroutines.launch
 
@@ -53,8 +53,8 @@ fun ShareSummaryBottomSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp)
-                .padding(bottom = 32.dp)
+                .screenPadding()
+                .padding(bottom = AppSpacing.xl)
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)

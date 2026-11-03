@@ -41,23 +41,35 @@ class CoachRepositoryImpl @Inject constructor(
                     role = if (entity.role.equals("user", ignoreCase = true)) ChatRole.USER else ChatRole.ASSISTANT,
                     content = entity.content,
                     timestamp = entity.timestamp,
-                    actionSummary = entity.actionSummary
+                    actionSummary = entity.actionSummary,
+                    imageUri = entity.imageUri
                 )
             }
         }
     }
 
-    override suspend fun sendMessage(userText: String): Result<String> {
+    override suspend fun sendMessage(
+        userText: String,
+        imageUri: String?,
+        imageBitmap: android.graphics.Bitmap?
+    ): Result<String> {
         val trimmed = userText.trim()
-        if (trimmed.isBlank()) {
+        if (trimmed.isBlank() && imageBitmap == null) {
             return Result.failure(IllegalArgumentException("Message cannot be blank"))
+        }
+
+        val effectiveContent = if (trimmed.isBlank() && imageBitmap != null) {
+            "Please analyze this meal/menu image for nutrition and advice."
+        } else {
+            trimmed
         }
 
         // 1. Save user message to Room DB
         val userEntity = ChatMessageEntity(
             role = "user",
-            content = trimmed,
-            timestamp = System.currentTimeMillis()
+            content = effectiveContent,
+            timestamp = System.currentTimeMillis(),
+            imageUri = imageUri
         )
         chatMessageDao.insertMessage(userEntity)
 
@@ -76,10 +88,11 @@ class CoachRepositoryImpl @Inject constructor(
             Pair(role, entity.content)
         }
 
-        // 4. Send to Meta AI via AiRepository
+        // 4. Send to Meta AI via AiRepository (including imageBitmap if present)
         val result = aiRepository.chatWithCoach(
             history = conversationHistory,
-            systemPrompt = systemPrompt
+            systemPrompt = systemPrompt,
+            imageBitmap = imageBitmap
         )
 
         // 5. If successful, parse agentic actions, execute them against Room DB, and persist response

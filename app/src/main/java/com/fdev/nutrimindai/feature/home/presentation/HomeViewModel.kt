@@ -81,6 +81,7 @@ class HomeViewModel @Inject constructor(
 
             try {
                 val metrics = healthConnectManager.readTodayMetrics()
+                healthConnectManager.setConnected(true)
                 val currentDailyLogId = (uiState.value as? HomeUiState.Success)?.summary?.dailyLogId
                     ?: dailyLogRepository.getOrCreateDailyLog(currentDate)
                 if (currentDailyLogId.isNotBlank()) {
@@ -199,7 +200,7 @@ class HomeViewModel @Inject constructor(
         try {
             demoDataSeeder.seedIfNeeded()
             val dailyLogId = dailyLogRepository.getOrCreateDailyLog(dateToLoad)
-            if (healthConnectManager.isAvailable && healthConnectManager.hasAllPermissions()) {
+            if (healthConnectManager.isConnected()) {
                 syncHealthConnect()
             }
 

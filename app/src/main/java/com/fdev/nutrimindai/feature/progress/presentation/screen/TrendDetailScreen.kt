@@ -33,17 +33,27 @@ fun TrendDetailScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val tabs = listOf(
-        stringResource(R.string.tab_week),
-        stringResource(R.string.tab_month),
-        stringResource(R.string.tab_3months)
+        stringResource(R.string.tab_7_days),
+        stringResource(R.string.tab_30_days),
+        stringResource(R.string.tab_90_days)
     )
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
+                    val titleText = when (metric) {
+                        "Calories" -> stringResource(R.string.home_label_calories)
+                        "Protein" -> stringResource(R.string.label_protein)
+                        "Carbs" -> stringResource(R.string.label_carbs)
+                        "Fat" -> stringResource(R.string.label_fat)
+                        "Water" -> stringResource(R.string.label_water)
+                        "Weight" -> stringResource(R.string.label_weight)
+                        "Exercise" -> stringResource(R.string.label_activity)
+                        else -> metric
+                    }
                     Text(
-                        metric,
+                        titleText,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
@@ -87,6 +97,8 @@ fun TrendDetailScreen(
                 val lineColor = when (metric) {
                     "Calories" -> NutritionCalories
                     "Protein" -> NutritionProtein
+                    "Carbs" -> NutritionCarbs
+                    "Fat" -> NutritionFat
                     "Water" -> NutritionWater
                     "Weight" -> MaterialTheme.colorScheme.primary
                     "Exercise" -> NutritionExercise
@@ -98,7 +110,7 @@ fun TrendDetailScreen(
                         .fillMaxSize()
                         .padding(paddingValues)
                         .verticalScroll(rememberScrollState())
-                        .padding(16.dp),
+                        .screenPadding(),
                     verticalArrangement = Arrangement.spacedBy(24.dp)
                 ) {
                     PrimaryTabRow(
@@ -150,7 +162,7 @@ fun TrendDetailScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(220.dp)
-                                .padding(16.dp)
+                                .cardPadding()
                         )
                     }
 
@@ -201,8 +213,8 @@ fun TrendSummarySection(
                 )
             }
             val avgPeriodLabel = when (selectedPeriodTab) {
-                1 -> "Average this month"
-                2 -> "Average last 3 months"
+                1 -> stringResource(R.string.avg_this_month)
+                2 -> stringResource(R.string.avg_last_3_months)
                 else -> stringResource(R.string.avg_this_week)
             }
             Text(
@@ -218,7 +230,7 @@ fun TrendSummarySection(
             shape = RoundedCornerShape(8.dp)
         ) {
             Row(
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                modifier = Modifier.badgePadding(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
@@ -229,9 +241,9 @@ fun TrendSummarySection(
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 val vsPeriodLabel = when (selectedPeriodTab) {
-                    1 -> "vs last month"
-                    2 -> "vs last 3 months"
-                    else -> stringResource(R.string.vs_last_week)
+                    1 -> stringResource(R.string.vs_last_30_days)
+                    2 -> stringResource(R.string.vs_last_90_days)
+                    else -> stringResource(R.string.vs_last_7_days)
                 }
                 Text(
                     text = vsPeriodLabel,
@@ -306,9 +318,22 @@ fun StatItem(modifier: Modifier, label: String, value: String, unit: String, sub
 
 @Composable
 fun AboutMetricSection(metric: String) {
+    val metricLabel = when (metric) {
+        "Calories" -> stringResource(R.string.home_label_calories)
+        "Protein" -> stringResource(R.string.label_protein)
+        "Carbs" -> stringResource(R.string.label_carbs)
+        "Fat" -> stringResource(R.string.label_fat)
+        "Water" -> stringResource(R.string.label_water)
+        "Weight" -> stringResource(R.string.label_weight)
+        "Exercise" -> stringResource(R.string.label_activity)
+        else -> metric
+    }
+
     val description = when (metric) {
         "Calories" -> stringResource(R.string.trend_desc_calories)
         "Protein" -> stringResource(R.string.trend_desc_protein)
+        "Carbs" -> stringResource(R.string.trend_desc_carbs)
+        "Fat" -> stringResource(R.string.trend_desc_fat)
         "Water" -> stringResource(R.string.trend_desc_water)
         "Weight" -> stringResource(R.string.trend_desc_weight)
         "Exercise" -> stringResource(R.string.trend_desc_exercise)
@@ -318,7 +343,7 @@ fun AboutMetricSection(metric: String) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = stringResource(R.string.trend_about_metric, metric),
+                text = stringResource(R.string.trend_about_metric, metricLabel),
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold
             )

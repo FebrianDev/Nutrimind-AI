@@ -62,7 +62,7 @@ fun ShareableHealthCard(
         Box(
             modifier = Modifier
                 .background(cardBackground)
-                .padding(24.dp)
+                .padding(AppSpacing.xl)
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -118,7 +118,7 @@ fun ShareableHealthCard(
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.SemiBold,
                             color = Color(0xFFE0E0E0),
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                         )
                     }
                 }
@@ -170,7 +170,7 @@ fun ShareableHealthCard(
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF81C784),
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            modifier = Modifier.badgePadding(),
                             fontSize = 10.sp
                         )
                     }
@@ -212,7 +212,7 @@ private fun ScoreHeroSection(detail: DailyReviewDetailData) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(18.dp),
+                .cardPadding(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -230,7 +230,7 @@ private fun ScoreHeroSection(detail: DailyReviewDetailData) {
                     border = BorderStroke(0.5.dp, scoreColor.copy(alpha = 0.4f))
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        modifier = Modifier.badgePadding(),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
@@ -440,9 +440,9 @@ private fun AiInsightSection(summary: String) {
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
-            modifier = Modifier.padding(14.dp),
+            modifier = Modifier.cardPadding(),
             verticalAlignment = Alignment.Top,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Box(
                 modifier = Modifier

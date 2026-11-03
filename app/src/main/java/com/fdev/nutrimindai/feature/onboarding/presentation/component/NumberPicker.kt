@@ -33,6 +33,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fdev.nutrimindai.R
+import com.fdev.nutrimindai.core.designsystem.*
 import com.fdev.nutrimindai.core.model.Goal
 import java.util.Locale
 
@@ -73,7 +74,7 @@ fun TargetWeightPicker(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(24.dp),
+                    .authCardPadding(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -152,7 +153,7 @@ fun TargetWeightPicker(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(24.dp),
+                    .authCardPadding(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if (isReadOnly) {
@@ -161,7 +162,7 @@ fun TargetWeightPicker(
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
                             .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f))
-                            .padding(16.dp),
+                            .cardPadding(),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(

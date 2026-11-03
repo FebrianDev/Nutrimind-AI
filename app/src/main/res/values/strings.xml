@@ -105,7 +105,17 @@
     <string name="label_mission">Mission</string>
     <string name="label_trend">TREND</string>
     <string name="avg_this_week">Average this week</string>
+    <string name="avg_this_month">Average this month</string>
+    <string name="avg_last_3_months">Average last 3 months</string>
+    <string name="vs_yesterday">vs yesterday</string>
+    <string name="vs_last_3_days">vs last 3 days</string>
+    <string name="vs_last_7_days">vs last 7 days</string>
+    <string name="vs_last_30_days">vs last 30 days</string>
+    <string name="vs_last_90_days">vs last 90 days</string>
     <string name="vs_last_week">vs last week</string>
+    <string name="vs_last_month">vs last month</string>
+    <string name="vs_last_3_months">vs last 3 months</string>
+    <string name="vs_prev_period">vs prev period</string>
     <string name="label_ai_insight">AI INSIGHT</string>
     <string name="label_daily_reviews">DAILY REVIEWS</string>
     <string name="btn_view_all">View All</string>
@@ -117,10 +127,13 @@
     <string name="label_tomorrow_mission">TOMORROW MISSION</string>
     <string name="label_notes">NOTES</string>
 
-    <!-- Trend Detail Screen -->
-    <string name="tab_week">Week</string>
-    <string name="tab_month">Month</string>
-    <string name="tab_3months">3 Months</string>
+    <!-- Period Tabs (Unified across Trend & Daily Mission History) -->
+    <string name="tab_7_days">7 Days</string>
+    <string name="tab_30_days">30 Days</string>
+    <string name="tab_90_days">90 Days</string>
+    <string name="tab_week">7 Days</string>
+    <string name="tab_month">30 Days</string>
+    <string name="tab_3months">90 Days</string>
     <string name="label_highest">Highest</string>
     <string name="label_lowest">Lowest</string>
 
@@ -324,6 +337,12 @@
     <string name="coach_voice_cancel">Cancel recording</string>
     <string name="coach_voice_done">Done recording</string>
     <string name="coach_voice_permission_needed">Microphone permission is required for voice input.</string>
+    <string name="coach_attach_photo_title">Attach Photo</string>
+    <string name="coach_attach_photo_desc">Ask about a meal, fridge ingredients, restaurant menu, or nutrition label</string>
+    <string name="coach_photo_attached_title">Photo Attached</string>
+    <string name="coach_photo_attached_subtitle">Ready to send with your question</string>
+    <string name="coach_cd_attach_image">Attach meal or menu image</string>
+    <string name="coach_cd_remove_image">Remove attached image</string>
 
     <!-- Camera AI Scan -->
     <string name="scan_food_title">Scan Food</string>
@@ -359,6 +378,47 @@
     <string name="scan_nutrition_card_title">Nutritional Value</string>
     <string name="scan_total_calories_label">Total Calories (kcal)</string>
 
+    <!-- Barcode Scanner -->
+    <string name="barcode_scan_title">Scan Product Barcode</string>
+    <string name="barcode_scan_subtitle">Product Database • %1$s</string>
+    <string name="barcode_manual_input_btn">Enter Barcode Manually</string>
+    <string name="barcode_manual_dialog_title">Enter Barcode Manually</string>
+    <string name="barcode_manual_dialog_desc">Enter the barcode digits found on the food or beverage packaging:</string>
+    <string name="barcode_manual_dialog_hint">e.g. 8992753211234</string>
+    <string name="barcode_manual_search_btn">Search Product</string>
+    <string name="barcode_verified_badge">Barcode Verified</string>
+    <string name="barcode_btn_scan_again">Scan Another</string>
+    <string name="barcode_searching_subtitle">Searching product database on Open Food Facts...</string>
+    <string name="barcode_not_found_title">Product Not Found</string>
+    <string name="barcode_not_found_desc">Product barcode was not found in the database. Please try scanning again or enter details manually.</string>
+    <string name="barcode_manual_entry_btn">Manual Entry</string>
+
+    <!-- Gallery Food Import -->
+    <string name="gallery_import_title">Import from Gallery</string>
+    <string name="gallery_import_subtitle">Food Photo Analysis • %1$s</string>
+    <string name="gallery_hero_title">Select Food Photo from Gallery</string>
+    <string name="gallery_hero_subtitle">Choose an existing meal photo saved on your device to estimate calories and macronutrients with Meta AI.</string>
+    <string name="gallery_btn_open_gallery">Open Photo Gallery</string>
+    <string name="gallery_btn_change_photo">Change Photo</string>
+    <string name="gallery_btn_analyze">Analyze with Meta AI</string>
+    <string name="gallery_tips_title">Tips for Best Results</string>
+    <string name="gallery_tip_1">Ensure the whole dish or plate is clearly visible</string>
+    <string name="gallery_tip_2">Use clear lighting without heavy blur or shadows</string>
+    <string name="gallery_tip_3">Focus on a single meal or plate per photo</string>
+    <string name="gallery_analyzing_title">Analyzing Gallery Photo...</string>
+    <string name="gallery_analyzing_subtitle">Meta AI is detecting ingredients, portion size, and nutrients</string>
+    <string name="gallery_verified_badge">Gallery AI Verified</string>
+    <string name="gallery_btn_pick_again">Choose Another Photo</string>
+
+    <!-- Camera Food Photo -->
+    <string name="camera_photo_title">Food Photo AI</string>
+    <string name="camera_photo_subtitle">NutriMind Vision • %1$s</string>
+    <string name="camera_frame_hint">Frame your meal inside the guide</string>
+    <string name="camera_ai_hint">Meta AI will automatically identify foods &amp; portion sizes</string>
+    <string name="camera_analyzing_title">NutriMind AI is analyzing your food photo...</string>
+    <string name="camera_analyzing_subtitle">Estimating calories and nutritional breakdown</string>
+    <string name="camera_btn_retake">Retake</string>
+
     <!-- Exercise Tracker -->
     <string name="exercise_title">Exercise Tracker</string>
     <string name="exercise_todays_title">Today\'s Exercises</string>
@@ -393,6 +453,15 @@
     <string name="meal_detail_empty_subtitle">Tap Add Food to start logging today\'s meal.</string>
     <string name="meal_detail_total_nutrition">Total Nutrition</string>
     <string name="meal_detail_delete_food_desc">Delete food item</string>
+    <string name="meal_detail_delete_confirm_title">Delete Food</string>
+    <string name="meal_detail_delete_confirm_msg">Are you sure you want to delete \"%1$s\" from this meal?</string>
+    <string name="meal_detail_coach_dialog_title">Ask NutriCoach for Ideas?</string>
+    <string name="meal_detail_coach_dialog_desc">Get 3 healthy, balanced %1$s meal recommendations tailored to your daily nutrition targets.</string>
+    <string name="meal_detail_coach_dialog_confirm">Ask Coach</string>
+    <string name="exercise_delete_confirm_title">Delete Exercise</string>
+    <string name="exercise_delete_confirm_msg">Are you sure you want to delete \"%1$s\"?</string>
+    <string name="water_delete_confirm_title">Delete Water Record</string>
+    <string name="water_delete_confirm_msg">Are you sure you want to delete this water record?</string>
 
     <!-- Authentication -->
     <string name="auth_logo_desc">NutriMind AI Logo</string>
@@ -476,9 +545,21 @@
     <string name="profile_logout_confirm_msg">Are you sure you want to log out of your account?</string>
     <string name="profile_logging_out_title">Logging Out...</string>
     <string name="profile_logging_out_desc">Safely clearing session and local data...</string>
-    <string name="profile_about_desc">NutriMind AI is your intelligent personal nutrition &amp; health coach powered by Meta AI (Muse Spark &amp; Llama 3).</string>
-    <string name="profile_about_version">Version: 1.0.0 (Production)</string>
-    <string name="profile_about_storage_note">All nutrition data is stored securely on your local device.</string>
+    <string name="profile_about_desc">NutriMind AI is an intelligent nutrition &amp; wellness companion built for the Meta AI Hackathon, combining advanced multimodal AI with personalized coaching to transform healthy eating habits.</string>
+    <string name="profile_about_version">Version %1$s</string>
+    <string name="profile_about_powered_by">Meta AI Hackathon</string>
+    <string name="profile_about_features_header">KEY CAPABILITIES</string>
+    <string name="about_feature_logging_title">Multimodal Food Logging</string>
+    <string name="about_feature_logging_desc">Instant meal analysis via Camera photo, Gallery image upload, and fast Barcode scanning with detailed nutrition breakdowns.</string>
+    <string name="about_feature_coach_title">Meta AI Health Coach</string>
+    <string name="about_feature_coach_desc">Personalized nutrition guidance, smart food alternatives, and tailored recipe suggestions powered by Meta AI Llama 3.2.</string>
+    <string name="about_feature_missions_title">Daily Missions &amp; Gamification</string>
+    <string name="about_feature_missions_desc">Gamified daily macro and hydration targets, adherence streaks, and wellness badges to keep you engaged.</string>
+    <string name="about_feature_analytics_title">Trends &amp; Body Weight Forecasting</string>
+    <string name="about_feature_analytics_desc">Comprehensive 7, 30, and 90-day progress trends, dynamic water goals, and energy balance weight projection.</string>
+    <string name="about_feature_privacy_title">Local-First &amp; Privacy Conscious</string>
+    <string name="about_feature_privacy_desc">All meal records and personal wellness metrics are stored securely on-device with seamless offline support.</string>
+    <string name="profile_about_storage_note">Offline-first: All nutrition logs are stored securely on your local device.</string>
     <string name="profile_user_stats">%1$d yrs • %2$d cm • %3$s kg</string>
     <string name="profile_edit_personal_info">Edit Personal Info</string>
     <string name="profile_pro_active">NutriMind Pro Active</string>
@@ -497,8 +578,6 @@
     <string name="profile_sync_status_synced">All data synced • Tap to sync manually</string>
     <string name="profile_health_goal_title">Health Goal &amp; Macro Targets</string>
     <string name="profile_health_goal_sub">Adjust calorie and macronutrient targets</string>
-    <string name="profile_edit_physical_title">Edit Physical Profile</string>
-    <string name="profile_edit_physical_sub">Update age, height, and body weight</string>
     <string name="profile_restore_purchases_title">Restore Purchases</string>
     <string name="profile_restore_purchases_sub">Restore active subscription from Google Play</string>
     <string name="profile_about_sub">App information and version</string>
@@ -535,6 +614,7 @@
     <string name="coach_cd_select_ai_model">Select AI Model</string>
     <string name="coach_cd_clear_history">Clear History</string>
     <string name="coach_cd_send">Send</string>
+    <string name="coach_cd_stop">Stop generating</string>
     <string name="coach_cd_avatar">Coach Avatar</string>
     <string name="coach_dialog_clear_title">Clear Chat History?</string>
     <string name="coach_dialog_clear_desc">All conversation history with NutriCoach will be deleted from this device.</string>
@@ -743,6 +823,8 @@
     <string name="trend_about_metric">About %1$s</string>
     <string name="trend_desc_calories">Calories are the energy you get from food and drinks. Staying within your caloric goal helps you reach your target weight.</string>
     <string name="trend_desc_protein">Protein helps build and repair body tissue. It also supports muscle growth and maintenance.</string>
+    <string name="trend_desc_carbs">Carbohydrates provide your body with its primary source of energy, fueling your brain, kidneys, heart muscles, and central nervous system.</string>
+    <string name="trend_desc_fat">Healthy fats support cell structure, hormone production, and nutrient absorption, while providing long-lasting energy.</string>
     <string name="trend_desc_water">Water keeps your body functioning properly and helps maintain energy and focus.</string>
     <string name="trend_desc_weight">Tracking your weight helps you see your progress toward your goal and adjust your plan as needed.</string>
     <string name="trend_desc_exercise">Regular exercise improves your health, strength, and overall well-being.</string>
@@ -888,7 +970,15 @@
     <!-- Google Health Connect Strings -->
     <string name="health_connect_title">Google Health Connect</string>
     <string name="health_connect_sync">Sync Activity</string>
+    <string name="health_connect_sync_btn">Sync</string>
+    <string name="health_connect_connect_btn">Connect</string>
     <string name="health_connect_sync_subtitle">Sync steps &amp; active calories from Smartwatch</string>
+    <string name="health_connect_connected">Connected</string>
+    <string name="health_connect_disconnected">Disconnected</string>
+    <string name="health_connect_disconnect">Disconnect</string>
+    <string name="health_connect_disconnect_confirm_msg">Are you sure you want to disconnect Google Health Connect? Automatic syncing of smartwatch activity will stop.</string>
+    <string name="health_connect_connected_subtitle">Connected • Smartwatch synced</string>
+    <string name="health_connect_disconnected_toast">Google Health Connect has been disconnected.</string>
     <string name="health_connect_syncing">Connecting to Health Connect...</string>
     <string name="health_connect_synced">Successfully synced %1$d steps &amp; %2$d active kcal</string>
     <string name="health_connect_permission_needed">Health Connect permission is required to read steps and active calories</string>
@@ -900,4 +990,36 @@
     <string name="home_intake_badge">Daily Tracker</string>
     <string name="home_calories_remaining">%1$,d kcal left</string>
     <string name="home_calories_over">%1$,d kcal over</string>
+
+    <!-- Mission History & Rewards in Progress -->
+    <string name="progress_mission_reward_title">Daily Mission &amp; Rewards</string>
+    <string name="progress_mission_reward_subtitle">Habit streaks, NutriPoints, and adherence history</string>
+    <string name="progress_mission_streak_label">Current Streak</string>
+    <string name="progress_mission_streak_unit">%1$d Days</string>
+    <string name="progress_mission_streak_sub">Keep the fire burning!</string>
+    <string name="progress_mission_points_label">NutriPoints</string>
+    <string name="progress_mission_points_val">%1$,d pts</string>
+    <string name="progress_mission_perfect_label">Perfect Days</string>
+    <string name="progress_mission_perfect_unit">%1$d Days</string>
+    <string name="progress_mission_view_badges">View Badges (%1$d/%2$d)</string>
+    <string name="progress_mission_history_title">Daily Completion History</string>
+    <string name="progress_mission_badge_dialog_title">Mission Achievement Badges</string>
+    <string name="progress_mission_badge_dialog_desc">Earn badges and NutriPoints by staying consistent with your daily health missions.</string>
+    <string name="progress_mission_badge_unlocked">Unlocked! 🎉</string>
+    <string name="progress_mission_detail_dialog_title">Daily Mission Breakdown</string>
+    <string name="progress_mission_detail_dialog_points">Earned: +%1$d NutriPoints</string>
+    <string name="progress_mission_perfect_day_badge">Perfect Day! 🎉</string>
+    <string name="progress_mission_points_earned_format">+%1$d pts</string>
+    <string name="progress_mission_completed_format">%1$d/%2$d Done</string>
+    <string name="progress_mission_no_history">No mission activity recorded in this period.</string>
+    <string name="progress_mission_close">Close</string>
+    <string name="progress_mission_view_history">Daily Completion History</string>
+    <string name="progress_mission_view_history_sub">View past days &amp; breakdown</string>
+    <string name="mission_history_screen_title">Mission Completion History</string>
+    <string name="mission_history_filter_all">All Days</string>
+    <string name="mission_history_filter_perfect">Perfect Only</string>
+    <string name="mission_history_tab_7d">7 Days</string>
+    <string name="mission_history_tab_30d">30 Days</string>
+    <string name="mission_history_tab_90d">90 Days</string>
+    <string name="mission_history_adherence_label">Adherence</string>
 </resources>

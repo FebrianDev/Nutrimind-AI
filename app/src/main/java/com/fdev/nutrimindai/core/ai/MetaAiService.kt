@@ -127,7 +127,8 @@ class MetaAiService @Inject constructor(
 
     suspend fun chat(
         conversation: List<Pair<String, String>>, // (role, content)
-        systemPrompt: String? = null
+        systemPrompt: String? = null,
+        imageBitmap: Bitmap? = null
     ): Result<String> = withContext(Dispatchers.IO) {
         if (!isApiKeyConfigured) {
             return@withContext Result.failure(
@@ -136,10 +137,17 @@ class MetaAiService @Inject constructor(
         }
 
         var lastException: Exception? = null
+        val targetModels = if (imageBitmap != null) {
+            (candidateVisionModels + candidateTextModels).distinct()
+        } else {
+            candidateTextModels
+        }
 
-        for (modelName in candidateTextModels) {
+        val base64Image = imageBitmap?.let { encodeBitmapToBase64(it) }
+
+        for (modelName in targetModels) {
             try {
-                Timber.d("MetaAiService: multi-turn chat with model: $modelName")
+                Timber.d("MetaAiService: multi-turn chat with model: $modelName (hasImage=${imageBitmap != null})")
                 val messages = mutableListOf<ChatMessagePayload>()
                 if (!systemPrompt.isNullOrBlank()) {
                     messages.add(
@@ -150,13 +158,35 @@ class MetaAiService @Inject constructor(
                     )
                 }
 
-                conversation.forEach { (role, content) ->
-                    messages.add(
-                        ChatMessagePayload(
-                            role = role,
-                            content = JsonPrimitive(content)
+                conversation.forEachIndexed { index, (role, content) ->
+                    val isLastMessage = index == conversation.lastIndex
+                    if (isLastMessage && role == "user" && base64Image != null) {
+                        val visionContent = buildJsonArray {
+                            add(buildJsonObject {
+                                put("type", "text")
+                                put("text", if (content.isBlank()) "Please analyze this attached image (food, fridge, menu, or nutrition facts) and provide actionable coaching." else content)
+                            })
+                            add(buildJsonObject {
+                                put("type", "image_url")
+                                putJsonObject("image_url") {
+                                    put("url", "data:image/jpeg;base64,$base64Image")
+                                }
+                            })
+                        }
+                        messages.add(
+                            ChatMessagePayload(
+                                role = role,
+                                content = visionContent
+                            )
                         )
-                    )
+                    } else {
+                        messages.add(
+                            ChatMessagePayload(
+                                role = role,
+                                content = JsonPrimitive(content)
+                            )
+                        )
+                    }
                 }
 
                 val requestPayload = ChatCompletionRequest(
@@ -708,17 +738,17 @@ class MetaAiService @Inject constructor(
             Return ONLY a valid JSON array matching this exact schema:
             [
               {
-                "title": "Recipe Name in Indonesian",
-                "description": "Short tempting description highlighting health benefits",
+                "title": "Recipe Name in English",
+                "description": "Short tempting description highlighting health benefits in English",
                 "prepTimeMinutes": 15,
                 "calories": 380,
                 "protein": 32.0,
                 "carbs": 25.0,
                 "fat": 11.0,
                 "fiber": 4.0,
-                "ingredients": ["100g dada ayam", "1 butir telur", "1 siung bawang putih"],
-                "instructions": ["Tumis bumbu hingga harum...", "Masukkan ayam...", "Sajikan hangat."],
-                "chefTip": "NutriChef tip for cooking or substitution"
+                "ingredients": ["100g chicken breast", "1 boiled egg", "1 cup steamed spinach"],
+                "instructions": ["Prepare ingredients...", "Cook protein thoroughly over medium heat...", "Serve warm with sides."],
+                "chefTip": "NutriChef tip for cooking or healthy substitution"
               }
             ]
             Do not include markdown codeblocks or conversational text outside the JSON.

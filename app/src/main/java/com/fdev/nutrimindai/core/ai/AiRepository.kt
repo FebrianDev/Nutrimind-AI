@@ -39,7 +39,8 @@ interface AiRepository {
 
     suspend fun chatWithCoach(
         history: List<Pair<String, String>>,
-        systemPrompt: String? = null
+        systemPrompt: String? = null,
+        imageBitmap: Bitmap? = null
     ): Result<String>
 
     suspend fun transcribeAudio(audioFile: java.io.File): Result<String>

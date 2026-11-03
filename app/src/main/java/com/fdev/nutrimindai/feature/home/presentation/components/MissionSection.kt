@@ -35,13 +35,11 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fdev.nutrimindai.R
-import com.fdev.nutrimindai.core.designsystem.LightSuccess
-import com.fdev.nutrimindai.core.designsystem.NutritionCalories
-import com.fdev.nutrimindai.core.designsystem.NutritionExercise
-import com.fdev.nutrimindai.core.designsystem.NutritionProtein
+import com.fdev.nutrimindai.core.designsystem.*
 import com.fdev.nutrimindai.core.designsystem.NutritionWater
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.DailyMissionItem
 import com.fdev.nutrimindai.core.model.Goal
@@ -56,8 +54,11 @@ fun MissionSection(
 
     val completedCount = missions.count { it.isCompleted }
     val totalCount = missions.size
-    val progress = if (totalCount > 0) completedCount.toFloat() / totalCount else 0f
     val isAllCompleted = totalCount > 0 && completedCount == totalCount
+    // Calculate dynamic average progress across all missions so the UI reflects partial progress in real-time
+    val overallProgress = if (missions.isNotEmpty()) {
+        missions.map { it.progressFraction }.average().toFloat()
+    } else 0f
 
     // Sleek, compact card on Home Screen
     Card(
@@ -90,7 +91,7 @@ fun MissionSection(
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             color = LightSuccess,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                            modifier = Modifier.badgePadding(),
                             fontSize = 10.sp
                         )
                     }
@@ -106,7 +107,7 @@ fun MissionSection(
 
                 // Progress count
                 Text(
-                    text = stringResource(R.string.home_mission_progress_format, completedCount, totalCount, (progress * 100).toInt()),
+                    text = stringResource(R.string.home_mission_progress_format, completedCount, totalCount, (overallProgress * 100).toInt()),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -141,10 +142,14 @@ fun MissionSection(
                 contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator(
-                    progress = { progress },
+                    progress = { if (isAllCompleted) 1f else overallProgress },
                     modifier = Modifier.size(52.dp),
                     strokeWidth = 5.dp,
-                    color = if (isAllCompleted) LightSuccess else MaterialTheme.colorScheme.primary,
+                    color = when {
+                        isAllCompleted -> LightSuccess
+                        overallProgress > 0f -> MaterialTheme.colorScheme.primary
+                        else -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+                    },
                     trackColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
                     strokeCap = StrokeCap.Round
                 )
@@ -157,10 +162,10 @@ fun MissionSection(
                     )
                 } else {
                     Text(
-                        text = "${(progress * 100).toInt()}%",
+                        text = "${(overallProgress * 100).toInt()}%",
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = if (overallProgress > 0f) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                     )
                 }
             }
@@ -174,7 +179,7 @@ fun MissionSection(
             missions = missions,
             completedCount = completedCount,
             totalCount = totalCount,
-            progress = progress,
+            progress = if (isAllCompleted) 1f else overallProgress,
             isAllCompleted = isAllCompleted,
             onDismissRequest = { showDialog = false }
         )
@@ -251,7 +256,7 @@ private fun DailyMissionsDialog(
                         Row(
                             modifier = Modifier.padding(12.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.AutoAwesome,
@@ -297,7 +302,11 @@ private fun DailyMissionsDialog(
                             .fillMaxWidth()
                             .height(8.dp)
                             .clip(RoundedCornerShape(4.dp)),
-                        color = if (isAllCompleted) LightSuccess else MaterialTheme.colorScheme.primary,
+                        color = when {
+                            isAllCompleted -> LightSuccess
+                            progress > 0f -> MaterialTheme.colorScheme.primary
+                            else -> MaterialTheme.colorScheme.surfaceVariant
+                        },
                         trackColor = MaterialTheme.colorScheme.surfaceVariant,
                         strokeCap = StrokeCap.Round
                     )
@@ -328,40 +337,59 @@ private fun DailyMissionsDialog(
 private fun MissionItemRow(
     mission: DailyMissionItem
 ) {
-    val (icon, iconColor) = getMissionIconAndColor(mission.id)
+    val (icon, defaultColor) = getMissionIconAndColor(mission.id)
+    val hasProgress = mission.progressFraction > 0f
+
+    val iconColor = when {
+        mission.isCompleted -> LightSuccess
+        hasProgress -> defaultColor
+        else -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f)
+    }
+
+    val iconBgColor = when {
+        mission.isCompleted -> LightSuccess.copy(alpha = 0.15f)
+        hasProgress -> defaultColor.copy(alpha = 0.12f)
+        else -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+    }
+
+    val progressTextColor = when {
+        mission.isCompleted -> LightSuccess
+        hasProgress -> defaultColor
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
+    }
+
+    val rowBgColor = when {
+        mission.isCompleted -> LightSuccess.copy(alpha = 0.08f)
+        hasProgress -> defaultColor.copy(alpha = 0.04f)
+        else -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
+    }
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(
-                if (mission.isCompleted) LightSuccess.copy(alpha = 0.06f)
-                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-            )
-            .padding(horizontal = 12.dp, vertical = 10.dp),
+            .clip(RoundedCornerShape(14.dp))
+            .background(rowBgColor)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         // Category Icon Box
         Box(
             modifier = Modifier
-                .size(36.dp)
+                .size(40.dp)
                 .clip(CircleShape)
-                .background(
-                    if (mission.isCompleted) LightSuccess.copy(alpha = 0.15f)
-                    else iconColor.copy(alpha = 0.12f)
-                ),
+                .background(iconBgColor),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = if (mission.isCompleted) Icons.Default.CheckCircle else icon,
                 contentDescription = null,
-                tint = if (mission.isCompleted) LightSuccess else iconColor,
-                modifier = Modifier.size(18.dp)
+                tint = iconColor,
+                modifier = Modifier.size(20.dp)
             )
         }
 
-        // Mission details
+        // Mission details & Progress bar
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = mission.title,
@@ -370,21 +398,41 @@ private fun MissionItemRow(
                 color = MaterialTheme.colorScheme.onSurface
             )
             Spacer(modifier = Modifier.height(2.dp))
-            Text(
-                text = mission.currentProgressText,
-                style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.Bold,
-                color = if (mission.isCompleted) LightSuccess else MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                text = mission.description,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
-                fontSize = 11.sp
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = mission.currentProgressText,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = progressTextColor
+                )
+                Text(
+                    text = "• ${mission.description}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                    fontSize = 11.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            if (!mission.isCompleted && hasProgress) {
+                Spacer(modifier = Modifier.height(6.dp))
+                LinearProgressIndicator(
+                    progress = { mission.progressFraction.coerceIn(0f, 1f) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(5.dp)
+                        .clip(RoundedCornerShape(3.dp)),
+                    color = defaultColor,
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                    strokeCap = StrokeCap.Round
+                )
+            }
         }
 
-        // Status indicator
+        // Status indicator: Done pill or Percentage pill
         if (mission.isCompleted) {
             Surface(
                 color = LightSuccess.copy(alpha = 0.15f),
@@ -395,16 +443,33 @@ private fun MissionItemRow(
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
                     color = LightSuccess,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                    modifier = Modifier.badgePadding()
                 )
             }
         } else {
-            Icon(
-                imageVector = Icons.Rounded.RadioButtonUnchecked,
-                contentDescription = stringResource(R.string.home_mission_status_in_progress),
-                tint = MaterialTheme.colorScheme.outlineVariant,
-                modifier = Modifier.size(20.dp)
-            )
+            val percent = (mission.progressFraction * 100).toInt()
+            if (percent > 0) {
+                Surface(
+                    color = defaultColor.copy(alpha = 0.12f),
+                    shape = RoundedCornerShape(6.dp)
+                ) {
+                    Text(
+                        text = "$percent%",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = defaultColor,
+                        modifier = Modifier.badgePadding(),
+                        fontSize = 11.sp
+                    )
+                }
+            } else {
+                Icon(
+                    imageVector = Icons.Rounded.RadioButtonUnchecked,
+                    contentDescription = stringResource(R.string.home_mission_status_in_progress),
+                    tint = MaterialTheme.colorScheme.outlineVariant,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
         }
     }
 }

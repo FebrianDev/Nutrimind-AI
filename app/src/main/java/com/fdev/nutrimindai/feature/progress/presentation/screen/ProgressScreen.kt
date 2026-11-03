@@ -78,12 +78,20 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fdev.nutrimindai.R
+import com.fdev.nutrimindai.core.designsystem.AppSpacing
 import com.fdev.nutrimindai.core.designsystem.LightSuccess
 import com.fdev.nutrimindai.core.designsystem.NutritionCalories
+import com.fdev.nutrimindai.core.designsystem.NutritionCarbs
 import com.fdev.nutrimindai.core.designsystem.NutritionExercise
+import com.fdev.nutrimindai.core.designsystem.NutritionFat
 import com.fdev.nutrimindai.core.designsystem.NutritionProtein
 import com.fdev.nutrimindai.core.designsystem.NutritionWater
+import com.fdev.nutrimindai.core.designsystem.badgePadding
+import com.fdev.nutrimindai.core.designsystem.cardPadding
+import com.fdev.nutrimindai.core.designsystem.compactCardPadding
+import com.fdev.nutrimindai.core.designsystem.screenPadding
 import com.fdev.nutrimindai.core.util.NutritionPdfReportGenerator
+import com.fdev.nutrimindai.feature.progress.presentation.components.MissionRewardSection
 import com.fdev.nutrimindai.feature.progress.presentation.components.ProgressTrendChart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -94,9 +102,9 @@ import java.util.Locale
 @Composable
 fun ProgressScreen(
     viewModel: ProgressViewModel = hiltViewModel(),
-    onNavigateToDailyReview: (String) -> Unit = {},
     onNavigateToTrendDetail: (String) -> Unit,
-    onNavigateToGoalSettings: () -> Unit
+    onNavigateToGoalSettings: () -> Unit,
+    onNavigateToMissionHistory: () -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -180,10 +188,10 @@ fun ProgressScreen(
             is ProgressUiState.Success -> {
                 ProgressContent(
                     data = state.data,
-                    onNavigateToDailyReview = onNavigateToDailyReview,
                     onNavigateToTrendDetail = onNavigateToTrendDetail,
                     onNavigateToGoalSettings = onNavigateToGoalSettings,
-                    onLogWeightClick = { showLogWeightDialog = true }
+                    onLogWeightClick = { showLogWeightDialog = true },
+                    onNavigateToMissionHistory = onNavigateToMissionHistory
                 )
             }
         }
@@ -224,18 +232,23 @@ fun ProgressScreen(
 @Composable
 private fun ProgressContent(
     data: ProgressData,
-    onNavigateToDailyReview: (String) -> Unit = {},
     onNavigateToTrendDetail: (String) -> Unit,
     onNavigateToGoalSettings: () -> Unit,
-    onLogWeightClick: () -> Unit
+    onLogWeightClick: () -> Unit,
+    onNavigateToMissionHistory: () -> Unit = {}
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(24.dp)
+            .screenPadding()
+            .padding(vertical = AppSpacing.m),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        MissionRewardSection(
+            missionRewardData = data.missionRewardData,
+            onViewHistoryClick = onNavigateToMissionHistory
+        )
         GoalProgressCard(
             goalData = data.goalData,
             onEditGoalClick = onNavigateToGoalSettings,
@@ -244,6 +257,7 @@ private fun ProgressContent(
         WeeklySummarySection(data = data)
         TrendSection(
             trendPoints = data.weeklyTrendPoints,
+            selectedFilter = data.selectedFilter,
             onDetailClick = onNavigateToTrendDetail
         )
 
@@ -261,7 +275,8 @@ fun ProgressHeader(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 24.dp, vertical = 16.dp),
+            .screenPadding()
+            .padding(vertical = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -293,7 +308,7 @@ fun ProgressHeader(
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
             ) {
                 Row(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    modifier = Modifier.compactCardPadding(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
@@ -320,7 +335,7 @@ fun ProgressHeader(
                 enabled = !isExportingPdf
             ) {
                 Box(
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+                    modifier = Modifier.compactCardPadding(),
                     contentAlignment = Alignment.Center
                 ) {
                     if (isExportingPdf) {
@@ -372,7 +387,7 @@ fun GoalProgressCard(
         border = CardDefaults.outlinedCardBorder()
     ) {
         Column(
-            modifier = Modifier.padding(20.dp),
+            modifier = Modifier.cardPadding(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Row(
@@ -472,7 +487,7 @@ fun GoalProgressCard(
                                 )
                             ) {
                                 Row(
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                    modifier = Modifier.badgePadding(),
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(3.dp)
                                 ) {
@@ -498,7 +513,7 @@ fun GoalProgressCard(
                                 border = BorderStroke(1.dp, LightSuccess.copy(alpha = 0.3f))
                             ) {
                                 Row(
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                    modifier = Modifier.badgePadding(),
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(3.dp)
                                 ) {
@@ -722,7 +737,7 @@ fun StatisticCard(
         border = CardDefaults.outlinedCardBorder()
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.cardPadding(),
             verticalArrangement = Arrangement.spacedBy(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -769,17 +784,20 @@ fun StatisticCard(
 @Composable
 fun TrendSection(
     trendPoints: List<DailyTrendPoint>,
+    selectedFilter: DateRangeFilter = DateRangeFilter.Last7Days,
     onDetailClick: (String) -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
     var selectedMetric by remember { mutableStateOf("Calories") }
-    val metrics = listOf("Calories", "Protein", "Water", "Weight", "Exercise")
+    val metrics = listOf("Calories", "Protein", "Carbs", "Fat", "Water", "Weight", "Exercise")
 
     val labels = trendPoints.map { it.dayLabel }
     val dataPoints = trendPoints.map { point ->
         when (selectedMetric) {
             "Calories" -> point.calories
             "Protein" -> point.protein
+            "Carbs" -> point.carbs
+            "Fat" -> point.fat
             "Water" -> point.water / 1000f // in liters
             "Weight" -> point.weight
             "Exercise" -> point.exercise
@@ -790,6 +808,8 @@ fun TrendSection(
     val selectedMetricLabel = when (selectedMetric) {
         "Calories" -> stringResource(R.string.home_label_calories)
         "Protein" -> stringResource(R.string.label_protein)
+        "Carbs" -> stringResource(R.string.label_carbs)
+        "Fat" -> stringResource(R.string.label_fat)
         "Water" -> stringResource(R.string.label_water)
         "Weight" -> stringResource(R.string.label_weight)
         "Exercise" -> stringResource(R.string.label_activity)
@@ -798,7 +818,7 @@ fun TrendSection(
 
     val unit = when (selectedMetric) {
         "Calories" -> stringResource(R.string.unit_kcal)
-        "Protein" -> stringResource(R.string.unit_grams)
+        "Protein", "Carbs", "Fat" -> stringResource(R.string.unit_grams)
         "Water" -> stringResource(R.string.unit_liters)
         "Weight" -> stringResource(R.string.unit_kg)
         "Exercise" -> stringResource(R.string.unit_minutes)
@@ -815,6 +835,8 @@ fun TrendSection(
     val lineColor = when (selectedMetric) {
         "Calories" -> NutritionCalories
         "Protein" -> NutritionProtein
+        "Carbs" -> NutritionCarbs
+        "Fat" -> NutritionFat
         "Water" -> NutritionWater
         "Weight" -> MaterialTheme.colorScheme.primary
         "Exercise" -> NutritionExercise
@@ -844,7 +866,7 @@ fun TrendSection(
         border = CardDefaults.outlinedCardBorder()
     ) {
         Column(
-            modifier = Modifier.padding(20.dp),
+            modifier = Modifier.cardPadding(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Row(
@@ -873,8 +895,15 @@ fun TrendSection(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
+                    val avgPeriodSubtitle = when (selectedFilter) {
+                        is DateRangeFilter.Last1Day -> stringResource(R.string.progress_filter_today)
+                        is DateRangeFilter.Last3Days -> stringResource(R.string.progress_filter_last_3_days)
+                        is DateRangeFilter.Last7Days -> stringResource(R.string.avg_this_week)
+                        is DateRangeFilter.Last30Days -> stringResource(R.string.progress_filter_last_30_days)
+                        is DateRangeFilter.Custom -> stringResource(R.string.progress_filter_period_summary)
+                    }
                     Text(
-                        text = stringResource(R.string.avg_this_week),
+                        text = avgPeriodSubtitle,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -888,7 +917,7 @@ fun TrendSection(
                             border = CardDefaults.outlinedCardBorder().copy(width = 0.5.dp)
                         ) {
                             Row(
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                modifier = Modifier.badgePadding(),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
@@ -911,6 +940,8 @@ fun TrendSection(
                                 val label = when (metric) {
                                     "Calories" -> stringResource(R.string.home_label_calories)
                                     "Protein" -> stringResource(R.string.label_protein)
+                                    "Carbs" -> stringResource(R.string.label_carbs)
+                                    "Fat" -> stringResource(R.string.label_fat)
                                     "Water" -> stringResource(R.string.label_water)
                                     "Weight" -> stringResource(R.string.label_weight)
                                     "Exercise" -> stringResource(R.string.label_activity)
@@ -932,7 +963,7 @@ fun TrendSection(
                         shape = RoundedCornerShape(4.dp)
                     ) {
                         Row(
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                            modifier = Modifier.badgePadding(),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
@@ -942,8 +973,15 @@ fun TrendSection(
                                 fontWeight = FontWeight.Bold
                             )
                             Spacer(modifier = Modifier.width(2.dp))
+                            val vsPeriodLabel = when (selectedFilter) {
+                                is DateRangeFilter.Last1Day -> stringResource(R.string.vs_yesterday)
+                                is DateRangeFilter.Last3Days -> stringResource(R.string.vs_last_3_days)
+                                is DateRangeFilter.Last7Days -> stringResource(R.string.vs_last_week)
+                                is DateRangeFilter.Last30Days -> stringResource(R.string.vs_last_month)
+                                is DateRangeFilter.Custom -> stringResource(R.string.vs_prev_period)
+                            }
                             Text(
-                                text = stringResource(R.string.vs_last_week),
+                                text = vsPeriodLabel,
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
                                 fontSize = 8.sp
@@ -980,7 +1018,7 @@ fun AIInsightCard(insightText: String) {
         border = CardDefaults.outlinedCardBorder()
     ) {
         Row(
-            modifier = Modifier.padding(20.dp),
+            modifier = Modifier.cardPadding(),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -1078,7 +1116,7 @@ fun DailyReviewItem(data: DailyReviewData, onClick: () -> Unit) {
     ) {
         Row(
             modifier = Modifier
-                .padding(16.dp)
+                .cardPadding()
                 .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -1162,8 +1200,8 @@ fun DateFilterBottomSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .padding(bottom = 32.dp),
+                .screenPadding()
+                .padding(bottom = AppSpacing.xl),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(
@@ -1204,7 +1242,7 @@ fun DateFilterBottomSheet(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 14.dp),
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -1248,7 +1286,7 @@ fun DateFilterBottomSheet(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {

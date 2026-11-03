@@ -31,22 +31,24 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.res.stringResource
 import com.fdev.nutrimindai.core.datastore.AppThemeMode
+import com.fdev.nutrimindai.BuildConfig
 import com.fdev.nutrimindai.R
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.fdev.nutrimindai.core.designsystem.component.NutriMindConfirmationDialog
-import com.fdev.nutrimindai.core.designsystem.component.NutriMindInfoDialog
-import com.fdev.nutrimindai.core.designsystem.component.UserAvatar
+import com.fdev.nutrimindai.core.designsystem.*
+import com.fdev.nutrimindai.core.designsystem.component.*
 import com.fdev.nutrimindai.feature.profile.data.local.entity.ProfileEntity
 import com.fdev.nutrimindai.core.model.Goal
 import android.Manifest
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material.icons.rounded.Watch
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
@@ -152,10 +154,13 @@ fun ProfileScreen(
 
     var showResetDialog by remember { mutableStateOf(false) }
     var showResetProgressDialog by remember { mutableStateOf(false) }
+    var showDisconnectHealthConnectDialog by remember { mutableStateOf(false) }
     var showThemeDialog by remember { mutableStateOf(false) }
     var showEditProfileDialog by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
     var showLinkAccountDialog by remember { mutableStateOf(false) }
+
+    val isHealthConnectConnected by viewModel.isHealthConnectConnected.collectAsStateWithLifecycle()
 
     val emailFallback = stringResource(R.string.profile_email_fallback)
     val accountLinkedSuccessMsg = stringResource(
@@ -200,7 +205,7 @@ fun ProfileScreen(
                 Column(
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .padding(24.dp),
+                        .padding(AppSpacing.xl),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(text = state.message, color = MaterialTheme.colorScheme.error)
@@ -216,10 +221,18 @@ fun ProfileScreen(
                         syncState = syncState,
                         accountInfo = accountInfo,
                         themeMode = themeMode,
+                        isHealthConnectConnected = isHealthConnectConnected,
                         isUploadingPhoto = isUploadingPhoto,
                         onEditPhotoClick = { showPhotoSourceDialog = true },
                         onSyncNowClick = { viewModel.syncDataNow() },
                         onThemeClick = { showThemeDialog = true },
+                        onHealthConnectClick = {
+                            if (isHealthConnectConnected) {
+                                showDisconnectHealthConnectDialog = true
+                            } else {
+                                Toast.makeText(context, context.getString(R.string.health_connect_sync_subtitle), Toast.LENGTH_SHORT).show()
+                            }
+                        },
                         onEditProfileClick = { showEditProfileDialog = true },
                         onHealthGoalClick = onNavigateToGoalSettings,
                         onReminderSettingsClick = onNavigateToReminderSettings,
@@ -290,6 +303,24 @@ fun ProfileScreen(
         )
     }
 
+    if (showDisconnectHealthConnectDialog) {
+        NutriMindConfirmationDialog(
+            title = stringResource(R.string.health_connect_disconnect),
+            description = stringResource(R.string.health_connect_disconnect_confirm_msg),
+            confirmButtonText = stringResource(R.string.health_connect_disconnect),
+            dismissButtonText = stringResource(R.string.dialog_cancel),
+            icon = Icons.Rounded.Watch,
+            isDanger = true,
+            onDismissRequest = { showDisconnectHealthConnectDialog = false },
+            onConfirm = {
+                showDisconnectHealthConnectDialog = false
+                viewModel.disconnectHealthConnect {
+                    Toast.makeText(context, context.getString(R.string.health_connect_disconnected_toast), Toast.LENGTH_SHORT).show()
+                }
+            }
+        )
+    }
+
     if (showResetDialog) {
         NutriMindConfirmationDialog(
             title = stringResource(R.string.btn_log_out),
@@ -317,13 +348,13 @@ fun ProfileScreen(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
+                    .screenPadding(),
                 elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(24.dp),
+                        .padding(AppSpacing.xl),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
@@ -389,29 +420,117 @@ fun ProfileScreen(
             title = stringResource(R.string.label_about_app),
             buttonText = stringResource(R.string.btn_close),
             onDismiss = { showAboutDialog = false },
+            icon = Icons.Default.AutoAwesome,
+            iconTint = MaterialTheme.colorScheme.primary,
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
                     Text(
-                        stringResource(R.string.profile_about_desc),
+                        text = stringResource(R.string.profile_about_desc),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
+                        lineHeight = 20.sp
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.profile_about_version, BuildConfig.VERSION_NAME),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.profile_about_powered_by),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.secondary,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outlineVariant,
+                        modifier = Modifier.padding(vertical = 2.dp)
+                    )
+
                     Text(
-                        stringResource(R.string.profile_about_version),
+                        text = stringResource(R.string.profile_about_features_header),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+
+                    AboutFeatureItem(
+                        icon = Icons.Default.CameraAlt,
+                        iconTint = MaterialTheme.colorScheme.primary,
+                        title = stringResource(R.string.about_feature_logging_title),
+                        description = stringResource(R.string.about_feature_logging_desc)
+                    )
+
+                    AboutFeatureItem(
+                        icon = Icons.Default.AutoAwesome,
+                        iconTint = LightSuccess,
+                        title = stringResource(R.string.about_feature_coach_title),
+                        description = stringResource(R.string.about_feature_coach_desc)
+                    )
+
+                    AboutFeatureItem(
+                        icon = Icons.Default.TrackChanges,
+                        iconTint = NutritionCalories,
+                        title = stringResource(R.string.about_feature_missions_title),
+                        description = stringResource(R.string.about_feature_missions_desc)
+                    )
+
+                    AboutFeatureItem(
+                        icon = Icons.Default.Scale,
+                        iconTint = NutritionWater,
+                        title = stringResource(R.string.about_feature_analytics_title),
+                        description = stringResource(R.string.about_feature_analytics_desc)
+                    )
+
+                    AboutFeatureItem(
+                        icon = Icons.Default.Shield,
+                        iconTint = MaterialTheme.colorScheme.tertiary,
+                        title = stringResource(R.string.about_feature_privacy_title),
+                        description = stringResource(R.string.about_feature_privacy_desc)
+                    )
+
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outlineVariant,
+                        modifier = Modifier.padding(vertical = 2.dp)
+                    )
+
+                    Text(
+                        text = stringResource(R.string.profile_about_storage_note),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+
                     Text(
-                        stringResource(R.string.profile_about_storage_note),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), color = MaterialTheme.colorScheme.outlineVariant)
-                    Text(
-                        stringResource(R.string.medical_disclaimer_full),
+                        text = stringResource(R.string.medical_disclaimer_full),
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.outline
+                        color = MaterialTheme.colorScheme.outline,
+                        lineHeight = 15.sp
                     )
                 }
             }
@@ -425,10 +544,12 @@ private fun ProfileMainContent(
     syncState: SyncUiState,
     accountInfo: AccountInfo,
     themeMode: AppThemeMode,
+    isHealthConnectConnected: Boolean,
     isUploadingPhoto: Boolean,
     onEditPhotoClick: () -> Unit,
     onSyncNowClick: () -> Unit,
     onThemeClick: () -> Unit,
+    onHealthConnectClick: () -> Unit,
     onEditProfileClick: () -> Unit,
     onHealthGoalClick: () -> Unit,
     onReminderSettingsClick: () -> Unit,
@@ -443,7 +564,7 @@ private fun ProfileMainContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 20.dp)
+            .screenPadding()
     ) {
         // --- Header Title (Fixed) ---
         Column(
@@ -482,7 +603,7 @@ private fun ProfileMainContent(
             color = MaterialTheme.colorScheme.surface,
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
         ) {
-            Column(modifier = Modifier.padding(18.dp)) {
+            Column(modifier = Modifier.cardPadding()) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -551,7 +672,7 @@ private fun ProfileMainContent(
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
                     ) {
                         Row(
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
@@ -560,7 +681,7 @@ private fun ProfileMainContent(
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(14.dp)
                             )
-                            Spacer(modifier = Modifier.width(6.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = stringResource(R.string.profile_edit_personal_info),
                                 style = MaterialTheme.typography.labelMedium.copy(
@@ -584,7 +705,7 @@ private fun ProfileMainContent(
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
             ) {
                 Row(
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
@@ -593,7 +714,7 @@ private fun ProfileMainContent(
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(18.dp)
                     )
-                    Spacer(modifier = Modifier.width(10.dp))
+                    Spacer(modifier = Modifier.width(12.dp))
                     Text(
                         text = stringResource(
                             R.string.profile_account_label,
@@ -634,7 +755,7 @@ private fun ProfileMainContent(
                         subtitle = stringResource(R.string.profile_link_account_sub),
                         onClick = onLinkAccountClick
                     )
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.screenPadding())
                 }
 
                 QuickMenuItem(
@@ -650,7 +771,7 @@ private fun ProfileMainContent(
                     onClick = onSyncNowClick,
                     isLoading = syncState.isSyncing
                 )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.screenPadding())
 
                 QuickMenuItem(
                     icon = Icons.Default.TrackChanges,
@@ -660,7 +781,7 @@ private fun ProfileMainContent(
                     subtitle = stringResource(R.string.profile_health_goal_sub),
                     onClick = onHealthGoalClick
                 )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.screenPadding())
 
                 QuickMenuItem(
                     icon = Icons.Default.Notifications,
@@ -670,7 +791,18 @@ private fun ProfileMainContent(
                     subtitle = stringResource(R.string.reminder_subtitle),
                     onClick = onReminderSettingsClick
                 )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.screenPadding())
+
+                QuickMenuItem(
+                    icon = Icons.Rounded.Watch,
+                    iconContainerColor = if (isHealthConnectConnected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+                    iconTint = if (isHealthConnectConnected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    title = stringResource(R.string.health_connect_title),
+                    subtitle = if (isHealthConnectConnected) stringResource(R.string.health_connect_connected)
+                               else stringResource(R.string.health_connect_disconnected),
+                    onClick = onHealthConnectClick
+                )
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.screenPadding())
 
                 QuickMenuItem(
                     icon = Icons.Default.Palette,
@@ -684,17 +816,7 @@ private fun ProfileMainContent(
                     },
                     onClick = onThemeClick
                 )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
-
-                QuickMenuItem(
-                    icon = Icons.Default.Person,
-                    iconContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    iconTint = MaterialTheme.colorScheme.secondary,
-                    title = stringResource(R.string.profile_edit_physical_title),
-                    subtitle = stringResource(R.string.profile_edit_physical_sub),
-                    onClick = onEditProfileClick
-                )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.screenPadding())
 
                 QuickMenuItem(
                     icon = Icons.Default.RestartAlt,
@@ -704,7 +826,7 @@ private fun ProfileMainContent(
                     subtitle = stringResource(R.string.profile_reset_data_sub),
                     onClick = onResetDataClick
                 )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.screenPadding())
 
                 QuickMenuItem(
                     icon = Icons.Default.Info,
@@ -895,7 +1017,7 @@ private fun LinkAccountDialog(
                                 color = MaterialTheme.colorScheme.onErrorContainer,
                                 fontWeight = FontWeight.Medium
                             ),
-                            modifier = Modifier.padding(10.dp)
+                            modifier = Modifier.padding(12.dp)
                         )
                     }
                 }
@@ -1063,7 +1185,7 @@ private fun QuickMenuItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(enabled = !isLoading) { onClick() }
-            .padding(16.dp),
+            .cardPadding(),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
@@ -1142,7 +1264,7 @@ private fun EmptyProfileContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
+            .padding(AppSpacing.xl),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -1215,7 +1337,7 @@ private fun PhotoSourceDialog(
                         }
                 ) {
                     Row(
-                        modifier = Modifier.padding(14.dp),
+                        modifier = Modifier.cardPadding(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
@@ -1244,7 +1366,7 @@ private fun PhotoSourceDialog(
                         }
                 ) {
                     Row(
-                        modifier = Modifier.padding(14.dp),
+                        modifier = Modifier.cardPadding(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
@@ -1343,7 +1465,7 @@ private fun ThemeOptionItem(
         border = if (isSelected) BorderStroke(1.dp, MaterialTheme.colorScheme.primary) else null
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            modifier = Modifier.compactCardPadding(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             RadioButton(
@@ -1374,6 +1496,55 @@ private fun ThemeOptionItem(
                     )
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun AboutFeatureItem(
+    icon: ImageVector,
+    iconTint: Color,
+    title: String,
+    description: String,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        Box(
+            modifier = Modifier
+                .size(36.dp)
+                .background(
+                    color = iconTint.copy(alpha = 0.12f),
+                    shape = RoundedCornerShape(10.dp)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = iconTint,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                lineHeight = 16.sp
+            )
         }
     }
 }

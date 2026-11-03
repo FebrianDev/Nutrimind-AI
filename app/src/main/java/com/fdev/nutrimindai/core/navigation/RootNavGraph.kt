@@ -20,6 +20,7 @@ import com.fdev.nutrimindai.feature.auth.presentation.register.RegisterScreen
 import com.fdev.nutrimindai.feature.onboarding.presentation.navigation.onboardingScreen
 import com.fdev.nutrimindai.feature.dailyintake.presentation.navigation.dailyIntakeGraph
 import com.fdev.nutrimindai.feature.home.presentation.navigation.homeScreen
+import com.fdev.nutrimindai.feature.progress.presentation.screen.DailyMissionHistoryScreen
 import com.fdev.nutrimindai.feature.progress.presentation.screen.ProgressScreen
 import com.fdev.nutrimindai.feature.progress.presentation.screen.TrendDetailScreen
 import com.fdev.nutrimindai.feature.profile.presentation.screen.GoalSettingsScreen
@@ -176,7 +177,15 @@ fun RootNavGraph(
                     },
                     onNavigateToGoalSettings = {
                         navController.navigate(NavigationDestination.GoalSettings)
+                    },
+                    onNavigateToMissionHistory = {
+                        navController.navigate(NavigationDestination.DailyMissionHistory)
                     }
+                )
+            }
+            composable<NavigationDestination.DailyMissionHistory> {
+                DailyMissionHistoryScreen(
+                    onBackClick = { navController.popBackStack() }
                 )
             }
             composable<NavigationDestination.DailyReview> { backStackEntry ->

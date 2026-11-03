@@ -128,9 +128,14 @@ class AiRepositoryImpl @Inject constructor(
 
     override suspend fun chatWithCoach(
         history: List<Pair<String, String>>,
-        systemPrompt: String?
+        systemPrompt: String?,
+        imageBitmap: Bitmap?
     ): Result<String> {
-        return metaAiService.chat(conversation = history, systemPrompt = systemPrompt)
+        return metaAiService.chat(
+            conversation = history,
+            systemPrompt = systemPrompt,
+            imageBitmap = imageBitmap
+        )
     }
 
     override suspend fun transcribeAudio(audioFile: java.io.File): Result<String> {

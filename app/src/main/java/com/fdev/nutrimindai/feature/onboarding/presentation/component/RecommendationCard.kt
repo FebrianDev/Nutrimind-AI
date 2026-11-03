@@ -28,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fdev.nutrimindai.R
+import com.fdev.nutrimindai.core.designsystem.*
 
 /**
  * AI Recommendation summary card displayed at the bottom of Step 5.
@@ -47,14 +48,14 @@ fun RecommendationCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp)
+                .cardPadding()
         ) {
             // Pill Badge: ✨ NUTRIMIND AI
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
                     .background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.1f))
-                    .padding(horizontal = 12.dp, vertical = 6.dp)
+                    .compactCardPadding()
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
@@ -63,7 +64,7 @@ fun RecommendationCard(
                         tint = MaterialTheme.colorScheme.tertiary,
                         modifier = Modifier.size(14.dp)
                     )
-                    Spacer(modifier = Modifier.width(6.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = stringResource(id = R.string.ai_badge_title),
                         fontSize = 11.sp,

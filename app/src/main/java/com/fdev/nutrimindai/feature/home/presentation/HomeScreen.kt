@@ -38,6 +38,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fdev.nutrimindai.R
 import com.fdev.nutrimindai.core.ai.AiProvider
 import com.fdev.nutrimindai.core.designsystem.NutriMindAITheme
+import com.fdev.nutrimindai.core.designsystem.screenPadding
 import com.fdev.nutrimindai.core.model.Goal
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.DailyLogStatus
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.DailyMissionItem
@@ -254,7 +255,7 @@ fun HomeContent(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 20.dp)
+                .screenPadding()
         ) {
             GreetingSection(
                 userName = summary.userName,
@@ -323,7 +324,7 @@ fun HomeContent(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp)
+                .screenPadding()
                 .padding(bottom = 24.dp)
         ) {
             if (summary.status == DailyLogStatus.COMPLETED) {
@@ -395,7 +396,8 @@ private fun buildGoalDrivenMissions(
                         nutrition.calories,
                         nutrition.goalCalories
                     ),
-                    isCompleted = calorieDeficitMet
+                    isCompleted = calorieDeficitMet,
+                    progressFraction = (nutrition.calories.toFloat() / nutrition.goalCalories.coerceAtLeast(1)).coerceIn(0f, 1f)
                 ),
                 DailyMissionItem(
                     id = "water_hydration",
@@ -405,7 +407,8 @@ private fun buildGoalDrivenMissions(
                         String.format(Locale.US, "%.1f", waterGoalMl / 1000.0)
                     ),
                     currentProgressText = waterProgressText,
-                    isCompleted = waterAchieved
+                    isCompleted = waterAchieved,
+                    progressFraction = (nutrition.water.toFloat() / waterGoalMl.coerceAtLeast(1)).coerceIn(0f, 1f)
                 ),
                 DailyMissionItem(
                     id = "protein_preservation",
@@ -419,14 +422,16 @@ private fun buildGoalDrivenMissions(
                         nutrition.protein.toInt(),
                         nutrition.goalProtein
                     ),
-                    isCompleted = proteinTargetMet
+                    isCompleted = proteinTargetMet,
+                    progressFraction = (nutrition.protein.toFloat() / nutrition.goalProtein.coerceAtLeast(1)).coerceIn(0f, 1f)
                 ),
                 DailyMissionItem(
                     id = "exercise_burn",
                     title = context.getString(R.string.mission_exercise_burn_title),
                     description = context.getString(R.string.mission_exercise_burn_desc),
                     currentProgressText = exerciseProgressText,
-                    isCompleted = exerciseAchieved
+                    isCompleted = exerciseAchieved,
+                    progressFraction = (totalExerciseMin.toFloat() / 30f).coerceIn(0f, 1f)
                 ),
                 DailyMissionItem(
                     id = "vegetables_fiber",
@@ -435,7 +440,8 @@ private fun buildGoalDrivenMissions(
                     currentProgressText = if (hasVegetables) context.getString(R.string.mission_vegetables_fiber_logged) else context.getString(
                         R.string.mission_vegetables_fiber_add
                     ),
-                    isCompleted = hasVegetables
+                    isCompleted = hasVegetables,
+                    progressFraction = if (hasVegetables) 1f else 0f
                 )
             )
         }
@@ -462,7 +468,8 @@ private fun buildGoalDrivenMissions(
                         nutrition.calories,
                         nutrition.goalCalories
                     ),
-                    isCompleted = calorieSurplusMet
+                    isCompleted = calorieSurplusMet,
+                    progressFraction = (nutrition.calories.toFloat() / nutrition.goalCalories.coerceAtLeast(1)).coerceIn(0f, 1f)
                 ),
                 DailyMissionItem(
                     id = "protein_hypertrophy",
@@ -476,7 +483,8 @@ private fun buildGoalDrivenMissions(
                         nutrition.protein.toInt(),
                         nutrition.goalProtein
                     ),
-                    isCompleted = highProteinMet
+                    isCompleted = highProteinMet,
+                    progressFraction = (nutrition.protein.toFloat() / nutrition.goalProtein.coerceAtLeast(1)).coerceIn(0f, 1f)
                 ),
                 DailyMissionItem(
                     id = "main_meals",
@@ -486,14 +494,16 @@ private fun buildGoalDrivenMissions(
                         R.string.mission_main_meals_progress,
                         mainMealsCount
                     ),
-                    isCompleted = mainMealsCount >= 3
+                    isCompleted = mainMealsCount >= 3,
+                    progressFraction = (mainMealsCount.toFloat() / 3f).coerceIn(0f, 1f)
                 ),
                 DailyMissionItem(
                     id = "exercise_strength",
                     title = context.getString(R.string.mission_exercise_strength_title),
                     description = context.getString(R.string.mission_exercise_strength_desc),
                     currentProgressText = exerciseProgressText,
-                    isCompleted = exerciseAchieved
+                    isCompleted = exerciseAchieved,
+                    progressFraction = (totalExerciseMin.toFloat() / 30f).coerceIn(0f, 1f)
                 ),
                 DailyMissionItem(
                     id = "water_hydration",
@@ -503,7 +513,8 @@ private fun buildGoalDrivenMissions(
                         String.format(Locale.US, "%.1f", waterGoalMl / 1000.0)
                     ),
                     currentProgressText = waterProgressText,
-                    isCompleted = waterAchieved
+                    isCompleted = waterAchieved,
+                    progressFraction = (nutrition.water.toFloat() / waterGoalMl.coerceAtLeast(1)).coerceIn(0f, 1f)
                 )
             )
         }
@@ -527,7 +538,8 @@ private fun buildGoalDrivenMissions(
                         nutrition.calories,
                         nutrition.goalCalories
                     ),
-                    isCompleted = calorieBalanceMet
+                    isCompleted = calorieBalanceMet,
+                    progressFraction = (nutrition.calories.toFloat() / nutrition.goalCalories.coerceAtLeast(1)).coerceIn(0f, 1f)
                 ),
                 DailyMissionItem(
                     id = "water_hydration",
@@ -537,7 +549,8 @@ private fun buildGoalDrivenMissions(
                         String.format(Locale.US, "%.1f", waterGoalMl / 1000.0)
                     ),
                     currentProgressText = waterProgressText,
-                    isCompleted = waterAchieved
+                    isCompleted = waterAchieved,
+                    progressFraction = (nutrition.water.toFloat() / waterGoalMl.coerceAtLeast(1)).coerceIn(0f, 1f)
                 ),
                 DailyMissionItem(
                     id = "protein_daily",
@@ -551,14 +564,16 @@ private fun buildGoalDrivenMissions(
                         nutrition.protein.toInt(),
                         nutrition.goalProtein
                     ),
-                    isCompleted = proteinBalancedMet
+                    isCompleted = proteinBalancedMet,
+                    progressFraction = (nutrition.protein.toFloat() / nutrition.goalProtein.coerceAtLeast(1)).coerceIn(0f, 1f)
                 ),
                 DailyMissionItem(
                     id = "exercise_daily",
                     title = context.getString(R.string.mission_exercise_daily_title),
                     description = context.getString(R.string.mission_exercise_daily_desc),
                     currentProgressText = exerciseProgressText,
-                    isCompleted = exerciseAchieved
+                    isCompleted = exerciseAchieved,
+                    progressFraction = (totalExerciseMin.toFloat() / 30f).coerceIn(0f, 1f)
                 ),
                 DailyMissionItem(
                     id = "vegetables_fiber",
@@ -567,7 +582,8 @@ private fun buildGoalDrivenMissions(
                     currentProgressText = if (hasVegetables) context.getString(R.string.mission_vegetables_fiber_logged) else context.getString(
                         R.string.mission_vegetables_fiber_add
                     ),
-                    isCompleted = hasVegetables
+                    isCompleted = hasVegetables,
+                    progressFraction = if (hasVegetables) 1f else 0f
                 )
             )
         }

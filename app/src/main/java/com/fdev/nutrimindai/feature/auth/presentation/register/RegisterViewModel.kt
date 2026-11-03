@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fdev.nutrimindai.core.database.DB_VERSION
 import com.fdev.nutrimindai.core.datastore.PreferenceManager
+import com.fdev.nutrimindai.core.health.HealthConnectManager
 import com.fdev.nutrimindai.core.sync.FirestoreSyncRepository
 import com.fdev.nutrimindai.feature.auth.domain.repository.AuthRepository
 import com.fdev.nutrimindai.feature.profile.domain.repository.ProfileRepository
@@ -21,7 +22,8 @@ class RegisterViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val preferenceManager: PreferenceManager,
     private val profileRepository: ProfileRepository,
-    private val firestoreSyncRepository: FirestoreSyncRepository
+    private val firestoreSyncRepository: FirestoreSyncRepository,
+    private val healthConnectManager: HealthConnectManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<RegisterUiState>(RegisterUiState.Idle)
@@ -38,14 +40,23 @@ class RegisterViewModel @Inject constructor(
 
     fun onNameChange(newName: String) {
         _name.value = newName
+        if (_uiState.value is RegisterUiState.Error) {
+            _uiState.value = RegisterUiState.Idle
+        }
     }
 
     fun onEmailChange(newEmail: String) {
         _email.value = newEmail
+        if (_uiState.value is RegisterUiState.Error) {
+            _uiState.value = RegisterUiState.Idle
+        }
     }
 
     fun onPasswordChange(newPassword: String) {
         _password.value = newPassword
+        if (_uiState.value is RegisterUiState.Error) {
+            _uiState.value = RegisterUiState.Idle
+        }
     }
 
     fun register() {

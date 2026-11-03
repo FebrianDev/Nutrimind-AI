@@ -1,15 +1,29 @@
 package com.fdev.nutrimindai.feature.dailyintake.presentation.exercise
 
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.DirectionsBike
@@ -17,37 +31,63 @@ import androidx.compose.material.icons.automirrored.filled.DirectionsRun
 import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.rounded.AutoAwesome
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.rounded.Watch
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.SuggestionChipDefaults
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.res.stringResource
-import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.material.icons.filled.Sync
-import androidx.compose.material.icons.rounded.Watch
-import androidx.compose.ui.platform.LocalContext
 import androidx.health.connect.client.PermissionController
-import kotlinx.coroutines.launch
-import com.fdev.nutrimindai.R
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.fdev.nutrimindai.R
+import com.fdev.nutrimindai.core.designsystem.*
+import com.fdev.nutrimindai.core.designsystem.component.NutriMindConfirmationDialog
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.DailyLogStatus
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.Exercise
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,6 +97,7 @@ fun ExerciseScreen(
     onNavigateToAddExercise: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var exerciseToDelete by remember { mutableStateOf<Exercise?>(null) }
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -72,24 +113,36 @@ fun ExerciseScreen(
         }
     }
 
+    val isHealthConnectConnected by viewModel.isHealthConnectConnected.collectAsStateWithLifecycle()
+
     val healthConnectPermissionLauncher = rememberLauncherForActivityResult(
         contract = PermissionController.createRequestPermissionResultContract()
     ) { granted ->
         if (viewModel.healthConnectPermissions.all { it in granted }) {
+            viewModel.setHealthConnectConnected(true)
             viewModel.syncHealthConnect { msg ->
                 Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
             }
         } else {
-            Toast.makeText(context, context.getString(R.string.health_connect_permission_needed), Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                context,
+                context.getString(R.string.health_connect_permission_needed),
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 
     val onSyncClick: () -> Unit = {
         if (!viewModel.isHealthConnectAvailable) {
-            Toast.makeText(context, context.getString(R.string.health_connect_not_available), Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                context,
+                context.getString(R.string.health_connect_not_available),
+                Toast.LENGTH_SHORT
+            ).show()
         } else {
             coroutineScope.launch {
                 if (viewModel.hasHealthConnectPermissions()) {
+                    viewModel.setHealthConnectConnected(true)
                     viewModel.syncHealthConnect { msg ->
                         Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
                     }
@@ -100,13 +153,53 @@ fun ExerciseScreen(
         }
     }
 
+    val onDisconnectClick: () -> Unit = {
+        viewModel.disconnectHealthConnect { _ ->
+            Toast.makeText(
+                context,
+                context.getString(R.string.health_connect_disconnected_toast),
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+
+    if (exerciseToDelete != null) {
+        val exercise = exerciseToDelete!!
+        NutriMindConfirmationDialog(
+            title = stringResource(R.string.exercise_delete_confirm_title),
+            description = stringResource(
+                R.string.exercise_delete_confirm_msg,
+                exercise.exerciseType
+            ),
+            icon = Icons.Default.Delete,
+            isDanger = true,
+            confirmButtonText = stringResource(R.string.meal_detail_btn_delete_item),
+            dismissButtonText = stringResource(R.string.dialog_cancel),
+            onConfirm = {
+                viewModel.deleteExercise(exercise)
+                exerciseToDelete = null
+            },
+            onDismissRequest = {
+                exerciseToDelete = null
+            }
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.exercise_title), fontWeight = FontWeight.Bold) },
+                title = {
+                    Text(
+                        stringResource(R.string.exercise_title),
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.scan_btn_back))
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.scan_btn_back)
+                        )
                     }
                 },
                 actions = {
@@ -127,7 +220,12 @@ fun ExerciseScreen(
                     ExtendedFloatingActionButton(
                         onClick = onNavigateToAddExercise,
                         icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                        text = { Text(stringResource(R.string.exercise_btn_add), fontWeight = FontWeight.Bold) },
+                        text = {
+                            Text(
+                                stringResource(R.string.exercise_btn_add),
+                                fontWeight = FontWeight.Bold
+                            )
+                        },
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimary,
                         shape = RoundedCornerShape(16.dp)
@@ -146,6 +244,7 @@ fun ExerciseScreen(
                 is ExerciseUiState.Loading -> {
                     CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 }
+
                 is ExerciseUiState.Error -> {
                     Text(
                         text = state.message,
@@ -153,11 +252,12 @@ fun ExerciseScreen(
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
+
                 is ExerciseUiState.Success -> {
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(horizontal = 16.dp),
+                            .screenPadding(),
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                         contentPadding = PaddingValues(top = 8.dp, bottom = 88.dp)
                     ) {
@@ -169,7 +269,11 @@ fun ExerciseScreen(
                         }
 
                         item {
-                            HealthConnectSyncBanner(onSyncClick = onSyncClick)
+                            HealthConnectSyncBanner(
+                                isConnected = isHealthConnectConnected,
+                                onSyncClick = onSyncClick,
+                                onDisconnectClick = onDisconnectClick
+                            )
                         }
 
                         item {
@@ -185,13 +289,17 @@ fun ExerciseScreen(
                             item {
                                 Card(
                                     shape = RoundedCornerShape(16.dp),
-                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(
+                                            alpha = 0.3f
+                                        )
+                                    ),
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .padding(24.dp),
+                                            .cardPadding(),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Text(
@@ -207,7 +315,7 @@ fun ExerciseScreen(
                                 ExerciseItemCard(
                                     exercise = exercise,
                                     isDraft = state.status == DailyLogStatus.DRAFT,
-                                    onDelete = { viewModel.deleteExercise(exercise) }
+                                    onDelete = { exerciseToDelete = exercise }
                                 )
                             }
                         }
@@ -228,7 +336,7 @@ fun ExerciseSummaryCard(calories: Int, duration: Int) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp),
+                .cardPadding(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -304,7 +412,7 @@ fun ExerciseItemCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .cardPadding(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
@@ -314,23 +422,63 @@ fun ExerciseItemCard(
                     .background(Color(0xFFE8F5E9)),
                 contentAlignment = Alignment.Center
             ) {
-                val icon = when (exercise.exerciseType.lowercase()) {
-                    "running" -> Icons.AutoMirrored.Filled.DirectionsRun
-                    "walking" -> Icons.AutoMirrored.Filled.DirectionsWalk
-                    "cycling" -> Icons.AutoMirrored.Filled.DirectionsBike
-                    "gym" -> Icons.Default.FitnessCenter
+                val isHealthConnect =
+                    exercise.exerciseType.contains("Health Connect", ignoreCase = true) ||
+                            exercise.exerciseType.contains("Smartwatch", ignoreCase = true)
+                val icon = when {
+                    isHealthConnect -> Icons.Rounded.Watch
+                    exercise.exerciseType.equals(
+                        "running",
+                        ignoreCase = true
+                    ) -> Icons.AutoMirrored.Filled.DirectionsRun
+
+                    exercise.exerciseType.equals(
+                        "walking",
+                        ignoreCase = true
+                    ) -> Icons.AutoMirrored.Filled.DirectionsWalk
+
+                    exercise.exerciseType.equals(
+                        "cycling",
+                        ignoreCase = true
+                    ) -> Icons.AutoMirrored.Filled.DirectionsBike
+
+                    exercise.exerciseType.equals(
+                        "gym",
+                        ignoreCase = true
+                    ) -> Icons.Default.FitnessCenter
+
                     else -> Icons.Default.MoreHoriz
                 }
                 Icon(imageVector = icon, contentDescription = null, tint = Color(0xFF388E3C))
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
-                val typeLabel = when (exercise.exerciseType.lowercase()) {
-                    "running" -> stringResource(R.string.exercise_type_running)
-                    "walking" -> stringResource(R.string.exercise_type_walking)
-                    "cycling" -> stringResource(R.string.exercise_type_cycling)
-                    "gym" -> stringResource(R.string.exercise_type_gym)
-                    else -> stringResource(R.string.exercise_type_other)
+                val isHealthConnect =
+                    exercise.exerciseType.contains("Health Connect", ignoreCase = true) ||
+                            exercise.exerciseType.contains("Smartwatch", ignoreCase = true)
+                val typeLabel = when {
+                    isHealthConnect -> stringResource(R.string.health_connect_title)
+                    exercise.exerciseType.equals(
+                        "running",
+                        ignoreCase = true
+                    ) -> stringResource(R.string.exercise_type_running)
+
+                    exercise.exerciseType.equals(
+                        "walking",
+                        ignoreCase = true
+                    ) -> stringResource(R.string.exercise_type_walking)
+
+                    exercise.exerciseType.equals(
+                        "cycling",
+                        ignoreCase = true
+                    ) -> stringResource(R.string.exercise_type_cycling)
+
+                    exercise.exerciseType.equals(
+                        "gym",
+                        ignoreCase = true
+                    ) -> stringResource(R.string.exercise_type_gym)
+
+                    else -> exercise.exerciseType.ifBlank { stringResource(R.string.exercise_type_other) }
                 }
                 Text(
                     text = typeLabel,
@@ -400,10 +548,18 @@ fun AddExerciseScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.exercise_btn_add), fontWeight = FontWeight.Bold) },
+                title = {
+                    Text(
+                        stringResource(R.string.exercise_btn_add),
+                        fontWeight = FontWeight.Bold
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.scan_btn_back))
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.scan_btn_back)
+                        )
                     }
                 }
             )
@@ -425,15 +581,22 @@ fun AddExerciseScreen(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                        .screenPadding()
+                        .padding(bottom = 16.dp)
                         .height(52.dp),
                     shape = RoundedCornerShape(16.dp),
                     enabled = duration.isNotBlank() && addUiState !is AddExerciseUiState.Loading
                 ) {
                     if (addUiState is AddExerciseUiState.Loading) {
-                        CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
                     } else {
-                        Text(stringResource(R.string.exercise_btn_save), fontWeight = FontWeight.Bold)
+                        Text(
+                            stringResource(R.string.exercise_btn_save),
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }
@@ -444,7 +607,7 @@ fun AddExerciseScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp),
+                .screenPadding(),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             if (addUiState is AddExerciseUiState.ValidationError) {
@@ -455,14 +618,18 @@ fun AddExerciseScreen(
                     Text(
                         text = (addUiState as AddExerciseUiState.ValidationError).message,
                         color = MaterialTheme.colorScheme.onErrorContainer,
-                        modifier = Modifier.padding(16.dp),
+                        modifier = Modifier.cardPadding(),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
             }
 
             Column {
-                Text(stringResource(R.string.exercise_type_label), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text(
+                    stringResource(R.string.exercise_type_label),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
                 Spacer(modifier = Modifier.height(12.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -476,7 +643,9 @@ fun AddExerciseScreen(
                             onClick = {
                                 selectedType = typeId
                                 if (parsedDuration > 0) {
-                                    calories = viewModel.calculateMetCalories(typeId, parsedDuration).toString()
+                                    calories =
+                                        viewModel.calculateMetCalories(typeId, parsedDuration)
+                                            .toString()
                                 }
                             }
                         )
@@ -539,7 +708,10 @@ fun AddExerciseScreen(
                 supportingText = if (metCalories > 0) {
                     {
                         Text(
-                            text = stringResource(R.string.exercise_met_helper, viewModel.userWeight),
+                            text = stringResource(
+                                R.string.exercise_met_helper,
+                                viewModel.userWeight
+                            ),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -608,8 +780,12 @@ fun ExerciseTypeItem(name: String, icon: ImageVector, isSelected: Boolean, onCli
 
 @Composable
 fun HealthConnectSyncBanner(
-    onSyncClick: () -> Unit
+    isConnected: Boolean,
+    onSyncClick: () -> Unit,
+    onDisconnectClick: () -> Unit
 ) {
+    var showMenu by remember { mutableStateOf(false) }
+
     Surface(
         onClick = onSyncClick,
         shape = RoundedCornerShape(16.dp),
@@ -618,7 +794,7 @@ fun HealthConnectSyncBanner(
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.cardPadding(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -642,41 +818,96 @@ fun HealthConnectSyncBanner(
                     )
                 }
 
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = stringResource(R.string.health_connect_title),
                         style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        text = stringResource(R.string.health_connect_sync_subtitle),
+                        text = if (isConnected) stringResource(R.string.health_connect_connected_subtitle)
+                        else stringResource(R.string.health_connect_sync_subtitle),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
 
-            Surface(
-                shape = RoundedCornerShape(8.dp),
-                color = MaterialTheme.colorScheme.primary
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(2.dp)
             ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                Surface(
+                    onClick = onSyncClick,
+                    shape = RoundedCornerShape(8.dp),
+                    color = MaterialTheme.colorScheme.primary
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Sync,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(14.dp)
-                    )
-                    Text(
-                        text = "Sync",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onPrimary
-                    )
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Sync,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Text(
+                            text = if (isConnected) stringResource(R.string.health_connect_sync_btn)
+                            else stringResource(R.string.health_connect_connect_btn),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                }
+
+                if (isConnected) {
+                    Box {
+                        IconButton(
+                            onClick = { showMenu = true },
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.MoreVert,
+                                contentDescription = "Health Connect Options",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = showMenu,
+                            onDismissRequest = { showMenu = false },
+                            containerColor = MaterialTheme.colorScheme.background
+                        ) {
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        text = stringResource(R.string.health_connect_disconnect),
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Close,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                },
+                                onClick = {
+                                    showMenu = false
+                                    onDisconnectClick()
+                                }
+                            )
+                        }
+                    }
                 }
             }
         }

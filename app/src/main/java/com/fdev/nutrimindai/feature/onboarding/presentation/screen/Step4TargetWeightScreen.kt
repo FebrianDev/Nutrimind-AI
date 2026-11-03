@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.fdev.nutrimindai.core.designsystem.*
 import androidx.compose.ui.unit.sp
 import com.fdev.nutrimindai.R
 import com.fdev.nutrimindai.feature.onboarding.presentation.component.TargetWeightPicker
@@ -52,7 +53,8 @@ fun Step4TargetWeightScreen(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(scrollState)
-            .padding(horizontal = 24.dp, vertical = 16.dp)
+            .authScreenPadding()
+            .padding(vertical = 16.dp)
     ) {
         Text(
             text = stringResource(id = R.string.step4_title),
@@ -91,7 +93,7 @@ fun Step4TargetWeightScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(20.dp),
+                    .cardPadding(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(

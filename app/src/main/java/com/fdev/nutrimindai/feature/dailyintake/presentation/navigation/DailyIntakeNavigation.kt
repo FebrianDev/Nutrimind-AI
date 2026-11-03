@@ -1,9 +1,11 @@
 package com.fdev.nutrimindai.feature.dailyintake.presentation.navigation
 
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
@@ -12,7 +14,9 @@ import com.fdev.nutrimindai.core.navigation.NavigationDestination
 import com.fdev.nutrimindai.feature.dailyintake.presentation.add_food.AddFoodBottomSheet
 import com.fdev.nutrimindai.feature.dailyintake.presentation.add_food.ManualEntryScreen
 import com.fdev.nutrimindai.feature.dailyintake.presentation.add_food.SearchFoodScreen
+import com.fdev.nutrimindai.feature.dailyintake.presentation.barcode.BarcodeScanScreen
 import com.fdev.nutrimindai.feature.dailyintake.presentation.camera.CameraScanScreen
+import com.fdev.nutrimindai.feature.dailyintake.presentation.gallery.GalleryImportScreen
 import com.fdev.nutrimindai.feature.dailyintake.presentation.exercise.AddExerciseScreen
 import com.fdev.nutrimindai.feature.dailyintake.presentation.exercise.ExerciseScreen
 import com.fdev.nutrimindai.feature.dailyintake.presentation.meal_detail.MealDetailScreen
@@ -22,23 +26,29 @@ fun NavGraphBuilder.dailyIntakeGraph(navController: NavController) {
 
     composable<NavigationDestination.MealDetail> { backStackEntry ->
         val mealDetail = backStackEntry.toRoute<NavigationDestination.MealDetail>()
-        var showAddFoodBottomSheet by remember { mutableStateOf(false) }
-        var showNutriChefBottomSheet by remember { mutableStateOf(false) }
+        var showAddFoodBottomSheet by rememberSaveable { mutableStateOf(false) }
+
+        val reopenSheetFlow = backStackEntry.savedStateHandle.getStateFlow("reopen_add_food_sheet", false)
+        val shouldReopenSheet by reopenSheetFlow.collectAsStateWithLifecycle()
+
+        LaunchedEffect(shouldReopenSheet) {
+            if (shouldReopenSheet) {
+                showAddFoodBottomSheet = true
+                backStackEntry.savedStateHandle["reopen_add_food_sheet"] = false
+            }
+        }
 
         if (showAddFoodBottomSheet) {
             AddFoodBottomSheet(
                 onDismiss = { showAddFoodBottomSheet = false },
                 onNavigateToCamera = {
-                    navController.navigate(NavigationDestination.CameraScan(mealDetail.mealType, launchGalleryDirectly = false))
+                    navController.navigate(NavigationDestination.CameraScan(mealDetail.mealType))
                 },
                 onNavigateToBarcode = {
-                    navController.navigate(NavigationDestination.CameraScan(mealDetail.mealType, launchGalleryDirectly = false, initialMode = "BARCODE"))
-                },
-                onNavigateToNutriChef = {
-                    showNutriChefBottomSheet = true
+                    navController.navigate(NavigationDestination.BarcodeScan(mealDetail.mealType))
                 },
                 onNavigateToGallery = {
-                    navController.navigate(NavigationDestination.CameraScan(mealDetail.mealType, launchGalleryDirectly = true))
+                    navController.navigate(NavigationDestination.GalleryImport(mealDetail.mealType))
                 },
                 onNavigateToSearch = {
                     navController.navigate(NavigationDestination.SearchFood(mealDetail.mealType))
@@ -49,17 +59,17 @@ fun NavGraphBuilder.dailyIntakeGraph(navController: NavController) {
             )
         }
 
-        if (showNutriChefBottomSheet) {
-            com.fdev.nutrimindai.feature.dailyintake.presentation.nutrichef.NutriChefBottomSheet(
-                onDismiss = { showNutriChefBottomSheet = false }
-            )
-        }
-
         MealDetailScreen(
             onNavigateBack = { navController.popBackStack() },
             onNavigateToAddFood = { showAddFoodBottomSheet = true },
             onNavigateToCoachIdeas = { prompt ->
-                navController.navigate(NavigationDestination.Coach(prompt))
+                navController.navigate(NavigationDestination.Coach(prompt)) {
+                    popUpTo<NavigationDestination.Home> {
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                    restoreState = true
+                }
             }
         )
     }
@@ -68,20 +78,57 @@ fun NavGraphBuilder.dailyIntakeGraph(navController: NavController) {
         val args = backStackEntry.toRoute<NavigationDestination.CameraScan>()
         CameraScanScreen(
             mealType = args.mealType,
-            launchGalleryDirectly = args.launchGalleryDirectly,
-            initialMode = args.initialMode,
-            onNavigateBack = { navController.popBackStack() }
+            onNavigateBack = {
+                navController.previousBackStackEntry?.savedStateHandle?.set("reopen_add_food_sheet", true)
+                navController.popBackStack()
+            },
+            onSaveSuccess = {
+                navController.popBackStack()
+            }
         )
     }
 
+    composable<NavigationDestination.BarcodeScan> { backStackEntry ->
+        val args = backStackEntry.toRoute<NavigationDestination.BarcodeScan>()
+        BarcodeScanScreen(
+            mealType = args.mealType,
+            onNavigateBack = {
+                navController.previousBackStackEntry?.savedStateHandle?.set("reopen_add_food_sheet", true)
+                navController.popBackStack()
+            },
+            onSaveSuccess = {
+                navController.popBackStack()
+            }
+        )
+    }
+
+    composable<NavigationDestination.GalleryImport> { backStackEntry ->
+        val args = backStackEntry.toRoute<NavigationDestination.GalleryImport>()
+        GalleryImportScreen(
+            mealType = args.mealType,
+            onNavigateBack = {
+                navController.previousBackStackEntry?.savedStateHandle?.set("reopen_add_food_sheet", true)
+                navController.popBackStack()
+            },
+            onSaveSuccess = {
+                navController.popBackStack()
+            }
+        )
+    }
 
     composable<NavigationDestination.SearchFood> { backStackEntry ->
         val args = backStackEntry.toRoute<NavigationDestination.SearchFood>()
         SearchFoodScreen(
             mealType = args.mealType,
-            onNavigateBack = { navController.popBackStack() },
+            onNavigateBack = {
+                navController.previousBackStackEntry?.savedStateHandle?.set("reopen_add_food_sheet", true)
+                navController.popBackStack()
+            },
+            onSaveSuccess = {
+                navController.popBackStack()
+            },
             onNavigateToBarcode = {
-                navController.navigate(NavigationDestination.CameraScan(args.mealType, initialMode = "BARCODE"))
+                navController.navigate(NavigationDestination.BarcodeScan(args.mealType))
             }
         )
     }
@@ -90,7 +137,13 @@ fun NavGraphBuilder.dailyIntakeGraph(navController: NavController) {
         val args = backStackEntry.toRoute<NavigationDestination.ManualEntry>()
         ManualEntryScreen(
             mealType = args.mealType,
-            onNavigateBack = { navController.popBackStack() }
+            onNavigateBack = {
+                navController.previousBackStackEntry?.savedStateHandle?.set("reopen_add_food_sheet", true)
+                navController.popBackStack()
+            },
+            onSaveSuccess = {
+                navController.popBackStack()
+            }
         )
     }
 

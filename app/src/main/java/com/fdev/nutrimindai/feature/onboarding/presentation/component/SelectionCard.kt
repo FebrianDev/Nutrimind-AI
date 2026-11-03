@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.fdev.nutrimindai.core.designsystem.cardPadding
 
 /**
  * Interactive selection card composable for Activity Level and Goal selection screens.
@@ -87,7 +88,7 @@ fun SelectionCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp),
+                .cardPadding(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             if (icon != null) {

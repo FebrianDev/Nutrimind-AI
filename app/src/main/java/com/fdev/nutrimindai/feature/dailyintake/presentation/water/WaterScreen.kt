@@ -27,6 +27,8 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.res.stringResource
 import com.fdev.nutrimindai.R
+import com.fdev.nutrimindai.core.designsystem.*
+import com.fdev.nutrimindai.core.designsystem.component.NutriMindConfirmationDialog
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.DailyLogStatus
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.Water
 
@@ -38,6 +40,7 @@ fun WaterScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showCustomWaterDialog by remember { mutableStateOf(false) }
+    var waterToDelete by remember { mutableStateOf<Water?>(null) }
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -49,6 +52,25 @@ fun WaterScreen(
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
+    }
+
+    if (waterToDelete != null) {
+        val water = waterToDelete!!
+        NutriMindConfirmationDialog(
+            title = stringResource(R.string.water_delete_confirm_title),
+            description = stringResource(R.string.water_delete_confirm_msg),
+            icon = Icons.Default.Delete,
+            isDanger = true,
+            confirmButtonText = stringResource(R.string.meal_detail_btn_delete_item),
+            dismissButtonText = stringResource(R.string.dialog_cancel),
+            onConfirm = {
+                viewModel.deleteWater(water)
+                waterToDelete = null
+            },
+            onDismissRequest = {
+                waterToDelete = null
+            }
+        )
     }
 
     if (showCustomWaterDialog) {
@@ -94,7 +116,7 @@ fun WaterScreen(
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(horizontal = 16.dp),
+                            .screenPadding(),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         contentPadding = PaddingValues(top = 8.dp, bottom = 32.dp)
                     ) {
@@ -136,7 +158,7 @@ fun WaterScreen(
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .padding(24.dp),
+                                            .padding(AppSpacing.xl),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Text(
@@ -152,7 +174,7 @@ fun WaterScreen(
                                 WaterHistoryCard(
                                     water = record,
                                     isDraft = state.status == DailyLogStatus.DRAFT,
-                                    onDelete = { viewModel.deleteWater(record) }
+                                    onDelete = { waterToDelete = record }
                                 )
                             }
                         }
@@ -175,7 +197,7 @@ fun WaterProgressCard(
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
-            modifier = Modifier.padding(24.dp),
+            modifier = Modifier.cardPadding(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
@@ -356,7 +378,7 @@ fun WaterHistoryCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .cardPadding(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(

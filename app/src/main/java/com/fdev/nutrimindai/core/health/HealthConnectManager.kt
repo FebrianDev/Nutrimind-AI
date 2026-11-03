@@ -8,7 +8,9 @@ import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import androidx.health.connect.client.request.AggregateRequest
 import androidx.health.connect.client.time.TimeRangeFilter
+import com.fdev.nutrimindai.core.datastore.PreferenceManager
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.Flow
 import timber.log.Timber
 import java.time.Instant
 import java.time.LocalDate
@@ -23,7 +25,8 @@ data class HealthMetrics(
 
 @Singleton
 class HealthConnectManager @Inject constructor(
-    @param:ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context,
+    private val preferenceManager: PreferenceManager
 ) {
     companion object {
         const val HEALTH_CONNECT_EXERCISE_TYPE = "Health Connect (Smartwatch & Langkah)"
@@ -48,6 +51,37 @@ class HealthConnectManager @Inject constructor(
         } catch (e: Exception) {
             Timber.e(e, "Failed to create HealthConnectClient")
             null
+        }
+    }
+
+    val isConnectedFlow: Flow<Boolean>
+        get() = preferenceManager.isHealthConnectConnected
+
+    suspend fun isConnected(): Boolean {
+        return preferenceManager.isHealthConnectConnected() && isAvailable && hasAllPermissions()
+    }
+
+    suspend fun setConnected(connected: Boolean) {
+        preferenceManager.setHealthConnectConnected(connected)
+    }
+
+    suspend fun revokeAllPermissions() {
+        val client = healthConnectClient ?: return
+        try {
+            client.permissionController.revokeAllPermissions()
+            Timber.d("HealthConnectManager: Revoked all permissions successfully")
+        } catch (e: Exception) {
+            Timber.e(e, "HealthConnectManager: Error revoking Health Connect permissions")
+        }
+    }
+
+    suspend fun disconnect() {
+        try {
+            preferenceManager.setHealthConnectConnected(false)
+            revokeAllPermissions()
+            Timber.d("HealthConnectManager: Disconnected Google Health Connect successfully")
+        } catch (e: Exception) {
+            Timber.e(e, "HealthConnectManager: Error disconnecting Health Connect")
         }
     }
 

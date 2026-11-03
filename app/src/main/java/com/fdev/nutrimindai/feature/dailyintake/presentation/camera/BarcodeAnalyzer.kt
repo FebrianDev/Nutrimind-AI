@@ -36,7 +36,7 @@ class BarcodeAnalyzer(
 
     private var lastScannedCode: String = ""
     private var lastScannedTimestamp: Long = 0L
-    private val throttleMs = 2000L
+    private val throttleMs = 2500L
 
     @OptIn(ExperimentalGetImage::class)
     override fun analyze(imageProxy: ImageProxy) {
@@ -47,6 +47,10 @@ class BarcodeAnalyzer(
         }
 
         val currentTime = System.currentTimeMillis()
+        if (currentTime - lastScannedTimestamp < throttleMs) {
+            imageProxy.close()
+            return
+        }
 
         val inputImage = InputImage.fromMediaImage(mediaImage, imageProxy.imageInfo.rotationDegrees)
         scanner.process(inputImage)
@@ -56,13 +60,13 @@ class BarcodeAnalyzer(
                 for (barcode in barcodes) {
                     val rawValue = barcode.rawValue?.trim() ?: continue
                     if (rawValue.isNotBlank()) {
-                        if (rawValue != lastScannedCode || (currentTime - lastScannedTimestamp > throttleMs)) {
-                            lastScannedCode = rawValue
-                            lastScannedTimestamp = currentTime
-                            Timber.d("Barcode detected: $rawValue (Format: ${barcode.format})")
-                            onBarcodeDetected(rawValue)
-                            break
-                        }
+                        // Immediately disable scanning on the camera thread to avoid double-processing subsequent frames
+                        isScanningEnabled = false
+                        lastScannedCode = rawValue
+                        lastScannedTimestamp = System.currentTimeMillis()
+                        Timber.d("Barcode detected: $rawValue (Format: ${barcode.format})")
+                        onBarcodeDetected(rawValue)
+                        break
                     }
                 }
             }
@@ -72,6 +76,15 @@ class BarcodeAnalyzer(
             .addOnCompleteListener {
                 imageProxy.close()
             }
+    }
+
+    /**
+     * Resets scanning state so the analyzer can accept new barcodes again.
+     */
+    fun reset() {
+        isScanningEnabled = true
+        lastScannedCode = ""
+        lastScannedTimestamp = 0L
     }
 
     /**

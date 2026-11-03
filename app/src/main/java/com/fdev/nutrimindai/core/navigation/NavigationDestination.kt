@@ -28,6 +28,9 @@ sealed interface NavigationDestination {
     data class TrendDetail(val metric: String) : NavigationDestination
 
     @Serializable
+    data object DailyMissionHistory : NavigationDestination
+
+    @Serializable
     data object GoalSettings : NavigationDestination
 
     @Serializable
@@ -59,6 +62,16 @@ sealed interface NavigationDestination {
         val mealType: String,
         val launchGalleryDirectly: Boolean = false,
         val initialMode: String? = null
+    ) : NavigationDestination
+
+    @Serializable
+    data class BarcodeScan(
+        val mealType: String
+    ) : NavigationDestination
+
+    @Serializable
+    data class GalleryImport(
+        val mealType: String
     ) : NavigationDestination
 
     @Serializable

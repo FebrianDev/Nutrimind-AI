@@ -80,8 +80,8 @@ class CameraScanViewModel @Inject constructor(
 
     fun onBarcodeScanned(barcode: String) {
         if (_uiState.value is CameraScanUiState.Analyzing) return
+        _uiState.value = CameraScanUiState.Analyzing
         viewModelScope.launch {
-            _uiState.value = CameraScanUiState.Analyzing
             val result = barcodeFoodRepository.getFoodByBarcode(barcode)
             result.onSuccess { recognized ->
                 _uiState.value = CameraScanUiState.Recognized(recognized, null)

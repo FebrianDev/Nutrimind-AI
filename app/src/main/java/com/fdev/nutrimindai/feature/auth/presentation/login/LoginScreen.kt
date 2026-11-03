@@ -37,7 +37,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fdev.nutrimindai.R
+import com.fdev.nutrimindai.core.designsystem.*
 import com.fdev.nutrimindai.feature.auth.presentation.AuthGoogleHelper
+import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(
@@ -64,9 +66,11 @@ fun LoginScreen(
     LaunchedEffect(uiState) {
         when (val state = uiState) {
             is LoginUiState.Error -> {
-                val message = state.message
+                coroutineScope.launch {
+                    snackbarHostState.currentSnackbarData?.dismiss()
+                    snackbarHostState.showSnackbar(state.message)
+                }
                 viewModel.clearError()
-                snackbarHostState.showSnackbar(message)
             }
             is LoginUiState.Success -> {
                 if (state.isNewUser) {
@@ -80,23 +84,20 @@ fun LoginScreen(
         }
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        containerColor = MaterialTheme.colorScheme.background
-    ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+    ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(scrollState)
-                    .padding(horizontal = 24.dp, vertical = 28.dp),
+                    .authScreenPadding()
+                    .padding(vertical = AppSpacing.xl),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // Brand Header Badge
                 Box(
@@ -113,7 +114,7 @@ fun LoginScreen(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(18.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 Text(
                     text = stringResource(R.string.app_name),
@@ -140,7 +141,7 @@ fun LoginScreen(
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                 ) {
                     Column(
-                        modifier = Modifier.padding(22.dp),
+                        modifier = Modifier.authCardPadding(),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         Text(
@@ -400,8 +401,14 @@ fun LoginScreen(
                     )
                 }
             }
+
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .navigationBarsPadding()
+            )
         }
-    }
 
     if (showForgotPasswordDialog) {
         var resetEmail by remember { mutableStateOf(email) }

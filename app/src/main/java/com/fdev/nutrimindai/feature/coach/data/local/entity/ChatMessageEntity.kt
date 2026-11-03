@@ -11,5 +11,6 @@ data class ChatMessageEntity(
     val role: String, // "user" or "assistant"
     val content: String,
     val timestamp: Long = System.currentTimeMillis(),
-    val actionSummary: String? = null
+    val actionSummary: String? = null,
+    val imageUri: String? = null
 )

@@ -101,3 +101,10 @@ val DarkTextHint = Color(0xFF8F8F8F)
 
 // --- Special Components ---
 val ButtonDangerBackground = Color(0xFFFDECEC)
+
+// --- Food Intake Method Accents ---
+val FoodInputCamera = Color(0xFF2196F3)
+val FoodInputBarcode = Color(0xFF00BCD4)
+val FoodInputGallery = Color(0xFF9C27B0)
+val FoodInputSearch = Color(0xFF4CAF50)
+val FoodInputManual = Color(0xFFFF9800)

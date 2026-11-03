@@ -18,8 +18,8 @@ android {
         applicationId = "com.fdev.nutrimindai"
         minSdk = 26
         targetSdk = 37
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -82,7 +82,7 @@ kotlin {
     jvmToolchain(17)
 }
 
-val dbVersion = 14
+val dbVersion = 15
 
 androidComponents {
     onVariants { variant ->

@@ -110,7 +110,7 @@ fun DailyReviewScreen(
                         .fillMaxSize()
                         .padding(paddingValues)
                         .verticalScroll(rememberScrollState())
-                        .padding(16.dp),
+                        .screenPadding(),
                     verticalArrangement = Arrangement.spacedBy(24.dp)
                 ) {
                     DateAndScoreHeader(date = detail.displayDate, score = detail.score, status = detail.status)
@@ -429,7 +429,7 @@ fun AISummarySection(
         border = CardDefaults.outlinedCardBorder()
     ) {
         Column(
-            modifier = Modifier.padding(20.dp),
+            modifier = Modifier.cardPadding(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Row(
@@ -496,7 +496,7 @@ fun NotesSection(note: String) {
             )
         ) {
             Row(
-                modifier = Modifier.padding(16.dp),
+                modifier = Modifier.cardPadding(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {

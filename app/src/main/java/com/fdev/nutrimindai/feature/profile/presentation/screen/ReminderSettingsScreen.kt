@@ -110,8 +110,9 @@ fun ReminderSettingsScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(scrollState)
-                .padding(horizontal = 20.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+                .screenPadding()
+                .padding(vertical = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Permission Notice Card (if permission not yet granted on Android 13+)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !hasNotificationPermission) {
@@ -122,8 +123,8 @@ fun ReminderSettingsScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                        modifier = Modifier.cardPadding(),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
@@ -182,7 +183,7 @@ fun ReminderSettingsScreen(
                             showTimePickerDialog = TimePickerTarget.Breakfast(settings.breakfastTime)
                         }
                     )
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.screenPadding())
 
                     ReminderRow(
                         icon = Icons.Default.Restaurant,
@@ -196,7 +197,7 @@ fun ReminderSettingsScreen(
                             showTimePickerDialog = TimePickerTarget.Lunch(settings.lunchTime)
                         }
                     )
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.screenPadding())
 
                     ReminderRow(
                         icon = Icons.Default.NightsStay,
@@ -225,7 +226,7 @@ fun ReminderSettingsScreen(
                 color = MaterialTheme.colorScheme.surface,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(modifier = Modifier.cardPadding()) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically
@@ -319,7 +320,7 @@ fun ReminderSettingsScreen(
                                         modifier = Modifier.weight(1f)
                                     ) {
                                         Box(
-                                            modifier = Modifier.padding(horizontal = 0.dp, vertical = 2.dp),
+                                            modifier = Modifier.padding(horizontal = 0.dp, vertical = 4.dp),
                                             contentAlignment = Alignment.Center
                                         ) {
                                             Text(
@@ -335,7 +336,7 @@ fun ReminderSettingsScreen(
                                 }
                             }
 
-                            Spacer(modifier = Modifier.height(14.dp))
+                            Spacer(modifier = Modifier.height(16.dp))
 
                             // Active window
                             Surface(
@@ -346,7 +347,7 @@ fun ReminderSettingsScreen(
                                     .clickable { showWaterWindowDialog = true }
                             ) {
                                 Row(
-                                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
@@ -401,7 +402,7 @@ fun ReminderSettingsScreen(
                                         modifier = Modifier.weight(1f)
                                     ) {
                                         Box(
-                                            modifier = Modifier.padding(horizontal = 0 .dp, vertical = 2.dp),
+                                            modifier = Modifier.padding(horizontal = 0.dp, vertical = 4.dp),
                                             contentAlignment = Alignment.Center
                                         ) {
                                             Text(
@@ -457,7 +458,7 @@ fun ReminderSettingsScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
+                        .cardPadding(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Box(
@@ -511,7 +512,7 @@ fun ReminderSettingsScreen(
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
                 ) {
                     Column(
-                        modifier = Modifier.padding(16.dp),
+                        modifier = Modifier.cardPadding(),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -890,7 +891,7 @@ private fun ReminderRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .cardPadding(),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
@@ -930,7 +931,7 @@ private fun ReminderRow(
                     color = iconTint.copy(alpha = 0.15f)
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                        modifier = Modifier.badgePadding(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
