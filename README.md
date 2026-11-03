@@ -18,7 +18,7 @@ Traditional calorie and macro tracking applications (such as MyFitnessPal or Los
 3. **No personalized coaching**: Most platforms lock actionable dietary insights behind costly paywalls.
 4. **Cultural diet mismatch**: Existing apps cater predominantly to Western diets, poorly recognizing regional, Asian, and multicultural meals.
 
-**NutriMind AI** solves logging friction and provides continuous, context-aware personalized nutrition guidance by leveraging **Meta's state-of-the-art AI models** (`Llama 3.2 Vision` and `Llama 3.3 70B / Muse Reasoning Models`). With a snap of your camera or a natural chat message, NutriMind AI acts as a dedicated 24/7 personal dietitian in your pocket.
+**NutriMind AI** eliminates logging friction and provides continuous, context-aware personalized nutrition guidance by leveraging **Meta's state-of-the-art AI models** (`Llama 3.2 Vision` and `Llama 3.3 70B / Muse Reasoning Models`). With a snap of your camera, a voice prompt, or a natural chat message, NutriMind AI acts as a dedicated 24/7 personal dietitian in your pocket.
 
 ---
 
@@ -31,7 +31,7 @@ Traditional calorie and macro tracking applications (such as MyFitnessPal or Los
 - **Autonomous Room Database Mutation**: `CoachActionExecutor` intercepts action directives and automatically writes them to local Room database entities (`IntakeDao`, `WaterDao`).
 - **Real-Time Cross-App Synchronization**: Reactive Kotlin `StateFlow` updates propagate instantly across the entire application—the Home calorie ring, macro bars, and hydration levels reflect the new meal immediately.
 - **Interactive Action Badges**: Chat bubbles display confirmation pills (e.g., `✅ Logged to Diary: 2 Boiled Eggs (156 kcal) & +500 ml Water`).
-- **Full Multimodal Input (Text + Voice + Vision)**: In addition to text and Meta MMS voice recording, NutriCoach natively supports photo attachments directly from the camera or device gallery. Users can snap their fridge ingredients, a physical restaurant menu, or a food plate, and ask the coach for instant culinary advice, menu recommendations, or autonomous diary logging.
+- **Full Multimodal Input (Text + Voice + Vision)**: In addition to text and Meta MMS voice recording, NutriCoach natively supports photo attachments directly from the camera or device gallery. Users can snap their fridge ingredients, a physical restaurant menu, or a food plate, and ask the coach for instant dietary advice, healthier alternatives, or autonomous diary logging.
 - **Contextual Follow-Up Memory**: NutriCoach maintains conversational multi-turn context. When users follow up on previous advice (e.g., *"Catat makanan tadi ke makan siang"* or *"Log that to my diary"*), the coach remembers the previously discussed nutrition estimates and triggers local database logging seamlessly.
 - **Typewriter Streaming & Responsive Chat**: Natural, word-by-word streaming rendering with animated typing indicators and quick suggestion chips.
 
@@ -41,39 +41,53 @@ Traditional calorie and macro tracking applications (such as MyFitnessPal or Los
 - **Multicultural Cuisine Expertise**: Trained to recognize global cuisines as well as regional Indonesian & Southeast Asian dishes (such as Nasi Goreng, Gado-Gado, Satay, Rendang, Soto, Tempeh, Tofu, and Pecel).
 - **Non-Food Defensive Guardrails**: Gracefully handles non-food items (electronics, pets, objects) without crashing or hallucinating calories.
 - **Integrated Barcode Scanner**: Fast barcode scanning via Google ML Kit paired with OpenFoodFacts API for packaged groceries.
+- **Flexible Manual & Search Entry**: Search database or quickly input custom calories and macros manually.
 
-### 3. 👨‍🍳 NutriChef AI — Smart Recipe Generator
-- **Budget-Aware Recipe Recommendations**: Generates tailored recipe recommendations based on the user's **exact remaining daily calories and macros** (Protein, Carbs, Fat).
-- **Meal-Type Customization**: Tailor recipes for Breakfast, Lunch, Dinner, or Snacks.
-- **Detailed Culinary Guidance**: Provides recipe preparation time, difficulty level, full ingredient lists, and step-by-step cooking instructions calculated to fit the user's dietary goals.
+### 3. 🎯 Daily Missions & Gamified Habit Building
+- **Interactive Daily Missions**: Daily wellness checklists (e.g., Log Breakfast, Reach Daily Protein Target, Hit Hydration Goal, Complete Workout, Daily Review) that turn healthy habits into rewarding daily wins.
+- **Streak & Consistency Tracking**: Tracks continuous adherence streaks to boost intrinsic motivation and prevent tracking abandonment.
+- **Comprehensive Mission History**: Dedicated historical dashboard displaying 7, 30, and 90-day completion rates, strictly and accurately constrained to the user's account creation date.
 
-### 4. 📊 Daily AI Evaluation & Proactive Coaching Tips
+### 4. ⏰ Context-Aware Smart Reminders & Intelligent Skip
+- **Automated Background Scheduling**: Powered by Android `WorkManager` with full support for Android 13+ runtime notification permissions.
+- **Customizable Hydration Schedule**: Configurable interval reminders (1h, 1.5h, 2h, 3h) with an active daytime window (e.g., 08:00 – 21:00) so users are never disturbed during sleep.
+- **Meal & Evening Review Reminders**: Timely alerts for Breakfast, Lunch, Dinner, and End-of-Day Review with native Compose time pickers.
+- **Intelligent Smart Skip**: Automatically suppresses reminders if the user has already logged their intake for that period, eliminating repetitive and annoying notification fatigue.
+- **In-App Notification Test Suite**: Built-in debug controls to test water and meal notifications instantly.
+
+### 5. 📊 Daily AI Evaluation & Proactive Coaching Tips
 - **End-of-Day Trajectory Scoring**: Calculates a holistic Health Score (0–100) based on calorie adherence, macro balance, hydration, and physical activity.
 - **Meta AI Review Summary**: Generates a motivating 3-sentence evaluation highlighting daily achievements and actionable improvements for tomorrow.
 - **Dynamic Home Coaching Banner**: Real-time micro-tips generated by Meta AI displayed right on the home dashboard based on current intake and goal progress.
 
-### 5. 🎨 Shareable Luxury Health Milestone Card
-- **Social Media Ready**: Generates a dark-emerald visual score card displaying:
+### 6. 🎨 Shareable Luxury Health Milestone Card
+- **Social Media Ready**: Generates an aesthetic dark-emerald visual score card displaying:
   - Daily Health Trajectory Score (0–100)
   - Calorie Budget Progress (Consumed vs. Target)
   - Macronutrient Breakdown (Protein, Carbs, Fat)
   - Hydration level & Workouts completed
   - Personalized Meta AI Coach feedback highlight & official watermark
 - **High-Resolution Off-Screen Rendering**: Leverages Jetpack Compose `rememberGraphicsLayer()` and Android `FileProvider` for crisp PNG captures.
-- **1-Click Social Sharing**: Direct sharing to Instagram Stories, WhatsApp, Twitter, and other apps.
+- **1-Click Social Sharing**: Direct sharing to Instagram Stories, WhatsApp, Twitter/X, and other apps.
 
-### 6. 💧 Hydration & Physical Activity Tracking
-- **Interactive Hydration Tracker**: Visual bottle fill progress with quick-log increments (+250ml, +500ml) and daily target monitoring.
-- **Workout & Active Burn Logging**: Log physical activities (Walking, Running, Cycling, Strength Training, etc.) with active calorie burn calculations dynamically adjusting net daily energy balance.
+### 7. 💧 Hydration & Physical Activity Tracking
+- **Interactive Hydration Tracker**: Visual bottle fill progress with quick-log increments (+250ml, +500ml) and dynamic daily target monitoring.
+- **Workout & Active Burn Logging**: Log physical activities (Walking, Running, Cycling, Strength Training, Swimming, etc.) with active calorie burn calculations dynamically adjusting net daily energy balance.
 
-### 7. 📈 Progress Analytics & Weight Management
-- **Weight Tracking Journal**: Log weight changes over time with visual trend charts.
-- **Historical Trajectory**: View weekly and monthly intake patterns to maintain long-term habit consistency.
+### 8. 📈 Progress Analytics, Trends & Body Weight Forecasting
+- **Science-Backed Weight Forecasting**: Mathematical projection of body weight changes based on cumulative caloric deficits or surpluses over time.
+- **Interactive Multi-Metric Trends**: Comprehensive 7, 30, and 90-day progress charts for Calories, Protein, Carbs, Fat, Water, Weight, and Exercise.
+- **Historical Activity Journal**: Chronological log of past daily entries with individual meal breakdowns and nutritional summaries.
 
-### 8. 🎯 Science-Backed Onboarding & Goal Customization
+### 9. 🎯 Science-Backed Onboarding & Goal Customization
 - **5-Step Onboarding Flow**: Captures user metrics (Age, Gender, Height, Weight, Activity Level, Target Goal).
 - **Mifflin-St Jeor BMR & TDEE Calculation**: Calculates scientifically validated baseline metabolic rate and recommended macro distributions (Weight Loss, Muscle Gain, Maintenance).
-- **Customizable Goals**: Adjust calorie and macronutrient targets at any time via Profile settings.
+- **Customizable Goals**: Adjust calorie and macronutrient targets at any time via Goal Settings in the Profile screen.
+
+### 10. 🔒 Local-First Architecture & Privacy by Design
+- **Local SQLite / Room Database**: All meal logs, water entries, biometrics, and activity records are stored locally on-device using Room Database v14.
+- **Full Offline Usability**: The app remains fully functional for browsing past logs, tracking water, and viewing trends without an active internet connection.
+- **Privacy-Conscious**: No user personal data or meal history is ever monetized or sold.
 
 ---
 
@@ -124,6 +138,7 @@ sequenceDiagram
 | **Design & Typography** | Bundled Plus Jakarta Sans, Custom Luxury Emerald Theme |
 | **AI Engine** | Meta Model API (`muse-spark-1.3`, `Llama 3.2 11B/90B Vision`, `Llama 3.3 70B`) |
 | **Computer Vision** | CameraX, ML Kit Barcode Scanning, Base64 JPEG Image Compressor |
+| **Background Processing** | Android WorkManager (Smart Reminders & Intelligent Skip) |
 | **Architecture** | Clean Architecture (Presentation, Domain, Data), MVI / MVVM |
 | **Persistence** | Room Database v14 with auto schema migration, DataStore Preferences |
 | **Dependency Injection**| Dagger Hilt |
@@ -180,7 +195,7 @@ META_AI_TEXT_MODEL=muse-spark-1.3
 - **Impact (30%)**: Solves real-world daily nutrition adherence, eliminates tedious manual logging, and democratizes expert dietary coaching.
 - **Use of Meta AI Tooling (25%)**: Deeply integrated with **Meta Model API**, leveraging **Meta Llama 3.2 Vision** for complex plate decomposition and **Meta Llama 3.3 70B / Muse** for autonomous agentic tool calling and contextual reasoning.
 - **Demo & UX (25%)**: Smooth Material 3 interface, progressive typewriter rendering, off-screen milestone sharing card, and zero user friction.
-- **Technical Depth (20%)**: Clean Architecture, autonomous database action execution, Room persistence, reactive StateFlow updates, and comprehensive unit test coverage.
+- **Technical Depth (20%)**: Clean Architecture, autonomous database action execution, Room persistence, reactive StateFlow updates, WorkManager smart reminders, and comprehensive unit test coverage.
 - **Judge-Friendly Access**: 100% free and frictionless judge testing with zero paywalls or subscription barriers.
 
 ---
