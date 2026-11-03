@@ -122,7 +122,11 @@ fun BarcodeScanScreen(
     }
 
     LaunchedEffect(uiState) {
-        barcodeAnalyzer.isScanningEnabled = (uiState !is CameraScanUiState.Analyzing)
+        if (uiState is CameraScanUiState.Idle) {
+            barcodeAnalyzer.reset()
+        } else {
+            barcodeAnalyzer.isScanningEnabled = false
+        }
     }
 
     LaunchedEffect(torchEnabled) {
