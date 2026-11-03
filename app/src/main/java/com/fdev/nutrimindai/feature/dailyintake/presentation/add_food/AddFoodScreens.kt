@@ -29,6 +29,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fdev.nutrimindai.R
+import com.fdev.nutrimindai.core.designsystem.*
 import com.fdev.nutrimindai.core.designsystem.component.NutriMindInfoDialog
 import com.fdev.nutrimindai.core.ai.FoodRecognitionResult
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.Food
@@ -52,7 +53,8 @@ fun AddFoodBottomSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 16.dp),
+                .screenPadding()
+                .padding(vertical = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
@@ -147,7 +149,7 @@ fun AddFoodOption(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .cardPadding(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
@@ -275,7 +277,7 @@ fun SearchFoodScreen(
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp)
+                            modifier = Modifier.badgePadding()
                         )
                     }
                 }
@@ -372,7 +374,8 @@ fun SearchFoodScreen(
                 onValueChange = { viewModel.onSearchQueryChange(it) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                    .screenPadding()
+                    .padding(vertical = AppSpacing.s),
                 placeholder = { Text(stringResource(R.string.food_search_placeholder)) },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 trailingIcon = {
@@ -396,10 +399,11 @@ fun SearchFoodScreen(
                     color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f),
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 4.dp)
+                        .screenPadding()
+                        .padding(vertical = AppSpacing.xs)
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                        modifier = Modifier.compactCardPadding(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
@@ -454,7 +458,7 @@ fun SearchFoodScreen(
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f))
                         ) {
                             Column(
-                                modifier = Modifier.padding(20.dp),
+                                modifier = Modifier.cardPadding(),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 Box(
@@ -521,7 +525,7 @@ fun SearchFoodScreen(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp),
+                                .cardPadding(),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
@@ -623,7 +627,8 @@ fun ManualEntryScreen(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                        .screenPadding()
+                        .padding(bottom = 16.dp)
                         .height(52.dp),
                     shape = RoundedCornerShape(16.dp),
                     enabled = foodName.isNotBlank() && calories.isNotBlank() && uiState !is AddFoodUiState.Loading && !isEstimating
@@ -642,7 +647,7 @@ fun ManualEntryScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp),
+                .screenPadding(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             if (uiState is AddFoodUiState.ValidationError) {
@@ -653,7 +658,7 @@ fun ManualEntryScreen(
                     Text(
                         text = (uiState as AddFoodUiState.ValidationError).message,
                         color = MaterialTheme.colorScheme.onErrorContainer,
-                        modifier = Modifier.padding(16.dp),
+                        modifier = Modifier.cardPadding(),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -667,7 +672,7 @@ fun ManualEntryScreen(
                     Text(
                         text = (uiState as AddFoodUiState.Error).message,
                         color = MaterialTheme.colorScheme.onErrorContainer,
-                        modifier = Modifier.padding(16.dp),
+                        modifier = Modifier.cardPadding(),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }

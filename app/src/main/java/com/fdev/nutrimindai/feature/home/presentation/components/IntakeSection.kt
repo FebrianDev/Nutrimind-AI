@@ -14,6 +14,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.fdev.nutrimindai.R
+import com.fdev.nutrimindai.core.designsystem.cardPadding
 
 @Composable
 fun IntakeSection(
@@ -88,7 +89,7 @@ fun IntakeSection(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .cardPadding()
         ) {
             // Header with Title & NutriChef Action
             Row(

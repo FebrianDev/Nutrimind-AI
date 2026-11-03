@@ -23,6 +23,9 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.ui.graphics.Color
+import com.fdev.nutrimindai.core.designsystem.badgePadding
+import com.fdev.nutrimindai.core.designsystem.cardPadding
+import com.fdev.nutrimindai.core.designsystem.screenPadding
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -72,6 +75,7 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fdev.nutrimindai.R
+import com.fdev.nutrimindai.core.designsystem.*
 import com.fdev.nutrimindai.core.ai.AiProvider
 import com.fdev.nutrimindai.feature.coach.domain.model.ContextualPrompt
 import com.fdev.nutrimindai.feature.coach.presentation.components.CoachChatBubble
@@ -245,7 +249,7 @@ fun CoachScreen(
                                 text = stringResource(R.string.coach_engine_format, uiState.activeProvider.displayName),
                                 style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp, fontWeight = FontWeight.SemiBold),
                                 color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                modifier = Modifier.badgePadding()
                             )
                         }
                     }
@@ -294,7 +298,7 @@ fun CoachScreen(
                     state = listState,
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(horizontal = 12.dp),
+                        .screenPadding(),
                     contentPadding = PaddingValues(top = 8.dp, bottom = 6.dp)
                 ) {
                     items(uiState.messages, key = { it.id }) { message ->
@@ -322,7 +326,7 @@ fun CoachScreen(
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Row(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    modifier = Modifier.compactCardPadding(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
@@ -365,10 +369,10 @@ fun CoachScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 6.dp)
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
                             .clip(RoundedCornerShape(20.dp))
                             .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f))
-                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                            .compactCardPadding(),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center
                     ) {
@@ -392,7 +396,7 @@ fun CoachScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         // Cancel button
@@ -419,7 +423,7 @@ fun CoachScreen(
                                 .height(46.dp)
                                 .clip(RoundedCornerShape(24.dp))
                                 .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f))
-                                .padding(horizontal = 12.dp),
+                                .screenPadding(),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             val infiniteTransition = rememberInfiniteTransition(label = "pulse")
@@ -500,7 +504,7 @@ fun CoachScreen(
                     Surface(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 6.dp),
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
                         shape = RoundedCornerShape(32.dp),
                         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
                         border = BorderStroke(
@@ -749,7 +753,7 @@ fun CoachScreen(
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.outline,
                     fontSize = 10.sp,
-                    modifier = Modifier.padding(bottom = 6.dp, top = 0.dp)
+                    modifier = Modifier.padding(bottom = 8.dp, top = 2.dp)
                 )
             }
         }
@@ -764,7 +768,7 @@ fun CoachScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 12.dp)
+                    .padding(horizontal = 16.dp, vertical = 16.dp)
             ) {
                 Text(
                     text = stringResource(R.string.coach_attach_photo_title),
@@ -789,7 +793,7 @@ fun CoachScreen(
                         }
                 ) {
                     Row(
-                        modifier = Modifier.padding(14.dp),
+                        modifier = Modifier.cardPadding(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
@@ -798,7 +802,7 @@ fun CoachScreen(
                             tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(24.dp)
                         )
-                        Spacer(modifier = Modifier.width(14.dp))
+                        Spacer(modifier = Modifier.width(16.dp))
                         Column {
                             Text(
                                 text = stringResource(R.string.food_take_photo_title),
@@ -814,7 +818,7 @@ fun CoachScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 Surface(
                     shape = RoundedCornerShape(14.dp),
@@ -829,7 +833,7 @@ fun CoachScreen(
                         }
                 ) {
                     Row(
-                        modifier = Modifier.padding(14.dp),
+                        modifier = Modifier.cardPadding(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
@@ -838,7 +842,7 @@ fun CoachScreen(
                             tint = MaterialTheme.colorScheme.secondary,
                             modifier = Modifier.size(24.dp)
                         )
-                        Spacer(modifier = Modifier.width(14.dp))
+                        Spacer(modifier = Modifier.width(16.dp))
                         Column {
                             Text(
                                 text = stringResource(R.string.food_choose_gallery_title),
@@ -869,7 +873,7 @@ private fun CoachWelcomeHero(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 24.dp, vertical = 16.dp),
+            .padding(horizontal = 16.dp, vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -896,7 +900,7 @@ private fun CoachWelcomeHero(
             )
         }
 
-        Spacer(modifier = Modifier.height(14.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
         Text(
             text = stringResource(R.string.coach_title),
@@ -907,7 +911,7 @@ private fun CoachWelcomeHero(
             color = MaterialTheme.colorScheme.onSurface
         )
 
-        Spacer(modifier = Modifier.height(6.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         // AI Provider badge styled consistently with app's primary theme
         Surface(
@@ -918,7 +922,7 @@ private fun CoachWelcomeHero(
                 text = stringResource(R.string.coach_model_format, activeProvider.displayName, activeProvider.shortModelName),
                 style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
                 color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp)
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
             )
         }
 
@@ -942,7 +946,7 @@ private fun CoachWelcomeHero(
                 color = MaterialTheme.colorScheme.primary
             )
 
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             quickPrompts.take(3).forEach { prompt ->
                 Surface(
@@ -955,7 +959,7 @@ private fun CoachWelcomeHero(
                     onClick = { onPromptClick(prompt.promptText) }
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Box(

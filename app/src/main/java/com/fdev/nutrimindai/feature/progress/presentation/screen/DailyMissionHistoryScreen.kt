@@ -23,9 +23,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fdev.nutrimindai.R
-import com.fdev.nutrimindai.core.designsystem.LightSuccess
-import com.fdev.nutrimindai.core.designsystem.NutritionCalories
-import com.fdev.nutrimindai.core.designsystem.NutritionFat
+import com.fdev.nutrimindai.core.designsystem.*
 import com.fdev.nutrimindai.core.util.EvaluatedDayMissions
 import com.fdev.nutrimindai.feature.progress.presentation.components.DayMissionDetailDialog
 import com.fdev.nutrimindai.feature.progress.presentation.components.DayMissionHistoryRow
@@ -83,7 +81,7 @@ fun DailyMissionHistoryScreen(
                     Column(
                         modifier = Modifier
                             .align(Alignment.Center)
-                            .padding(24.dp),
+                            .padding(AppSpacing.xl),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
@@ -104,7 +102,7 @@ fun DailyMissionHistoryScreen(
                 is DailyMissionHistoryUiState.Success -> {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
+                        contentPadding = PaddingValues(AppSpacing.m),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         // 1. Period Selection Tabs
@@ -152,7 +150,7 @@ fun DailyMissionHistoryScreen(
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(12.dp),
+                                        .cardPadding(),
                                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
@@ -201,7 +199,7 @@ fun DailyMissionHistoryScreen(
                                     Column(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .padding(32.dp),
+                                            .padding(AppSpacing.xxl),
                                         horizontalAlignment = Alignment.CenterHorizontally,
                                         verticalArrangement = Arrangement.spacedBy(8.dp)
                                     ) {

@@ -27,6 +27,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.res.stringResource
 import com.fdev.nutrimindai.R
+import com.fdev.nutrimindai.core.designsystem.*
 import com.fdev.nutrimindai.core.designsystem.component.NutriMindConfirmationDialog
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.DailyLogStatus
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.Water
@@ -115,7 +116,7 @@ fun WaterScreen(
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(horizontal = 16.dp),
+                            .screenPadding(),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                         contentPadding = PaddingValues(top = 8.dp, bottom = 32.dp)
                     ) {
@@ -157,7 +158,7 @@ fun WaterScreen(
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .padding(24.dp),
+                                            .padding(AppSpacing.xl),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Text(
@@ -196,7 +197,7 @@ fun WaterProgressCard(
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
-            modifier = Modifier.padding(24.dp),
+            modifier = Modifier.cardPadding(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
@@ -377,7 +378,7 @@ fun WaterHistoryCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .cardPadding(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(

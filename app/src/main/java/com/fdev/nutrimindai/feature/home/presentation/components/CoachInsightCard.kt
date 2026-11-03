@@ -25,6 +25,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fdev.nutrimindai.R
 import com.fdev.nutrimindai.core.ai.AiProvider
+import com.fdev.nutrimindai.core.designsystem.badgePadding
+import com.fdev.nutrimindai.core.designsystem.cardPadding
 
 @Composable
 fun CoachInsightCard(
@@ -54,7 +56,7 @@ fun CoachInsightCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(18.dp)
+                .cardPadding()
         ) {
             // Header: Sparkle Icon, Title & Provider Badge, Refresh Action
             Row(
@@ -111,7 +113,7 @@ fun CoachInsightCard(
                                     fontWeight = FontWeight.Medium
                                 ),
                                 color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                modifier = Modifier.badgePadding()
                             )
                         }
                     }

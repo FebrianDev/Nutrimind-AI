@@ -21,6 +21,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.fdev.nutrimindai.core.designsystem.authScreenPadding
 import com.fdev.nutrimindai.R
 import com.fdev.nutrimindai.feature.onboarding.presentation.component.AppTextField
 import com.fdev.nutrimindai.feature.onboarding.presentation.component.GenderSelector
@@ -54,7 +55,8 @@ fun Step1PersonalInformationScreen(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(scrollState)
-            .padding(horizontal = 24.dp, vertical = 16.dp)
+            .authScreenPadding()
+            .padding(vertical = 16.dp)
     ) {
         Text(
             text = stringResource(id = R.string.step1_title),

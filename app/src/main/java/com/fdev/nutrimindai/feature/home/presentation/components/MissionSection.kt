@@ -39,10 +39,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fdev.nutrimindai.R
-import com.fdev.nutrimindai.core.designsystem.LightSuccess
-import com.fdev.nutrimindai.core.designsystem.NutritionCalories
-import com.fdev.nutrimindai.core.designsystem.NutritionExercise
-import com.fdev.nutrimindai.core.designsystem.NutritionProtein
+import com.fdev.nutrimindai.core.designsystem.*
 import com.fdev.nutrimindai.core.designsystem.NutritionWater
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.DailyMissionItem
 import com.fdev.nutrimindai.core.model.Goal
@@ -94,7 +91,7 @@ fun MissionSection(
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             color = LightSuccess,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                            modifier = Modifier.badgePadding(),
                             fontSize = 10.sp
                         )
                     }
@@ -259,7 +256,7 @@ private fun DailyMissionsDialog(
                         Row(
                             modifier = Modifier.padding(12.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.AutoAwesome,
@@ -372,7 +369,7 @@ private fun MissionItemRow(
             .fillMaxWidth()
             .clip(RoundedCornerShape(14.dp))
             .background(rowBgColor)
-            .padding(horizontal = 14.dp, vertical = 12.dp),
+            .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -403,7 +400,7 @@ private fun MissionItemRow(
             Spacer(modifier = Modifier.height(2.dp))
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text(
                     text = mission.currentProgressText,
@@ -446,7 +443,7 @@ private fun MissionItemRow(
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.Bold,
                     color = LightSuccess,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                    modifier = Modifier.badgePadding()
                 )
             }
         } else {
@@ -461,7 +458,7 @@ private fun MissionItemRow(
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
                         color = defaultColor,
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                        modifier = Modifier.badgePadding(),
                         fontSize = 11.sp
                     )
                 }

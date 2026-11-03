@@ -110,7 +110,7 @@ fun TrendDetailScreen(
                         .fillMaxSize()
                         .padding(paddingValues)
                         .verticalScroll(rememberScrollState())
-                        .padding(16.dp),
+                        .screenPadding(),
                     verticalArrangement = Arrangement.spacedBy(24.dp)
                 ) {
                     PrimaryTabRow(
@@ -162,7 +162,7 @@ fun TrendDetailScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(220.dp)
-                                .padding(16.dp)
+                                .cardPadding()
                         )
                     }
 
@@ -230,7 +230,7 @@ fun TrendSummarySection(
             shape = RoundedCornerShape(8.dp)
         ) {
             Row(
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                modifier = Modifier.badgePadding(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(

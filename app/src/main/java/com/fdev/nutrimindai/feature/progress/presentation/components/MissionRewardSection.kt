@@ -34,14 +34,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fdev.nutrimindai.R
-import com.fdev.nutrimindai.core.designsystem.BrandPrimary
-import com.fdev.nutrimindai.core.designsystem.LightSuccess
-import com.fdev.nutrimindai.core.designsystem.NutritionCalories
-import com.fdev.nutrimindai.core.designsystem.NutritionExercise
-import com.fdev.nutrimindai.core.designsystem.NutritionFat
-import com.fdev.nutrimindai.core.designsystem.NutritionFiber
-import com.fdev.nutrimindai.core.designsystem.NutritionProtein
-import com.fdev.nutrimindai.core.designsystem.NutritionWater
+import com.fdev.nutrimindai.core.designsystem.*
 import com.fdev.nutrimindai.core.util.DailyMissionItemSummary
 import com.fdev.nutrimindai.core.util.EvaluatedDayMissions
 import com.fdev.nutrimindai.core.util.MissionIconType
@@ -102,7 +95,7 @@ private fun MissionHeroRewardCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .cardPadding(),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             // Three mini stats: Streak, Points, Perfect Days
@@ -152,7 +145,7 @@ private fun MissionHeroRewardCard(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 14.dp, vertical = 12.dp),
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
@@ -248,8 +241,8 @@ fun DayMissionHistoryRow(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(14.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+                .cardPadding(),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             // Top row: Day label, points badge, completion pill
             Row(
@@ -286,7 +279,7 @@ fun DayMissionHistoryRow(
                         shape = RoundedCornerShape(6.dp)
                     ) {
                         Row(
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                            modifier = Modifier.badgePadding(),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(2.dp)
                         ) {
@@ -331,7 +324,7 @@ fun DayMissionHistoryRow(
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             color = pillColor,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                            modifier = Modifier.badgePadding(),
                             fontSize = 11.sp
                         )
                     }
@@ -534,7 +527,7 @@ fun DayMissionDetailDialog(
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
                             .background(rowBgColor)
-                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                            .compactCardPadding(),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
@@ -598,7 +591,7 @@ fun DayMissionDetailDialog(
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Bold,
                                     color = LightSuccess,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                    modifier = Modifier.badgePadding(),
                                     fontSize = 10.sp
                                 )
                             }
@@ -614,7 +607,7 @@ fun DayMissionDetailDialog(
                                         style = MaterialTheme.typography.labelSmall,
                                         fontWeight = FontWeight.Bold,
                                         color = defaultColor,
-                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                        modifier = Modifier.badgePadding(),
                                         fontSize = 10.sp
                                     )
                                 }

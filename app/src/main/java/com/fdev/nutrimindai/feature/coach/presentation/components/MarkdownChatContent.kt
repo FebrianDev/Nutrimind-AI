@@ -59,7 +59,7 @@ fun MarkdownChatContent(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
                         ),
-                        modifier = Modifier.padding(top = 4.dp, bottom = 1.dp)
+                        modifier = Modifier.padding(top = 4.dp, bottom = 2.dp)
                     )
                 }
 
@@ -71,7 +71,7 @@ fun MarkdownChatContent(
                             fontWeight = FontWeight.Bold,
                             color = textColor
                         ),
-                        modifier = Modifier.padding(top = 6.dp, bottom = 2.dp)
+                        modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
                     )
                 }
 
@@ -83,7 +83,7 @@ fun MarkdownChatContent(
                             fontWeight = FontWeight.Bold,
                             color = textColor
                         ),
-                        modifier = Modifier.padding(top = 8.dp, bottom = 2.dp)
+                        modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
                     )
                 }
 
@@ -92,7 +92,7 @@ fun MarkdownChatContent(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(start = 2.dp, top = 1.dp, bottom = 1.dp),
+                            .padding(start = 2.dp, top = 2.dp, bottom = 2.dp),
                         verticalAlignment = Alignment.Top
                     ) {
                         Text(
@@ -101,7 +101,7 @@ fun MarkdownChatContent(
                                 fontWeight = FontWeight.ExtraBold,
                                 color = MaterialTheme.colorScheme.primary
                             ),
-                            modifier = Modifier.padding(end = 6.dp)
+                            modifier = Modifier.padding(end = 8.dp)
                         )
                         Text(
                             text = remember(bulletText) { parseInlineMarkdown(bulletText) },
@@ -120,7 +120,7 @@ fun MarkdownChatContent(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(start = 2.dp, top = 1.dp, bottom = 1.dp),
+                            .padding(start = 2.dp, top = 2.dp, bottom = 2.dp),
                         verticalAlignment = Alignment.Top
                     ) {
                         Text(
@@ -129,7 +129,7 @@ fun MarkdownChatContent(
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
                             ),
-                            modifier = Modifier.padding(end = 6.dp)
+                            modifier = Modifier.padding(end = 8.dp)
                         )
                         Text(
                             text = remember(itemText) { parseInlineMarkdown(itemText) },

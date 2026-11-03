@@ -19,6 +19,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.fdev.nutrimindai.core.designsystem.authScreenPadding
 import com.fdev.nutrimindai.R
 import com.fdev.nutrimindai.feature.onboarding.presentation.component.SelectionCard
 import com.fdev.nutrimindai.feature.onboarding.presentation.state.OnboardingUiState
@@ -61,7 +62,8 @@ fun Step3GoalScreen(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(scrollState)
-            .padding(horizontal = 24.dp, vertical = 16.dp)
+            .authScreenPadding()
+            .padding(vertical = 16.dp)
     ) {
         Text(
             text = stringResource(id = R.string.step3_title),

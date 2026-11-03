@@ -38,6 +38,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fdev.nutrimindai.R
 import com.fdev.nutrimindai.core.ai.AiProvider
 import com.fdev.nutrimindai.core.designsystem.NutriMindAITheme
+import com.fdev.nutrimindai.core.designsystem.screenPadding
 import com.fdev.nutrimindai.core.model.Goal
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.DailyLogStatus
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.DailyMissionItem
@@ -254,7 +255,7 @@ fun HomeContent(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 20.dp)
+                .screenPadding()
         ) {
             GreetingSection(
                 userName = summary.userName,
@@ -323,7 +324,7 @@ fun HomeContent(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .padding(horizontal = 20.dp)
+                .screenPadding()
                 .padding(bottom = 24.dp)
         ) {
             if (summary.status == DailyLogStatus.COMPLETED) {

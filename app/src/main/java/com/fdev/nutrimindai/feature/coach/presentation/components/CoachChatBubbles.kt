@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fdev.nutrimindai.R
+import com.fdev.nutrimindai.core.designsystem.*
 import com.fdev.nutrimindai.feature.coach.domain.model.ChatMessage
 import com.fdev.nutrimindai.feature.coach.domain.model.ChatRole
 import androidx.compose.ui.layout.ContentScale
@@ -70,7 +71,7 @@ fun CoachChatBubble(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(vertical = 6.dp),
+            .padding(vertical = 4.dp),
         horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start,
         verticalAlignment = Alignment.Top
     ) {
@@ -106,7 +107,7 @@ fun CoachChatBubble(
                         style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
                         color = MaterialTheme.colorScheme.primary
                     )
-                    Spacer(modifier = Modifier.width(6.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
                     Surface(
                         color = MaterialTheme.colorScheme.secondaryContainer,
                         shape = RoundedCornerShape(6.dp)
@@ -115,7 +116,7 @@ fun CoachChatBubble(
                             text = providerName,
                             style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
                             color = MaterialTheme.colorScheme.onSecondaryContainer,
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            modifier = Modifier.badgePadding()
                         )
                     }
                 }
@@ -145,7 +146,7 @@ fun CoachChatBubble(
                 tonalElevation = 1.dp
             ) {
                 Column(
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp)
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
                 ) {
                     if (isUser) {
                         if (!message.imageUri.isNullOrBlank()) {
@@ -181,7 +182,7 @@ fun CoachChatBubble(
                                 )
                             ) {
                                 Row(
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Icon(
@@ -190,7 +191,7 @@ fun CoachChatBubble(
                                         tint = MaterialTheme.colorScheme.primary,
                                         modifier = Modifier.size(15.dp)
                                     )
-                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Spacer(modifier = Modifier.width(8.dp))
                                     Text(
                                         text = message.actionSummary,
                                         style = MaterialTheme.typography.labelSmall.copy(

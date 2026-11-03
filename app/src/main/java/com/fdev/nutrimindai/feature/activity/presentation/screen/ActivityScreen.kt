@@ -80,12 +80,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fdev.nutrimindai.R
-import com.fdev.nutrimindai.core.designsystem.LightError
-import com.fdev.nutrimindai.core.designsystem.LightSuccess
-import com.fdev.nutrimindai.core.designsystem.NutritionCalories
-import com.fdev.nutrimindai.core.designsystem.NutritionExercise
-import com.fdev.nutrimindai.core.designsystem.NutritionProtein
-import com.fdev.nutrimindai.core.designsystem.NutritionWater
+import com.fdev.nutrimindai.core.designsystem.*
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
@@ -217,7 +212,7 @@ fun ActivityScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 6.dp),
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -311,7 +306,7 @@ fun ActivityScreen(
                     ) {
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.padding(24.dp)
+                            modifier = Modifier.padding(AppSpacing.xl)
                         ) {
                             Icon(
                                 imageVector = if (selectedDate != null || searchQuery.isNotBlank()) Icons.Default.SearchOff else Icons.AutoMirrored.Filled.EventNote,
@@ -419,7 +414,7 @@ fun ActivityHeader(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 10.dp),
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(onClick = onSearchToggle) {
@@ -459,7 +454,8 @@ fun ActivityHeader(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 24.dp, vertical = 16.dp),
+                        .screenPadding()
+                        .padding(vertical = 16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -559,7 +555,7 @@ fun CalendarStrip(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp),
+                .screenPadding(),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -574,7 +570,7 @@ fun CalendarStrip(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .clickable { onMonthHeaderClick() }
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                    .badgePadding()
             ) {
                 Text(
                     text = monthYearText,
@@ -678,7 +674,7 @@ fun ActivitySummaryCard(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         border = CardDefaults.outlinedCardBorder().copy(width = 0.5.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.cardPadding()) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -706,7 +702,7 @@ fun ActivitySummaryCard(
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                        modifier = Modifier.badgePadding(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         val statusLabel = when (status) {

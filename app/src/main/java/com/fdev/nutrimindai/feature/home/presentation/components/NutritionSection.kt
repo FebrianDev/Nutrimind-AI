@@ -21,6 +21,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fdev.nutrimindai.R
+import com.fdev.nutrimindai.core.designsystem.badgePadding
+import com.fdev.nutrimindai.core.designsystem.cardPadding
 
 @Composable
 fun NutritionSection(
@@ -50,7 +52,7 @@ fun NutritionSection(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .cardPadding()
         ) {
             // Header with Icon Circle & Badge
             Row(
@@ -105,7 +107,7 @@ fun NutritionSection(
                                     fontWeight = FontWeight.Medium
                                 ),
                                 color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                modifier = Modifier.badgePadding()
                             )
                         }
                     }
@@ -180,7 +182,7 @@ fun NutritionSection(
                                     fontWeight = FontWeight.Bold
                                 ),
                                 color = if (isOverBudget) MaterialTheme.colorScheme.error else Color(0xFF4CAF50),
-                                modifier = Modifier.padding(horizontal = 5.dp, vertical = 2.dp)
+                                modifier = Modifier.badgePadding()
                             )
                         }
                     }
@@ -189,7 +191,7 @@ fun NutritionSection(
                 // Macronutrients List on the Right (Protein, Carbs, Fat)
                 Column(
                     modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     NutritionItem(data = protein, icon = Icons.Rounded.Egg, color = Color(0xFF5C6BC0))
                     NutritionItem(data = carbs, icon = Icons.Rounded.BakeryDining, color = Color(0xFFFFA000))

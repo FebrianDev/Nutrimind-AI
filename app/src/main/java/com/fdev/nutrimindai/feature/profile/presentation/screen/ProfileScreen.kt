@@ -36,9 +36,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.fdev.nutrimindai.core.designsystem.component.NutriMindConfirmationDialog
-import com.fdev.nutrimindai.core.designsystem.component.NutriMindInfoDialog
-import com.fdev.nutrimindai.core.designsystem.component.UserAvatar
+import com.fdev.nutrimindai.core.designsystem.*
+import com.fdev.nutrimindai.core.designsystem.component.*
 import com.fdev.nutrimindai.feature.profile.data.local.entity.ProfileEntity
 import com.fdev.nutrimindai.core.model.Goal
 import android.Manifest
@@ -205,7 +204,7 @@ fun ProfileScreen(
                 Column(
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .padding(24.dp),
+                        .padding(AppSpacing.xl),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(text = state.message, color = MaterialTheme.colorScheme.error)
@@ -348,13 +347,13 @@ fun ProfileScreen(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
+                    .screenPadding(),
                 elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(24.dp),
+                        .padding(AppSpacing.xl),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
@@ -476,7 +475,7 @@ private fun ProfileMainContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 20.dp)
+            .screenPadding()
     ) {
         // --- Header Title (Fixed) ---
         Column(
@@ -515,7 +514,7 @@ private fun ProfileMainContent(
             color = MaterialTheme.colorScheme.surface,
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
         ) {
-            Column(modifier = Modifier.padding(18.dp)) {
+            Column(modifier = Modifier.cardPadding()) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -584,7 +583,7 @@ private fun ProfileMainContent(
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
                     ) {
                         Row(
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
@@ -593,7 +592,7 @@ private fun ProfileMainContent(
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(14.dp)
                             )
-                            Spacer(modifier = Modifier.width(6.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 text = stringResource(R.string.profile_edit_personal_info),
                                 style = MaterialTheme.typography.labelMedium.copy(
@@ -617,7 +616,7 @@ private fun ProfileMainContent(
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
             ) {
                 Row(
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
@@ -626,7 +625,7 @@ private fun ProfileMainContent(
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(18.dp)
                     )
-                    Spacer(modifier = Modifier.width(10.dp))
+                    Spacer(modifier = Modifier.width(12.dp))
                     Text(
                         text = stringResource(
                             R.string.profile_account_label,
@@ -667,7 +666,7 @@ private fun ProfileMainContent(
                         subtitle = stringResource(R.string.profile_link_account_sub),
                         onClick = onLinkAccountClick
                     )
-                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.screenPadding())
                 }
 
                 QuickMenuItem(
@@ -683,7 +682,7 @@ private fun ProfileMainContent(
                     onClick = onSyncNowClick,
                     isLoading = syncState.isSyncing
                 )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.screenPadding())
 
                 QuickMenuItem(
                     icon = Icons.Default.TrackChanges,
@@ -693,7 +692,7 @@ private fun ProfileMainContent(
                     subtitle = stringResource(R.string.profile_health_goal_sub),
                     onClick = onHealthGoalClick
                 )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.screenPadding())
 
                 QuickMenuItem(
                     icon = Icons.Default.Notifications,
@@ -703,7 +702,7 @@ private fun ProfileMainContent(
                     subtitle = stringResource(R.string.reminder_subtitle),
                     onClick = onReminderSettingsClick
                 )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.screenPadding())
 
                 QuickMenuItem(
                     icon = Icons.Rounded.Watch,
@@ -714,7 +713,7 @@ private fun ProfileMainContent(
                                else stringResource(R.string.health_connect_disconnected),
                     onClick = onHealthConnectClick
                 )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.screenPadding())
 
                 QuickMenuItem(
                     icon = Icons.Default.Palette,
@@ -728,7 +727,7 @@ private fun ProfileMainContent(
                     },
                     onClick = onThemeClick
                 )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.screenPadding())
 
                 QuickMenuItem(
                     icon = Icons.Default.Person,
@@ -738,7 +737,7 @@ private fun ProfileMainContent(
                     subtitle = stringResource(R.string.profile_edit_physical_sub),
                     onClick = onEditProfileClick
                 )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.screenPadding())
 
                 QuickMenuItem(
                     icon = Icons.Default.RestartAlt,
@@ -748,7 +747,7 @@ private fun ProfileMainContent(
                     subtitle = stringResource(R.string.profile_reset_data_sub),
                     onClick = onResetDataClick
                 )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.screenPadding())
 
                 QuickMenuItem(
                     icon = Icons.Default.Info,
@@ -939,7 +938,7 @@ private fun LinkAccountDialog(
                                 color = MaterialTheme.colorScheme.onErrorContainer,
                                 fontWeight = FontWeight.Medium
                             ),
-                            modifier = Modifier.padding(10.dp)
+                            modifier = Modifier.padding(12.dp)
                         )
                     }
                 }
@@ -1107,7 +1106,7 @@ private fun QuickMenuItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(enabled = !isLoading) { onClick() }
-            .padding(16.dp),
+            .cardPadding(),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
@@ -1186,7 +1185,7 @@ private fun EmptyProfileContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
+            .padding(AppSpacing.xl),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -1259,7 +1258,7 @@ private fun PhotoSourceDialog(
                         }
                 ) {
                     Row(
-                        modifier = Modifier.padding(14.dp),
+                        modifier = Modifier.cardPadding(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
@@ -1288,7 +1287,7 @@ private fun PhotoSourceDialog(
                         }
                 ) {
                     Row(
-                        modifier = Modifier.padding(14.dp),
+                        modifier = Modifier.cardPadding(),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
@@ -1387,7 +1386,7 @@ private fun ThemeOptionItem(
         border = if (isSelected) BorderStroke(1.dp, MaterialTheme.colorScheme.primary) else null
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            modifier = Modifier.compactCardPadding(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             RadioButton(

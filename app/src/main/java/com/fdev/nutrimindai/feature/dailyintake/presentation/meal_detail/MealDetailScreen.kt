@@ -33,6 +33,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.res.stringResource
 import com.fdev.nutrimindai.R
 import coil.compose.AsyncImage
+import com.fdev.nutrimindai.core.designsystem.*
 import com.fdev.nutrimindai.core.designsystem.component.NutriMindConfirmationDialog
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.DailyLogStatus
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.Intake
@@ -174,7 +175,7 @@ fun MealDetailScreen(
                     Column(
                         modifier = Modifier
                             .align(Alignment.Center)
-                            .padding(24.dp),
+                            .padding(AppSpacing.xl),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
@@ -198,7 +199,7 @@ fun MealDetailScreen(
                         LazyColumn(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .padding(horizontal = 16.dp),
+                                .screenPadding(),
                             verticalArrangement = Arrangement.spacedBy(16.dp),
                             contentPadding = PaddingValues(top = 8.dp, bottom = 88.dp)
                         ) {
@@ -265,7 +266,7 @@ fun FoodItemDetailDialog(
                         text = intake.foodSource.name.lowercase().replaceFirstChar { it.titlecase() },
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        modifier = Modifier.badgePadding()
                     )
                 }
             }
@@ -301,7 +302,7 @@ fun FoodItemDetailDialog(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Row(
-                        modifier = Modifier.padding(16.dp),
+                        modifier = Modifier.cardPadding(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -458,7 +459,7 @@ fun MealSummaryCard(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(20.dp)) {
+        Column(modifier = Modifier.cardPadding()) {
             Text(
                 text = stringResource(R.string.meal_detail_total_nutrition),
                 style = MaterialTheme.typography.titleMedium,
@@ -537,7 +538,7 @@ fun FoodItemCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .cardPadding(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             val imageModel = remember(intake.imagePath) {

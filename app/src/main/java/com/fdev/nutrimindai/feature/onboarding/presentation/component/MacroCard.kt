@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.fdev.nutrimindai.core.designsystem.*
 import androidx.compose.ui.unit.sp
 import com.fdev.nutrimindai.R
 
@@ -55,7 +56,7 @@ fun HeroEnergyCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp),
+                .authCardPadding(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
@@ -130,7 +131,7 @@ fun MacroNutrientCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .cardPadding()
         ) {
             Box(
                 modifier = Modifier

@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.fdev.nutrimindai.core.designsystem.authScreenPadding
 
 /**
  * Bottom Call-To-Action wrapper container supporting navigation inset padding and consistent layout.
@@ -25,7 +26,8 @@ fun BottomCTA(
         modifier = modifier
             .fillMaxWidth()
             .background(Color.Transparent)
-            .padding(horizontal = 24.dp, vertical = 16.dp)
+            .authScreenPadding()
+            .padding(vertical = 16.dp)
             .navigationBarsPadding()
     ) {
         content()

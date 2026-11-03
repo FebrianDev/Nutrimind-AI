@@ -19,7 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.fdev.nutrimindai.core.designsystem.LightSuccess
+import com.fdev.nutrimindai.core.designsystem.*
 
 @Composable
 fun MealCard(
@@ -37,7 +37,7 @@ fun MealCard(
             onClick = onClick,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(top = 3.dp, end = 3.dp),
+                .padding(top = 4.dp, end = 4.dp),
             shape = RoundedCornerShape(11.dp),
             colors = CardDefaults.cardColors(
                 containerColor = if (isLogged) {
@@ -56,7 +56,7 @@ fun MealCard(
             Row(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 7.dp, vertical = 4.dp),
+                    .badgePadding(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Start
             ) {

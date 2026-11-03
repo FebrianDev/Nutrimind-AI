@@ -83,6 +83,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fdev.nutrimindai.R
+import com.fdev.nutrimindai.core.designsystem.*
 import com.fdev.nutrimindai.core.designsystem.component.NutriMindConfirmationDialog
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.DailyLogStatus
 import com.fdev.nutrimindai.feature.dailyintake.domain.model.Exercise
@@ -256,7 +257,7 @@ fun ExerciseScreen(
                     LazyColumn(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(horizontal = 16.dp),
+                            .screenPadding(),
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                         contentPadding = PaddingValues(top = 8.dp, bottom = 88.dp)
                     ) {
@@ -298,7 +299,7 @@ fun ExerciseScreen(
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .padding(24.dp),
+                                            .cardPadding(),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Text(
@@ -335,7 +336,7 @@ fun ExerciseSummaryCard(calories: Int, duration: Int) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp),
+                .cardPadding(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -411,7 +412,7 @@ fun ExerciseItemCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .cardPadding(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
@@ -580,7 +581,8 @@ fun AddExerciseScreen(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                        .screenPadding()
+                        .padding(bottom = 16.dp)
                         .height(52.dp),
                     shape = RoundedCornerShape(16.dp),
                     enabled = duration.isNotBlank() && addUiState !is AddExerciseUiState.Loading
@@ -605,7 +607,7 @@ fun AddExerciseScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp),
+                .screenPadding(),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             if (addUiState is AddExerciseUiState.ValidationError) {
@@ -616,7 +618,7 @@ fun AddExerciseScreen(
                     Text(
                         text = (addUiState as AddExerciseUiState.ValidationError).message,
                         color = MaterialTheme.colorScheme.onErrorContainer,
-                        modifier = Modifier.padding(16.dp),
+                        modifier = Modifier.cardPadding(),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -792,7 +794,7 @@ fun HealthConnectSyncBanner(
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.cardPadding(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -847,7 +849,7 @@ fun HealthConnectSyncBanner(
                     color = MaterialTheme.colorScheme.primary
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {

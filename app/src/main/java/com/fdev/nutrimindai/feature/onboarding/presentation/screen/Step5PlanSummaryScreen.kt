@@ -31,6 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.fdev.nutrimindai.core.designsystem.*
 import com.fdev.nutrimindai.R
 import com.fdev.nutrimindai.feature.onboarding.presentation.component.HeroEnergyCard
 import com.fdev.nutrimindai.feature.onboarding.presentation.component.MacroNutrientCard
@@ -95,7 +96,8 @@ fun Step5PlanSummaryScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(scrollState)
-                    .padding(horizontal = 24.dp, vertical = 16.dp)
+                    .authScreenPadding()
+                    .padding(vertical = 16.dp)
             ) {
                 Text(
                     text = stringResource(id = R.string.step5_title),

@@ -17,6 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fdev.nutrimindai.feature.coach.domain.model.ContextualPrompt
+import com.fdev.nutrimindai.core.designsystem.*
 
 /**
  * Horizontally scrollable row of dynamic quick suggestion chips displayed above the input field.
@@ -33,7 +34,8 @@ fun CoachQuickChips(
         modifier = modifier
             .fillMaxWidth()
             .horizontalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 6.dp),
+            .screenPadding()
+            .padding(vertical = AppSpacing.s),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -47,14 +49,14 @@ fun CoachQuickChips(
                     .clickable { onPromptSelected(prompt.promptText) }
             ) {
                 Row(
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
+                    modifier = Modifier.compactCardPadding(),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = prompt.emoji,
                         fontSize = 13.sp
                     )
-                    Spacer(modifier = Modifier.width(6.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = prompt.title,
                         style = MaterialTheme.typography.labelMedium.copy(

@@ -90,7 +90,7 @@ fun GoalSettingsScreen(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 14.dp),
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         IconButton(onClick = onBackClick) {
@@ -120,8 +120,9 @@ fun GoalSettingsScreen(
                         modifier = Modifier
                             .weight(1f)
                             .verticalScroll(scrollState)
-                            .padding(horizontal = 20.dp, vertical = 8.dp),
-                        verticalArrangement = Arrangement.spacedBy(20.dp)
+                            .screenPadding()
+                            .padding(vertical = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         // --- Goal Inconsistency Warning (if any) ---
                         AnimatedVisibility(
@@ -137,7 +138,7 @@ fun GoalSettingsScreen(
                                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f))
                                 ) {
                                     Row(
-                                        modifier = Modifier.padding(14.dp),
+                                        modifier = Modifier.cardPadding(),
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Icon(
@@ -177,7 +178,7 @@ fun GoalSettingsScreen(
                             color = MaterialTheme.colorScheme.surface,
                             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
                         ) {
-                            Column(modifier = Modifier.padding(18.dp)) {
+                            Column(modifier = Modifier.cardPadding()) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
                                     verticalAlignment = Alignment.CenterVertically
@@ -324,7 +325,7 @@ fun GoalSettingsScreen(
                                 val fat = plan?.dailyFat ?: 70
                                 val totalMacroGrams = (protein + carbs + fat).coerceAtLeast(1).toFloat()
 
-                                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp)) {
+                                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
                                     Text(
                                         text = stringResource(R.string.goal_settings_macro_distribution),
                                         style = MaterialTheme.typography.labelSmall.copy(
@@ -373,7 +374,7 @@ fun GoalSettingsScreen(
                                     badge = stringResource(R.string.goal_settings_badge_energy),
                                     badgeColor = NutritionCalories
                                 )
-                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.screenPadding())
 
                                 NutritionRow(
                                     icon = Icons.Default.Shield,
@@ -384,7 +385,7 @@ fun GoalSettingsScreen(
                                     badge = "30%",
                                     badgeColor = NutritionProtein
                                 )
-                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.screenPadding())
 
                                 NutritionRow(
                                     icon = Icons.Default.Grain,
@@ -395,7 +396,7 @@ fun GoalSettingsScreen(
                                     badge = "45%",
                                     badgeColor = NutritionCarbs
                                 )
-                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.screenPadding())
 
                                 NutritionRow(
                                     icon = Icons.Default.Opacity,
@@ -406,7 +407,7 @@ fun GoalSettingsScreen(
                                     badge = "25%",
                                     badgeColor = NutritionFat
                                 )
-                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.screenPadding())
 
                                 NutritionRow(
                                     icon = Icons.Default.WaterDrop,
@@ -417,7 +418,7 @@ fun GoalSettingsScreen(
                                     badge = stringResource(R.string.goal_settings_badge_hydration),
                                     badgeColor = NutritionWater
                                 )
-                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.screenPadding())
 
                                 NutritionRow(
                                     icon = Icons.Default.Eco,
@@ -428,7 +429,7 @@ fun GoalSettingsScreen(
                                     badge = stringResource(R.string.goal_settings_badge_digestion),
                                     badgeColor = NutritionFiber
                                 )
-                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.screenPadding())
 
                                 NutritionRow(
                                     icon = Icons.Default.FitnessCenter,
@@ -464,27 +465,27 @@ fun GoalSettingsScreen(
                                     title = stringResource(R.string.goal_settings_why_goal),
                                     subtitle = getGoalWhyText(uiState.goal)
                                 )
-                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.screenPadding())
 
                                 AboutRow(
                                     icon = Icons.Default.CalendarToday,
                                     title = stringResource(R.string.goal_settings_est_target_date),
                                     subtitle = uiState.targetDateFormatted
                                 )
-                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.screenPadding())
 
                                 AboutRow(
                                     icon = Icons.AutoMirrored.Filled.DirectionsRun,
                                     title = stringResource(R.string.goal_settings_activity_level),
                                     subtitle = "${getActivityLevelTitle(uiState.activityLevel)} • ${getActivityLevelDescription(uiState.activityLevel)}"
                                 )
-                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.screenPadding())
 
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clickable { showEditGoalAndTargetsModal = true }
-                                        .padding(16.dp),
+                                        .cardPadding(),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Box(
@@ -536,7 +537,7 @@ fun GoalSettingsScreen(
                             border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
                         ) {
                             Row(
-                                modifier = Modifier.padding(18.dp),
+                                modifier = Modifier.cardPadding(),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Column(modifier = Modifier.weight(1f)) {
@@ -867,7 +868,7 @@ fun GoalSettingsScreen(
                                 )
                             ) {
                                 Row(
-                                    modifier = Modifier.padding(10.dp),
+                                    modifier = Modifier.padding(12.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Column(modifier = Modifier.weight(1f)) {
@@ -1004,7 +1005,7 @@ private fun NutritionRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .cardPadding(),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
@@ -1038,7 +1039,7 @@ private fun NutritionRow(
             Surface(
                 shape = RoundedCornerShape(6.dp),
                 color = badgeColor.copy(alpha = 0.15f),
-                modifier = Modifier.padding(end = 10.dp)
+                modifier = Modifier.padding(end = 8.dp)
             ) {
                 Text(
                     text = badge,
@@ -1046,7 +1047,7 @@ private fun NutritionRow(
                         color = badgeColor,
                         fontWeight = FontWeight.Bold
                     ),
-                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                    modifier = Modifier.badgePadding()
                 )
             }
         }
@@ -1070,7 +1071,7 @@ private fun AboutRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .cardPadding(),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(

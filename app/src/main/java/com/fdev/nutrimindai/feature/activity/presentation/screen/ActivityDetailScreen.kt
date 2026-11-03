@@ -112,7 +112,7 @@ private fun ActivityDetailContent(
                         }
                         Text(
                             text = statusLabel,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            modifier = Modifier.badgePadding(),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             color = if (isDraft) NutritionCalories else LightSuccess
@@ -188,7 +188,7 @@ private fun ActivityDetailContent(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp),
+                .screenPadding(),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             ActivityStatsSummary(data = data)
@@ -344,7 +344,7 @@ fun TimelineSection(items: List<ActivityTimelineItemData>) {
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
         ) {
             Box(
-                modifier = Modifier.fillMaxWidth().padding(24.dp),
+                modifier = Modifier.fillMaxWidth().padding(AppSpacing.xl),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -472,7 +472,7 @@ fun DailyScoreCard(score: Int) {
         border = CardDefaults.outlinedCardBorder().copy(width = 0.5.dp)
     ) {
         Row(
-            modifier = Modifier.padding(20.dp),
+            modifier = Modifier.cardPadding(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
