@@ -39,6 +39,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fdev.nutrimindai.R
 import com.fdev.nutrimindai.core.designsystem.*
 import com.fdev.nutrimindai.feature.auth.presentation.AuthGoogleHelper
+import kotlinx.coroutines.launch
 
 @Composable
 fun RegisterScreen(
@@ -64,9 +65,11 @@ fun RegisterScreen(
     LaunchedEffect(uiState) {
         when (val state = uiState) {
             is RegisterUiState.Error -> {
-                val message = state.message
+                coroutineScope.launch {
+                    snackbarHostState.currentSnackbarData?.dismiss()
+                    snackbarHostState.showSnackbar(state.message)
+                }
                 viewModel.clearError()
-                snackbarHostState.showSnackbar(message)
             }
             is RegisterUiState.Success -> {
                 if (state.isNewUser) {

@@ -39,10 +39,16 @@ class LoginViewModel @Inject constructor(
 
     fun onEmailChange(newEmail: String) {
         _email.value = newEmail
+        if (_uiState.value is LoginUiState.Error) {
+            _uiState.value = LoginUiState.Idle
+        }
     }
 
     fun onPasswordChange(newPassword: String) {
         _password.value = newPassword
+        if (_uiState.value is LoginUiState.Error) {
+            _uiState.value = LoginUiState.Idle
+        }
     }
 
     fun loginWithEmail() {

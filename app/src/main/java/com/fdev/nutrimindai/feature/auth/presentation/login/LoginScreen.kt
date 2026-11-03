@@ -39,6 +39,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.fdev.nutrimindai.R
 import com.fdev.nutrimindai.core.designsystem.*
 import com.fdev.nutrimindai.feature.auth.presentation.AuthGoogleHelper
+import kotlinx.coroutines.launch
 
 @Composable
 fun LoginScreen(
@@ -65,9 +66,11 @@ fun LoginScreen(
     LaunchedEffect(uiState) {
         when (val state = uiState) {
             is LoginUiState.Error -> {
-                val message = state.message
+                coroutineScope.launch {
+                    snackbarHostState.currentSnackbarData?.dismiss()
+                    snackbarHostState.showSnackbar(state.message)
+                }
                 viewModel.clearError()
-                snackbarHostState.showSnackbar(message)
             }
             is LoginUiState.Success -> {
                 if (state.isNewUser) {

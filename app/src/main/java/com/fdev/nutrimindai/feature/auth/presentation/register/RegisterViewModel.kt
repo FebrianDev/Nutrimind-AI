@@ -40,14 +40,23 @@ class RegisterViewModel @Inject constructor(
 
     fun onNameChange(newName: String) {
         _name.value = newName
+        if (_uiState.value is RegisterUiState.Error) {
+            _uiState.value = RegisterUiState.Idle
+        }
     }
 
     fun onEmailChange(newEmail: String) {
         _email.value = newEmail
+        if (_uiState.value is RegisterUiState.Error) {
+            _uiState.value = RegisterUiState.Idle
+        }
     }
 
     fun onPasswordChange(newPassword: String) {
         _password.value = newPassword
+        if (_uiState.value is RegisterUiState.Error) {
+            _uiState.value = RegisterUiState.Idle
+        }
     }
 
     fun register() {
