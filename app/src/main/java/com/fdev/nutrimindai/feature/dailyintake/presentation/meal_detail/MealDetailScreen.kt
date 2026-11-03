@@ -49,6 +49,7 @@ fun MealDetailScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var selectedIntakeForDetail by remember { mutableStateOf<Intake?>(null) }
     var intakeToDelete by remember { mutableStateOf<Intake?>(null) }
+    var showCoachIdeasDialog by remember { mutableStateOf(false) }
 
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
@@ -97,6 +98,23 @@ fun MealDetailScreen(
         )
     }
 
+    if (showCoachIdeasDialog && onNavigateToCoachIdeas != null) {
+        NutriMindConfirmationDialog(
+            title = stringResource(R.string.meal_detail_coach_dialog_title),
+            description = stringResource(R.string.meal_detail_coach_dialog_desc, viewModel.mealType),
+            icon = Icons.Rounded.AutoAwesome,
+            confirmButtonText = stringResource(R.string.meal_detail_coach_dialog_confirm),
+            dismissButtonText = stringResource(R.string.dialog_cancel),
+            onConfirm = {
+                showCoachIdeasDialog = false
+                onNavigateToCoachIdeas("Can you suggest 3 healthy, balanced ${viewModel.mealType} meal ideas tailored to my daily nutrition targets?")
+            },
+            onDismissRequest = {
+                showCoachIdeasDialog = false
+            }
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -114,9 +132,7 @@ fun MealDetailScreen(
                 actions = {
                     if (onNavigateToCoachIdeas != null) {
                         IconButton(
-                            onClick = {
-                                onNavigateToCoachIdeas("Can you suggest 3 healthy, balanced ${viewModel.mealType} meal ideas tailored to my daily nutrition targets?")
-                            }
+                            onClick = { showCoachIdeasDialog = true }
                         ) {
                             Icon(
                                 imageVector = Icons.Rounded.AutoAwesome,
@@ -175,9 +191,7 @@ fun MealDetailScreen(
                             isDraft = state.status == DailyLogStatus.DRAFT,
                             onAddFoodClick = { onNavigateToAddFood(viewModel.mealType) },
                             onMealIdeasClick = if (onNavigateToCoachIdeas != null) {
-                                {
-                                    onNavigateToCoachIdeas("Can you suggest 3 healthy, balanced ${viewModel.mealType} meal ideas tailored to my daily nutrition targets?")
-                                }
+                                { showCoachIdeasDialog = true }
                             } else null
                         )
                     } else {

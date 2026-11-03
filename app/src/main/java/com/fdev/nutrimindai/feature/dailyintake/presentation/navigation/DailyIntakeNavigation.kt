@@ -23,7 +23,6 @@ fun NavGraphBuilder.dailyIntakeGraph(navController: NavController) {
     composable<NavigationDestination.MealDetail> { backStackEntry ->
         val mealDetail = backStackEntry.toRoute<NavigationDestination.MealDetail>()
         var showAddFoodBottomSheet by remember { mutableStateOf(false) }
-        var showNutriChefBottomSheet by remember { mutableStateOf(false) }
 
         if (showAddFoodBottomSheet) {
             AddFoodBottomSheet(
@@ -33,9 +32,6 @@ fun NavGraphBuilder.dailyIntakeGraph(navController: NavController) {
                 },
                 onNavigateToBarcode = {
                     navController.navigate(NavigationDestination.CameraScan(mealDetail.mealType, launchGalleryDirectly = false, initialMode = "BARCODE"))
-                },
-                onNavigateToNutriChef = {
-                    showNutriChefBottomSheet = true
                 },
                 onNavigateToGallery = {
                     navController.navigate(NavigationDestination.CameraScan(mealDetail.mealType, launchGalleryDirectly = true))
@@ -49,17 +45,17 @@ fun NavGraphBuilder.dailyIntakeGraph(navController: NavController) {
             )
         }
 
-        if (showNutriChefBottomSheet) {
-            com.fdev.nutrimindai.feature.dailyintake.presentation.nutrichef.NutriChefBottomSheet(
-                onDismiss = { showNutriChefBottomSheet = false }
-            )
-        }
-
         MealDetailScreen(
             onNavigateBack = { navController.popBackStack() },
             onNavigateToAddFood = { showAddFoodBottomSheet = true },
             onNavigateToCoachIdeas = { prompt ->
-                navController.navigate(NavigationDestination.Coach(prompt))
+                navController.navigate(NavigationDestination.Coach(prompt)) {
+                    popUpTo<NavigationDestination.Home> {
+                        saveState = true
+                    }
+                    launchSingleTop = true
+                    restoreState = true
+                }
             }
         )
     }

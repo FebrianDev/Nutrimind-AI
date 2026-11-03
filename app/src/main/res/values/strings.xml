@@ -408,6 +408,9 @@
     <string name="meal_detail_delete_food_desc">Delete food item</string>
     <string name="meal_detail_delete_confirm_title">Delete Food</string>
     <string name="meal_detail_delete_confirm_msg">Are you sure you want to delete \"%1$s\" from this meal?</string>
+    <string name="meal_detail_coach_dialog_title">Ask NutriCoach for Ideas?</string>
+    <string name="meal_detail_coach_dialog_desc">Get 3 healthy, balanced %1$s meal recommendations tailored to your daily nutrition targets.</string>
+    <string name="meal_detail_coach_dialog_confirm">Ask Coach</string>
     <string name="exercise_delete_confirm_title">Delete Exercise</string>
     <string name="exercise_delete_confirm_msg">Are you sure you want to delete \"%1$s\"?</string>
     <string name="water_delete_confirm_title">Delete Water Record</string>
@@ -911,6 +914,12 @@
     <string name="health_connect_title">Google Health Connect</string>
     <string name="health_connect_sync">Sync Activity</string>
     <string name="health_connect_sync_subtitle">Sync steps &amp; active calories from Smartwatch</string>
+    <string name="health_connect_connected">Connected</string>
+    <string name="health_connect_disconnected">Disconnected</string>
+    <string name="health_connect_disconnect">Disconnect</string>
+    <string name="health_connect_disconnect_confirm_msg">Are you sure you want to disconnect Google Health Connect? Automatic syncing of smartwatch activity will stop.</string>
+    <string name="health_connect_connected_subtitle">Connected • Steps &amp; active kcal synced</string>
+    <string name="health_connect_disconnected_toast">Google Health Connect has been disconnected.</string>
     <string name="health_connect_syncing">Connecting to Health Connect...</string>
     <string name="health_connect_synced">Successfully synced %1$d steps &amp; %2$d active kcal</string>
     <string name="health_connect_permission_needed">Health Connect permission is required to read steps and active calories</string>

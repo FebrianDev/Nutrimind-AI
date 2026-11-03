@@ -22,7 +22,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.fdev.nutrimindai.R
 
@@ -93,7 +92,7 @@ fun NutriMindBottomBar(navController: NavController) {
                     selected = isSelected,
                     onClick = {
                         navController.navigate(item.route) {
-                            popUpTo(navController.graph.findStartDestination().id) {
+                            popUpTo<NavigationDestination.Home> {
                                 saveState = true
                             }
                             launchSingleTop = true
