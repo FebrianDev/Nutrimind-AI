@@ -109,6 +109,9 @@
     <string name="avg_last_3_months">Average last 3 months</string>
     <string name="vs_yesterday">vs yesterday</string>
     <string name="vs_last_3_days">vs last 3 days</string>
+    <string name="vs_last_7_days">vs last 7 days</string>
+    <string name="vs_last_30_days">vs last 30 days</string>
+    <string name="vs_last_90_days">vs last 90 days</string>
     <string name="vs_last_week">vs last week</string>
     <string name="vs_last_month">vs last month</string>
     <string name="vs_last_3_months">vs last 3 months</string>
@@ -124,10 +127,13 @@
     <string name="label_tomorrow_mission">TOMORROW MISSION</string>
     <string name="label_notes">NOTES</string>
 
-    <!-- Trend Detail Screen -->
-    <string name="tab_week">Week</string>
-    <string name="tab_month">Month</string>
-    <string name="tab_3months">3 Months</string>
+    <!-- Period Tabs (Unified across Trend & Daily Mission History) -->
+    <string name="tab_7_days">7 Days</string>
+    <string name="tab_30_days">30 Days</string>
+    <string name="tab_90_days">90 Days</string>
+    <string name="tab_week">7 Days</string>
+    <string name="tab_month">30 Days</string>
+    <string name="tab_3months">90 Days</string>
     <string name="label_highest">Highest</string>
     <string name="label_lowest">Lowest</string>
 

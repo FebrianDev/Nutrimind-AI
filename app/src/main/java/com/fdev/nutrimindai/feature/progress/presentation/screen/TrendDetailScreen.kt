@@ -33,9 +33,9 @@ fun TrendDetailScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val tabs = listOf(
-        stringResource(R.string.tab_week),
-        stringResource(R.string.tab_month),
-        stringResource(R.string.tab_3months)
+        stringResource(R.string.tab_7_days),
+        stringResource(R.string.tab_30_days),
+        stringResource(R.string.tab_90_days)
     )
 
     Scaffold(
@@ -241,9 +241,9 @@ fun TrendSummarySection(
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 val vsPeriodLabel = when (selectedPeriodTab) {
-                    1 -> stringResource(R.string.vs_last_month)
-                    2 -> stringResource(R.string.vs_last_3_months)
-                    else -> stringResource(R.string.vs_last_week)
+                    1 -> stringResource(R.string.vs_last_30_days)
+                    2 -> stringResource(R.string.vs_last_90_days)
+                    else -> stringResource(R.string.vs_last_7_days)
                 }
                 Text(
                     text = vsPeriodLabel,

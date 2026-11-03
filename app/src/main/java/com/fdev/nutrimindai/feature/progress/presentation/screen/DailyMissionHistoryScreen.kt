@@ -108,9 +108,9 @@ fun DailyMissionHistoryScreen(
                         // 1. Period Selection Tabs
                         item {
                             val tabs = listOf(
-                                stringResource(R.string.mission_history_tab_7d),
-                                stringResource(R.string.mission_history_tab_30d),
-                                stringResource(R.string.mission_history_tab_90d)
+                                stringResource(R.string.tab_7_days),
+                                stringResource(R.string.tab_30_days),
+                                stringResource(R.string.tab_90_days)
                             )
                             PrimaryTabRow(
                                 selectedTabIndex = state.selectedPeriodTab,
