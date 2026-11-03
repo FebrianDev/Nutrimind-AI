@@ -4,7 +4,9 @@ import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fdev.nutrimindai.core.database.DB_VERSION
+import com.fdev.nutrimindai.core.database.seeder.DemoAccountSeeder
 import com.fdev.nutrimindai.core.datastore.PreferenceManager
+import com.fdev.nutrimindai.core.health.HealthConnectManager
 import com.fdev.nutrimindai.core.sync.FirestoreSyncRepository
 import com.fdev.nutrimindai.feature.auth.domain.repository.AuthRepository
 import com.fdev.nutrimindai.feature.profile.domain.repository.ProfileRepository
@@ -21,7 +23,9 @@ class LoginViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val preferenceManager: PreferenceManager,
     private val profileRepository: ProfileRepository,
-    private val firestoreSyncRepository: FirestoreSyncRepository
+    private val firestoreSyncRepository: FirestoreSyncRepository,
+    private val demoAccountSeeder: DemoAccountSeeder,
+    private val healthConnectManager: HealthConnectManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<LoginUiState>(LoginUiState.Idle)
@@ -62,6 +66,28 @@ class LoginViewModel @Inject constructor(
 
         viewModelScope.launch {
             _uiState.value = LoginUiState.Loading
+
+            // Intercept pre-configured Demo Accounts for judges and video recording
+            if (DemoAccountSeeder.isDemoAccount(currentEmail)) {
+                if (currentPassword == DemoAccountSeeder.DEMO_PASSWORD) {
+                    try {
+                        healthConnectManager.disconnect()
+                        demoAccountSeeder.seedDemoAccount(currentEmail)
+                        preferenceManager.setDemoUserEmail(currentEmail)
+                        preferenceManager.setOnboardingCompleted(true)
+                        preferenceManager.setSavedDbVersion(DB_VERSION)
+                        _uiState.value = LoginUiState.Success(isNewUser = false)
+                    } catch (e: Exception) {
+                        Timber.e(e, "Failed to seed demo account")
+                        _uiState.value = LoginUiState.Error("Failed to initialize demo data: ${e.message}")
+                    }
+                    return@launch
+                } else {
+                    _uiState.value = LoginUiState.Error("Incorrect password. Please try again.")
+                    return@launch
+                }
+            }
+
             try {
                 val result = authRepository.loginWithEmail(currentEmail, currentPassword)
                 result.fold(

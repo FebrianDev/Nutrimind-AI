@@ -44,9 +44,11 @@ import com.fdev.nutrimindai.core.model.Goal
 import android.Manifest
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material.icons.rounded.Watch
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
@@ -152,10 +154,13 @@ fun ProfileScreen(
 
     var showResetDialog by remember { mutableStateOf(false) }
     var showResetProgressDialog by remember { mutableStateOf(false) }
+    var showDisconnectHealthConnectDialog by remember { mutableStateOf(false) }
     var showThemeDialog by remember { mutableStateOf(false) }
     var showEditProfileDialog by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
     var showLinkAccountDialog by remember { mutableStateOf(false) }
+
+    val isHealthConnectConnected by viewModel.isHealthConnectConnected.collectAsStateWithLifecycle()
 
     val emailFallback = stringResource(R.string.profile_email_fallback)
     val accountLinkedSuccessMsg = stringResource(
@@ -216,10 +221,18 @@ fun ProfileScreen(
                         syncState = syncState,
                         accountInfo = accountInfo,
                         themeMode = themeMode,
+                        isHealthConnectConnected = isHealthConnectConnected,
                         isUploadingPhoto = isUploadingPhoto,
                         onEditPhotoClick = { showPhotoSourceDialog = true },
                         onSyncNowClick = { viewModel.syncDataNow() },
                         onThemeClick = { showThemeDialog = true },
+                        onHealthConnectClick = {
+                            if (isHealthConnectConnected) {
+                                showDisconnectHealthConnectDialog = true
+                            } else {
+                                Toast.makeText(context, context.getString(R.string.health_connect_sync_subtitle), Toast.LENGTH_SHORT).show()
+                            }
+                        },
                         onEditProfileClick = { showEditProfileDialog = true },
                         onHealthGoalClick = onNavigateToGoalSettings,
                         onReminderSettingsClick = onNavigateToReminderSettings,
@@ -286,6 +299,24 @@ fun ProfileScreen(
             onConfirm = {
                 showResetProgressDialog = false
                 viewModel.resetProgressData()
+            }
+        )
+    }
+
+    if (showDisconnectHealthConnectDialog) {
+        NutriMindConfirmationDialog(
+            title = stringResource(R.string.health_connect_disconnect),
+            description = stringResource(R.string.health_connect_disconnect_confirm_msg),
+            confirmButtonText = stringResource(R.string.health_connect_disconnect),
+            dismissButtonText = stringResource(R.string.dialog_cancel),
+            icon = Icons.Rounded.Watch,
+            isDanger = true,
+            onDismissRequest = { showDisconnectHealthConnectDialog = false },
+            onConfirm = {
+                showDisconnectHealthConnectDialog = false
+                viewModel.disconnectHealthConnect {
+                    Toast.makeText(context, context.getString(R.string.health_connect_disconnected_toast), Toast.LENGTH_SHORT).show()
+                }
             }
         )
     }
@@ -425,10 +456,12 @@ private fun ProfileMainContent(
     syncState: SyncUiState,
     accountInfo: AccountInfo,
     themeMode: AppThemeMode,
+    isHealthConnectConnected: Boolean,
     isUploadingPhoto: Boolean,
     onEditPhotoClick: () -> Unit,
     onSyncNowClick: () -> Unit,
     onThemeClick: () -> Unit,
+    onHealthConnectClick: () -> Unit,
     onEditProfileClick: () -> Unit,
     onHealthGoalClick: () -> Unit,
     onReminderSettingsClick: () -> Unit,
@@ -669,6 +702,17 @@ private fun ProfileMainContent(
                     title = stringResource(R.string.reminder_title),
                     subtitle = stringResource(R.string.reminder_subtitle),
                     onClick = onReminderSettingsClick
+                )
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
+
+                QuickMenuItem(
+                    icon = Icons.Rounded.Watch,
+                    iconContainerColor = if (isHealthConnectConnected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+                    iconTint = if (isHealthConnectConnected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    title = stringResource(R.string.health_connect_title),
+                    subtitle = if (isHealthConnectConnected) stringResource(R.string.health_connect_connected)
+                               else stringResource(R.string.health_connect_disconnected),
+                    onClick = onHealthConnectClick
                 )
                 HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(horizontal = 16.dp))
 

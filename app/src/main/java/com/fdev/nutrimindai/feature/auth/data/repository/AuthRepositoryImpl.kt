@@ -1,5 +1,7 @@
 package com.fdev.nutrimindai.feature.auth.data.repository
 
+import com.fdev.nutrimindai.core.datastore.PreferenceManager
+import com.fdev.nutrimindai.core.health.HealthConnectManager
 import com.fdev.nutrimindai.feature.auth.domain.repository.AuthRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
@@ -17,11 +19,14 @@ import javax.inject.Singleton
 
 @Singleton
 class AuthRepositoryImpl @Inject constructor(
-    private val firebaseAuth: FirebaseAuth
+    private val firebaseAuth: FirebaseAuth,
+    private val preferenceManager: PreferenceManager,
+    private val healthConnectManager: HealthConnectManager
 ) : AuthRepository {
 
     override suspend fun loginWithEmail(email: String, password: String): Result<Unit> = withContext(Dispatchers.IO) {
         try {
+            healthConnectManager.disconnect()
             firebaseAuth.signInWithEmailAndPassword(email.trim(), password).await()
             Result.success(Unit)
         } catch (e: Exception) {
@@ -32,6 +37,7 @@ class AuthRepositoryImpl @Inject constructor(
 
     override suspend fun registerWithEmail(name: String, email: String, password: String): Result<Unit> = withContext(Dispatchers.IO) {
         try {
+            healthConnectManager.disconnect()
             val authResult = firebaseAuth.createUserWithEmailAndPassword(email.trim(), password).await()
             val user = authResult.user
 
@@ -51,6 +57,7 @@ class AuthRepositoryImpl @Inject constructor(
 
     override suspend fun loginAnonymously(): Result<Unit> = withContext(Dispatchers.IO) {
         try {
+            healthConnectManager.disconnect()
             firebaseAuth.signInAnonymously().await()
             Result.success(Unit)
         } catch (e: Exception) {
@@ -61,6 +68,7 @@ class AuthRepositoryImpl @Inject constructor(
 
     override suspend fun loginWithGoogle(idToken: String): Result<Unit> = withContext(Dispatchers.IO) {
         try {
+            healthConnectManager.disconnect()
             val credential = com.google.firebase.auth.GoogleAuthProvider.getCredential(idToken, null)
             firebaseAuth.signInWithCredential(credential).await()
             Result.success(Unit)
@@ -82,7 +90,7 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     override fun isUserLoggedIn(): Boolean {
-        return firebaseAuth.currentUser != null
+        return firebaseAuth.currentUser != null || preferenceManager.getDemoUserEmailBlocking() != null
     }
 
     override fun getCurrentUser(): FirebaseUser? {
@@ -90,7 +98,7 @@ class AuthRepositoryImpl @Inject constructor(
     }
 
     override fun getCurrentUserId(): String? {
-        return firebaseAuth.currentUser?.uid
+        return firebaseAuth.currentUser?.uid ?: preferenceManager.getDemoUserEmailBlocking()
     }
 
     override fun isAnonymousUser(): Boolean {
@@ -148,7 +156,9 @@ class AuthRepositoryImpl @Inject constructor(
 
     override suspend fun logout(): Result<Unit> = withContext(Dispatchers.IO) {
         try {
+            healthConnectManager.disconnect()
             firebaseAuth.signOut()
+            preferenceManager.setDemoUserEmail(null)
             Result.success(Unit)
         } catch (e: Exception) {
             Timber.e(e, "AuthRepository: Sign out failed")

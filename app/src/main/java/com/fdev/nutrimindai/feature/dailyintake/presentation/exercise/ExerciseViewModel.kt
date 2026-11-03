@@ -15,9 +15,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import javax.inject.Inject
@@ -56,8 +58,28 @@ class ExerciseViewModel @Inject constructor(
     val healthConnectPermissions: Set<String>
         get() = healthConnectManager.permissions
 
+    val isHealthConnectConnected: StateFlow<Boolean> = healthConnectManager.isConnectedFlow
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = false
+        )
+
     suspend fun hasHealthConnectPermissions(): Boolean {
         return healthConnectManager.hasAllPermissions()
+    }
+
+    fun setHealthConnectConnected(connected: Boolean) {
+        viewModelScope.launch {
+            healthConnectManager.setConnected(connected)
+        }
+    }
+
+    fun disconnectHealthConnect(onResult: (String) -> Unit = {}) {
+        viewModelScope.launch {
+            healthConnectManager.disconnect()
+            onResult("Google Health Connect disconnected.")
+        }
     }
 
     fun syncHealthConnect(onResult: (String) -> Unit = {}) {
@@ -75,6 +97,7 @@ class ExerciseViewModel @Inject constructor(
             try {
                 checkDateAndReloadIfNeeded()
                 val metrics = healthConnectManager.readTodayMetrics()
+                healthConnectManager.setConnected(true)
                 val dailyLogId = dailyLogRepository.getOrCreateDailyLog(currentDate)
                 val existing = exerciseRepository.getExercisesForDailyLogDirect(dailyLogId)
                     .find { it.exerciseType == HealthConnectManager.HEALTH_CONNECT_EXERCISE_TYPE }

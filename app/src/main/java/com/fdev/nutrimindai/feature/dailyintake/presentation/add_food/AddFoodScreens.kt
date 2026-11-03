@@ -43,7 +43,6 @@ fun AddFoodBottomSheet(
     onNavigateToGallery: () -> Unit = {},
     onNavigateToSearch: () -> Unit,
     onNavigateToManual: () -> Unit,
-    onNavigateToNutriChef: () -> Unit = {}
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -82,17 +81,6 @@ fun AddFoodBottomSheet(
                 onClick = {
                     onDismiss()
                     onNavigateToBarcode()
-                }
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            AddFoodOption(
-                icon = Icons.Rounded.AutoAwesome,
-                title = stringResource(R.string.nutrichef_title),
-                subtitle = stringResource(R.string.nutrichef_subtitle),
-                iconTint = Color(0xFFFF7043),
-                onClick = {
-                    onDismiss()
-                    onNavigateToNutriChef()
                 }
             )
             Spacer(modifier = Modifier.height(8.dp))

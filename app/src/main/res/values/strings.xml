@@ -913,12 +913,14 @@
     <!-- Google Health Connect Strings -->
     <string name="health_connect_title">Google Health Connect</string>
     <string name="health_connect_sync">Sync Activity</string>
+    <string name="health_connect_sync_btn">Sync</string>
+    <string name="health_connect_connect_btn">Connect</string>
     <string name="health_connect_sync_subtitle">Sync steps &amp; active calories from Smartwatch</string>
     <string name="health_connect_connected">Connected</string>
     <string name="health_connect_disconnected">Disconnected</string>
     <string name="health_connect_disconnect">Disconnect</string>
     <string name="health_connect_disconnect_confirm_msg">Are you sure you want to disconnect Google Health Connect? Automatic syncing of smartwatch activity will stop.</string>
-    <string name="health_connect_connected_subtitle">Connected • Steps &amp; active kcal synced</string>
+    <string name="health_connect_connected_subtitle">Connected • Smartwatch synced</string>
     <string name="health_connect_disconnected_toast">Google Health Connect has been disconnected.</string>
     <string name="health_connect_syncing">Connecting to Health Connect...</string>
     <string name="health_connect_synced">Successfully synced %1$d steps &amp; %2$d active kcal</string>

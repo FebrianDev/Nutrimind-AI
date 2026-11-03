@@ -8,6 +8,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import com.fdev.nutrimindai.core.database.NutriMindDatabase
 import com.fdev.nutrimindai.core.datastore.PreferenceManager
 import com.fdev.nutrimindai.core.datastore.AppThemeMode
+import com.fdev.nutrimindai.core.health.HealthConnectManager
 import com.fdev.nutrimindai.feature.profile.data.local.entity.ProfileEntity
 import com.fdev.nutrimindai.feature.profile.domain.repository.ProfileRepository
 import com.fdev.nutrimindai.core.sync.FirestoreSyncRepository
@@ -81,8 +82,23 @@ class ProfileViewModel @Inject constructor(
     private val firestoreSyncRepository: FirestoreSyncRepository,
     private val weightLogRepository: WeightLogRepository,
     private val authRepository: AuthRepository,
-    private val reminderScheduler: com.fdev.nutrimindai.core.notification.ReminderScheduler
+    private val reminderScheduler: com.fdev.nutrimindai.core.notification.ReminderScheduler,
+    private val healthConnectManager: HealthConnectManager
 ) : ViewModel() {
+
+    val isHealthConnectConnected: StateFlow<Boolean> = healthConnectManager.isConnectedFlow
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = false
+        )
+
+    fun disconnectHealthConnect(onResult: () -> Unit = {}) {
+        viewModelScope.launch {
+            healthConnectManager.disconnect()
+            onResult()
+        }
+    }
 
     val themeMode: StateFlow<AppThemeMode> = preferenceManager.themeMode
         .stateIn(
@@ -109,7 +125,7 @@ class ProfileViewModel @Inject constructor(
 
     private val _accountInfo = MutableStateFlow(
         AccountInfo(
-            email = authRepository.getCurrentUser()?.email,
+            email = authRepository.getCurrentUser()?.email ?: preferenceManager.getDemoUserEmailBlocking(),
             isAnonymous = authRepository.isAnonymousUser(),
             isLoggedIn = authRepository.isUserLoggedIn(),
             displayName = authRepository.getCurrentUser()?.displayName
@@ -137,11 +153,12 @@ class ProfileViewModel @Inject constructor(
 
     fun refreshAccountInfo() {
         val user = authRepository.getCurrentUser()
+        val demoEmail = preferenceManager.getDemoUserEmailBlocking()
         _accountInfo.value = AccountInfo(
-            email = user?.email,
+            email = user?.email ?: demoEmail,
             isAnonymous = user?.isAnonymous == true,
-            isLoggedIn = user != null,
-            displayName = user?.displayName
+            isLoggedIn = user != null || demoEmail != null,
+            displayName = user?.displayName ?: (if (demoEmail != null) (uiState.value as? ProfileUiState.Success)?.profile?.name else null)
         )
     }
 
@@ -265,22 +282,29 @@ class ProfileViewModel @Inject constructor(
         viewModelScope.launch {
             _isLoggingOut.value = true
             try {
-                // 1. Sign out Firebase Auth & RevenueCat if logged in
+                // 1. Disconnect Google Health Connect
+                try {
+                    healthConnectManager.disconnect()
+                } catch (e: Exception) {
+                    Timber.e(e, "Sign out Health Connect disconnect error")
+                }
+
+                // 2. Sign out Firebase Auth & RevenueCat if logged in
                 try {
                     FirebaseAuth.getInstance().signOut()
                 } catch (e: Exception) {
                     Timber.e(e, "Sign out error")
                 }
 
-                // 2. Cancel all scheduled reminder alarms in Android OS AlarmManager
+                // 3. Cancel all scheduled reminder alarms in Android OS AlarmManager
                 reminderScheduler.cancelAllReminders()
 
-                // 3. Clear all Room database tables in IO thread
+                // 4. Clear all Room database tables in IO thread
                 withContext(Dispatchers.IO) {
                     database.clearAllTables()
                 }
 
-                // 4. Clear DataStore Preferences (onboarding completed = false)
+                // 5. Clear DataStore Preferences (onboarding completed = false)
                 preferenceManager.clearAllPreferences()
 
                 // Graceful delay so user sees progress bar complete

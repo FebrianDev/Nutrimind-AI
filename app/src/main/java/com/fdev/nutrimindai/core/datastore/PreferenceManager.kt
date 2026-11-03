@@ -85,8 +85,10 @@ class PreferenceManager @Inject constructor(
 
         val ACTIVE_AI_PROVIDER = stringPreferencesKey("active_ai_provider")
         val DB_VERSION = intPreferencesKey("saved_db_version")
+        val DEMO_USER_EMAIL = stringPreferencesKey("demo_user_email")
         val PENDING_CLOUD_DELETIONS = stringSetPreferencesKey("pending_cloud_deletions")
         val PENDING_CLOUD_RESET = booleanPreferencesKey("pending_cloud_reset")
+        val HEALTH_CONNECT_CONNECTED = booleanPreferencesKey("health_connect_connected")
     }
 
     private val safePreferencesFlow: Flow<Preferences> = dataStore.data
@@ -177,6 +179,28 @@ class PreferenceManager @Inject constructor(
         }
     }
 
+    val demoUserEmailFlow: Flow<String?> = safePreferencesFlow
+        .map { it[PreferencesKeys.DEMO_USER_EMAIL] }
+        .distinctUntilChanged()
+
+    fun getDemoUserEmailBlocking(): String? {
+        return cachedPreferences.value?.get(PreferencesKeys.DEMO_USER_EMAIL)
+    }
+
+    suspend fun getDemoUserEmail(): String? {
+        return getSnapshot()[PreferencesKeys.DEMO_USER_EMAIL]
+    }
+
+    suspend fun setDemoUserEmail(email: String?) {
+        dataStore.edit { preferences ->
+            if (email != null) {
+                preferences[PreferencesKeys.DEMO_USER_EMAIL] = email
+            } else {
+                preferences.remove(PreferencesKeys.DEMO_USER_EMAIL)
+            }
+        }
+    }
+
     suspend fun getPendingCloudDeletions(): Set<String> {
         return getSnapshot()[PreferencesKeys.PENDING_CLOUD_DELETIONS] ?: emptySet()
     }
@@ -212,6 +236,22 @@ class PreferenceManager @Inject constructor(
             if (pending) {
                 preferences.remove(PreferencesKeys.PENDING_CLOUD_DELETIONS)
             }
+        }
+    }
+
+    val isHealthConnectConnected: Flow<Boolean> = safePreferencesFlow
+        .map { preferences ->
+            preferences[PreferencesKeys.HEALTH_CONNECT_CONNECTED] ?: false
+        }
+        .distinctUntilChanged()
+
+    suspend fun isHealthConnectConnected(): Boolean {
+        return getSnapshot()[PreferencesKeys.HEALTH_CONNECT_CONNECTED] ?: false
+    }
+
+    suspend fun setHealthConnectConnected(connected: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.HEALTH_CONNECT_CONNECTED] = connected
         }
     }
 
