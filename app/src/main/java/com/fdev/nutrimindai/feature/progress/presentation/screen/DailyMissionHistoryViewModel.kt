@@ -7,6 +7,7 @@ import com.fdev.nutrimindai.core.util.DailyMissionEvaluator
 import com.fdev.nutrimindai.core.util.EvaluatedDayMissions
 import com.fdev.nutrimindai.core.util.MissionRewardData
 import com.fdev.nutrimindai.core.util.NutritionCalculator
+import com.fdev.nutrimindai.core.util.getAccountStartCalendar
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.DailyLogRepository
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.ExerciseRepository
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.IntakeRepository
@@ -74,12 +75,33 @@ class DailyMissionHistoryViewModel @Inject constructor(
                     else -> 7
                 }
 
-                val endDate = dateFormat.format(Date())
-                val cal = Calendar.getInstance()
-                cal.add(Calendar.DAY_OF_YEAR, -(dayCount - 1))
-                val startDate = dateFormat.format(cal.time)
+                val todayCal = Calendar.getInstance().apply {
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }
 
                 val profile = profileRepository.getProfileDirect()
+                val accountStartCal = getAccountStartCalendar(profile)
+
+                val windowStartCal = (todayCal.clone() as Calendar).apply {
+                    add(Calendar.DAY_OF_YEAR, -(dayCount - 1))
+                }
+
+                // Constrain start date to user's account creation date to avoid empty pre-registration history
+                val startCal = if (accountStartCal.after(windowStartCal)) {
+                    if (accountStartCal.after(todayCal)) todayCal.clone() as Calendar else accountStartCal.clone() as Calendar
+                } else {
+                    windowStartCal
+                }
+
+                val startDate = dateFormat.format(startCal.time)
+                val endDate = dateFormat.format(todayCal.time)
+                val todayStr = dateFormat.format(todayCal.time)
+                val yesterdayStr = (todayCal.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, -1) }
+                    .let { dateFormat.format(it.time) }
+
                 val targetCal = profile?.dailyCalories ?: 2100
                 val targetProtein = profile?.dailyProtein ?: 120
                 val targetExercise = profile?.dailyExerciseMinutes ?: 30
@@ -96,11 +118,10 @@ class DailyMissionHistoryViewModel @Inject constructor(
                 val watersByLogId = waterRepository.getWaterRecordsForDailyLogsDirect(logIds).groupBy { it.dailyLogId }
                 val exercisesByLogId = exerciseRepository.getExercisesForDailyLogsDirect(logIds).groupBy { it.dailyLogId }
 
-                val dayCal = cal.clone() as Calendar
+                val dayCal = startCal.clone() as Calendar
                 val evaluatedDays = mutableListOf<EvaluatedDayMissions>()
-                val todayStr = dateFormat.format(Date())
 
-                for (i in 0 until dayCount) {
+                while (!dayCal.after(todayCal)) {
                     val dateStr = dateFormat.format(dayCal.time)
                     val log = logByDate[dateStr]
                     val intakes = log?.let { intakesByLogId[it.id] }.orEmpty()
@@ -113,9 +134,10 @@ class DailyMissionHistoryViewModel @Inject constructor(
                     val exerciseMinutes = exercises.sumOf { it.durationMinute }
 
                     val isToday = dateStr == todayStr
+                    val isYesterday = dateStr == yesterdayStr
                     val dayLabel = when {
                         isToday -> "Today"
-                        i == dayCount - 2 -> "Yesterday"
+                        isYesterday -> "Yesterday"
                         dayCount <= 7 -> dayLabelFormat.format(dayCal.time)
                         else -> shortDatePattern.format(dayCal.time)
                     }

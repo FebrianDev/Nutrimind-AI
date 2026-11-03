@@ -9,6 +9,7 @@ import com.fdev.nutrimindai.feature.dailyintake.domain.repository.IntakeReposito
 import com.fdev.nutrimindai.feature.dailyintake.domain.repository.WaterRepository
 import com.fdev.nutrimindai.feature.profile.domain.repository.ProfileRepository
 import com.fdev.nutrimindai.core.model.Goal
+import com.fdev.nutrimindai.core.util.getAccountStartCalendar
 import com.fdev.nutrimindai.feature.progress.domain.repository.WeightLogRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,7 +18,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
-import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
 
@@ -80,12 +80,29 @@ class TrendDetailViewModel @Inject constructor(
                     else -> 7
                 }
 
-                val endDate = dateFormat.format(Date())
-                val cal = Calendar.getInstance()
-                cal.add(Calendar.DAY_OF_YEAR, -(dayCount - 1))
-                val startDate = dateFormat.format(cal.time)
+                val todayCal = Calendar.getInstance().apply {
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }
 
                 val profile = profileRepository.getProfileDirect()
+                val accountStartCal = getAccountStartCalendar(profile)
+
+                val windowStartCal = (todayCal.clone() as Calendar).apply {
+                    add(Calendar.DAY_OF_YEAR, -(dayCount - 1))
+                }
+
+                // Constrain start date to user's account creation date to avoid empty pre-registration history
+                val startCal = if (accountStartCal.after(windowStartCal)) {
+                    if (accountStartCal.after(todayCal)) todayCal.clone() as Calendar else accountStartCal.clone() as Calendar
+                } else {
+                    windowStartCal
+                }
+
+                val startDate = dateFormat.format(startCal.time)
+                val endDate = dateFormat.format(todayCal.time)
                 val logs = dailyLogRepository.getDailyLogsBetweenDatesDirect(startDate, endDate)
                 val logByDate = logs.associateBy { it.date }
                 val logIds = logs.map { it.id }
@@ -114,7 +131,7 @@ class TrendDetailViewModel @Inject constructor(
                 val labels = mutableListOf<String>()
                 val pointTypes = mutableListOf<Boolean>()
 
-                val dayCal = cal.clone() as Calendar
+                val dayCal = startCal.clone() as Calendar
                 var highestVal = Float.MIN_VALUE
                 var highestLabel = "-"
                 var lowestVal = Float.MAX_VALUE
@@ -148,7 +165,7 @@ class TrendDetailViewModel @Inject constructor(
                     }
                 }
 
-                for (i in 0 until dayCount) {
+                while (!dayCal.after(todayCal)) {
                     val dateStr = dateFormat.format(dayCal.time)
                     val label = dayLabelFormat.format(dayCal.time)
                     labels.add(label)

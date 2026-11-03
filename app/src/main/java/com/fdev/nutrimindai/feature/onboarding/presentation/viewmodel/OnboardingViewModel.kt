@@ -193,6 +193,12 @@ class OnboardingViewModel @Inject constructor(
                 null
             }
 
+            val accountCreationTime = try {
+                com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.metadata?.creationTimestamp?.takeIf { it > 0 }
+            } catch (e: Exception) {
+                null
+            } ?: System.currentTimeMillis()
+
             val profile = ProfileEntity(
                 name = state.name.trim(),
                 age = state.age.toIntOrNull() ?: 25,
@@ -207,7 +213,8 @@ class OnboardingViewModel @Inject constructor(
                 dailyCarbs = state.calculatedCarbs,
                 dailyFat = state.calculatedFat,
                 dailyExerciseMinutes = state.calculatedExerciseMinutes,
-                photoUrl = photoUrl
+                photoUrl = photoUrl,
+                createdAt = accountCreationTime
             )
 
             profileRepository.saveProfile(profile)

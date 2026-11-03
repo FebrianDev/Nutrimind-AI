@@ -21,6 +21,7 @@ import com.fdev.nutrimindai.core.util.DailyMissionEvaluator
 import com.fdev.nutrimindai.core.util.EvaluatedDayMissions
 import com.fdev.nutrimindai.core.util.MissionRewardData
 import com.fdev.nutrimindai.core.util.NutritionCalculator
+import com.fdev.nutrimindai.core.util.getAccountStartCalendar
 import com.fdev.nutrimindai.core.sync.SyncManager
 import com.fdev.nutrimindai.feature.progress.data.local.entity.WeightLogEntity
 import com.fdev.nutrimindai.feature.progress.domain.repository.WeightLogRepository
@@ -194,43 +195,61 @@ class ProgressViewModel @Inject constructor(
         }
     }
 
-    private fun calculateCalendarDays(filter: DateRangeFilter): List<Calendar> {
-        return when (filter) {
-            is DateRangeFilter.Last1Day -> {
-                listOf(Calendar.getInstance())
-            }
-            is DateRangeFilter.Last3Days -> {
-                (2 downTo 0).map { offset ->
-                    Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -offset) }
-                }
-            }
-            is DateRangeFilter.Last7Days -> {
-                (6 downTo 0).map { offset ->
-                    Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -offset) }
-                }
-            }
-            is DateRangeFilter.Last30Days -> {
-                (29 downTo 0).map { offset ->
-                    Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, -offset) }
-                }
-            }
+    private fun calculateCalendarDays(filter: DateRangeFilter, accountStartCal: Calendar): List<Calendar> {
+        val todayCal = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+
+        val windowStartCal = when (filter) {
+            is DateRangeFilter.Last1Day -> todayCal.clone() as Calendar
+            is DateRangeFilter.Last3Days -> (todayCal.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, -2) }
+            is DateRangeFilter.Last7Days -> (todayCal.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, -6) }
+            is DateRangeFilter.Last30Days -> (todayCal.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, -29) }
             is DateRangeFilter.Custom -> {
                 val startCal = Calendar.getInstance().apply { timeInMillis = filter.startDateMillis }
                 val endCal = Calendar.getInstance().apply { timeInMillis = filter.endDateMillis }
 
                 if (startCal.after(endCal)) {
-                    listOf(Calendar.getInstance())
-                } else {
-                    val list = mutableListOf<Calendar>()
-                    val cur = startCal.clone() as Calendar
-                    while (!cur.after(endCal)) {
-                        list.add(cur.clone() as Calendar)
-                        cur.add(Calendar.DAY_OF_YEAR, 1)
-                    }
-                    list.ifEmpty { listOf(Calendar.getInstance()) }
+                    return listOf(todayCal)
                 }
+
+                val effectiveStart = if (accountStartCal.after(startCal)) {
+                    if (accountStartCal.after(todayCal)) todayCal else accountStartCal
+                } else {
+                    startCal
+                }
+
+                val list = mutableListOf<Calendar>()
+                val cur = (effectiveStart.clone() as Calendar).apply {
+                    set(Calendar.HOUR_OF_DAY, 0)
+                    set(Calendar.MINUTE, 0)
+                    set(Calendar.SECOND, 0)
+                    set(Calendar.MILLISECOND, 0)
+                }
+                while (!cur.after(endCal) && !cur.after(todayCal)) {
+                    list.add(cur.clone() as Calendar)
+                    cur.add(Calendar.DAY_OF_YEAR, 1)
+                }
+                return list.ifEmpty { listOf(todayCal) }
             }
         }
+
+        val startCal = if (accountStartCal.after(windowStartCal)) {
+            if (accountStartCal.after(todayCal)) todayCal else accountStartCal
+        } else {
+            windowStartCal
+        }
+
+        val list = mutableListOf<Calendar>()
+        val cur = startCal.clone() as Calendar
+        while (!cur.after(todayCal)) {
+            list.add(cur.clone() as Calendar)
+            cur.add(Calendar.DAY_OF_YEAR, 1)
+        }
+        return list.ifEmpty { listOf(todayCal) }
     }
 
     private fun loadProgress() {
@@ -240,57 +259,59 @@ class ProgressViewModel @Inject constructor(
                 dailyLogRepository.getOrCreateDailyLog(currentDate)
 
                 _selectedFilter.flatMapLatest { filter ->
-                    val dayCals = calculateCalendarDays(filter)
-                    val startDate = dateFormat.format(dayCals.first().time)
-                    val endDate = dateFormat.format(dayCals.last().time)
+                    profileRepository.getProfile().flatMapLatest { profile ->
+                        val accountStartCal = getAccountStartCalendar(profile)
+                        val dayCals = calculateCalendarDays(filter, accountStartCal)
+                        val startDate = dateFormat.format(dayCals.first().time)
+                        val endDate = dateFormat.format(dayCals.last().time)
 
-                    val startDisplay = dateDisplayFormat.format(dayCals.first().time)
-                    val endDisplay = dateDisplayFormat.format(dayCals.last().time)
-                    val periodRangeLabel = if (dayCals.size == 1) {
-                        startDisplay
-                    } else {
-                        "$startDisplay - $endDisplay"
-                    }
-
-                    combine(
-                        profileRepository.getProfile(),
-                        dailyLogRepository.getDailyLogsBetweenDates(startDate, endDate),
-                        weightLogRepository.getAllWeightLogs()
-                    ) { profile, rangeLogs, weightLogs ->
-                        profile to Triple(rangeLogs, weightLogs, dayCals to periodRangeLabel)
-                    }.flatMapLatest { (profile, info) ->
-                        val (rangeLogs, weightLogs, calendarInfo) = info
-                        val (calendars, rangeLabel) = calendarInfo
-                        val logByDate = rangeLogs.associateBy { it.date }
-                        val logIds = rangeLogs.map { it.id }
+                        val startDisplay = dateDisplayFormat.format(dayCals.first().time)
+                        val endDisplay = dateDisplayFormat.format(dayCals.last().time)
+                        val periodRangeLabel = if (dayCals.size == 1) {
+                            startDisplay
+                        } else {
+                            "$startDisplay - $endDisplay"
+                        }
 
                         combine(
-                            intakeRepository.getIntakesForDailyLogs(logIds),
-                            waterRepository.getWaterRecordsForDailyLogs(logIds),
-                            exerciseRepository.getExercisesForDailyLogs(logIds)
-                        ) { allIntakes, allWaters, allExercises ->
-                            val intakesByLogId = allIntakes.groupBy { it.dailyLogId }
-                            val watersByLogId = allWaters.groupBy { it.dailyLogId }
-                            val exercisesByLogId = allExercises.groupBy { it.dailyLogId }
+                            dailyLogRepository.getDailyLogsBetweenDates(startDate, endDate),
+                            weightLogRepository.getAllWeightLogs()
+                        ) { rangeLogs, weightLogs ->
+                            Triple(rangeLogs, weightLogs, dayCals to periodRangeLabel)
+                        }.flatMapLatest { info ->
+                            val (rangeLogs, weightLogs, calendarInfo) = info
+                            val (calendars, rangeLabel) = calendarInfo
+                            val logByDate = rangeLogs.associateBy { it.date }
+                            val logIds = rangeLogs.map { it.id }
 
-                            val dayRecords = calendars.map { cal ->
-                                val dateStr = dateFormat.format(cal.time)
-                                val log = logByDate[dateStr]
-                                if (log != null) {
-                                    DayRecord(
-                                        dateStr = dateStr,
-                                        calendar = cal,
-                                        dailyLog = log,
-                                        intakes = intakesByLogId[log.id].orEmpty(),
-                                        waters = watersByLogId[log.id].orEmpty(),
-                                        exercises = exercisesByLogId[log.id].orEmpty()
-                                    )
-                                } else {
-                                    DayRecord(dateStr, cal, null, emptyList(), emptyList(), emptyList())
+                            combine(
+                                intakeRepository.getIntakesForDailyLogs(logIds),
+                                waterRepository.getWaterRecordsForDailyLogs(logIds),
+                                exerciseRepository.getExercisesForDailyLogs(logIds)
+                            ) { allIntakes, allWaters, allExercises ->
+                                val intakesByLogId = allIntakes.groupBy { it.dailyLogId }
+                                val watersByLogId = allWaters.groupBy { it.dailyLogId }
+                                val exercisesByLogId = allExercises.groupBy { it.dailyLogId }
+
+                                val dayRecords = calendars.map { cal ->
+                                    val dateStr = dateFormat.format(cal.time)
+                                    val log = logByDate[dateStr]
+                                    if (log != null) {
+                                        DayRecord(
+                                            dateStr = dateStr,
+                                            calendar = cal,
+                                            dailyLog = log,
+                                            intakes = intakesByLogId[log.id].orEmpty(),
+                                            waters = watersByLogId[log.id].orEmpty(),
+                                            exercises = exercisesByLogId[log.id].orEmpty()
+                                        )
+                                    } else {
+                                        DayRecord(dateStr, cal, null, emptyList(), emptyList(), emptyList())
+                                    }
                                 }
-                            }
-                            buildProgressData(profile, dayRecords, weightLogs, rangeLabel, filter)
-                        }.flowOn(Dispatchers.Default)
+                                buildProgressData(profile, dayRecords, weightLogs, rangeLabel, filter)
+                            }.flowOn(Dispatchers.Default)
+                        }
                     }
                 }.collect { progressData ->
                     _uiState.value = ProgressUiState.Success(progressData)
