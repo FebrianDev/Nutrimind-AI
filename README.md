@@ -91,7 +91,7 @@ Interact with the tracking agent using natural language and supported multimodal
 - **Configurable Targets**: Set or adjust calorie and macronutrient targets at any time from the Profile screen.
 
 ### 10. Offline-First Architecture & Cloud Synchronization
-- **On-Device Single Source of Truth**: Uses local Room Database to deliver instant, zero-latency interactions and full offline tracking capability.
+- **On-Device Single Source of Truth**: Uses Room Database as the local source of truth, enabling responsive data access, reliable offline tracking, and seamless synchronization when network connectivity is available.
 - **Secure Cloud Authentication**: Powered by **Firebase Authentication**, supporting Email/Password sign-in, Google Authentication, and seamless guest-to-permanent account linking.
 - **Two-Way Cloud Firestore Synchronization**: `FirestoreSyncRepository` and background `DataSyncWorker` automatically back up and restore 7 collections (daily logs, food intake, water, exercises, weight, chat history, and missions), ensuring multi-device continuity and dependable data restoration.
 - **Cloud Storage**: Firebase Storage securely handles photo uploads in the background.
