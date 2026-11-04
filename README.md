@@ -6,19 +6,23 @@
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0-7F52FF.svg?style=flat&logo=kotlin)](https://kotlinlang.org)
 [![Compose](https://img.shields.io/badge/UI-Jetpack%20Compose-4285F4.svg?style=flat&logo=jetpackcompose)](https://developer.android.com/jetpack/compose)
 [![Meta AI](https://img.shields.io/badge/AI%20Engine-Meta%20Model%20API-0081FB.svg?style=flat&logo=meta)](https://api.meta.ai)
+[![Release](https://img.shields.io/badge/Release-APK%20v1.0.1-brightgreen.svg?logo=android)](https://github.com/FebrianDev/Nutrimind-AI/releases/tag/v1.0.1)
+[![YouTube](https://img.shields.io/badge/YouTube-Demo%20Video-red.svg?logo=youtube)](https://youtu.be/3KouHsuXZmA)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+> 🎥 **[Watch Demo Video on YouTube](https://youtu.be/3KouHsuXZmA)** &nbsp;|&nbsp; 📥 **[Download & Test APK (v1.0.1)](https://github.com/FebrianDev/Nutrimind-AI/releases/tag/v1.0.1)**
 
 ---
 
 ## 🌟 Overview & Problem Statement
 
-Traditional calorie and macro tracking applications (such as MyFitnessPal or LoseIt) suffer from high user churn:
-1. **Manual logging friction**: Typing every single ingredient and guessing portion sizes is tedious and frustrating.
-2. **Cold, generic data**: Showing raw numbers without context fails to teach users how to build sustainable eating habits.
-3. **No personalized coaching**: Most platforms lock actionable dietary insights behind costly paywalls.
-4. **Cultural diet mismatch**: Existing apps cater predominantly to Western diets, poorly recognizing regional, Asian, and multicultural meals.
+Maintaining consistent nutritional mindfulness is one of the most effective ways to improve long-term wellness, yet conventional dietary tracking approaches present significant friction:
+1. **Manual logging friction**: Manually searching, weighing, and typing every individual food item creates high daily friction and tracking fatigue.
+2. **Cold, static data**: Presenting raw calorie numbers without contextual guidance leaves users guessing how to balance their meals sustainably.
+3. **Limited personalized guidance**: Timely, personalized dietary coaching is often inaccessible for everyday users.
+4. **Cultural diet mismatch**: Conventional nutrition tools cater predominantly to Western diets, frequently struggling to accurately recognize regional, Asian, and multicultural meals.
 
-**NutriMind AI** eliminates logging friction and provides continuous, context-aware personalized nutrition guidance by leveraging **Meta's state-of-the-art AI models** (`Llama 3.2 Vision` and `Llama 3.3 70B / Muse Reasoning Models`). With a snap of your camera, a voice prompt, or a natural chat message, NutriMind AI acts as a dedicated 24/7 personal dietitian in your pocket.
+**NutriMind AI** transforms nutrition tracking into an effortless, culturally inclusive, and proactive experience by leveraging **Meta's state-of-the-art multimodal AI models** (`Llama 3.2 Vision`, `Llama 3.3 70B`, and `Meta MMS / Voice`). With a photo of your meal, a natural chat message, or a quick voice note, NutriMind AI acts as a dedicated 24/7 personal dietitian in your pocket.
 
 ---
 
@@ -38,6 +42,7 @@ Traditional calorie and macro tracking applications (such as MyFitnessPal or Los
 ### 2. 📸 Multimodal Vision Scanner ("Build for Your World")
 - **Snap & Recognize**: Capture meal photos directly using CameraX or pick from the device gallery.
 - **Multi-Component Plate Decomposition**: Powered by **Meta Llama 3.2 Vision**, the engine itemizes complex plates with multiple ingredients (e.g., proteins, carbohydrates, side dishes, sauces) and provides cumulative calories, macros, and itemized component portion estimates.
+- **Interactive Verification & 1-Tap Save**: Analyzed meals are presented in an interactive verification card (`RecognizedFoodScreen`) where users can easily review, adjust portions, and confirm the log to their diary with one tap.
 - **Multicultural Cuisine Expertise**: Trained to recognize global cuisines as well as regional Indonesian & Southeast Asian dishes (such as Nasi Goreng, Gado-Gado, Satay, Rendang, Soto, Tempeh, Tofu, and Pecel).
 - **Non-Food Defensive Guardrails**: Gracefully handles non-food items (electronics, pets, objects) without crashing or hallucinating calories.
 - **Integrated Barcode Scanner**: Fast barcode scanning via Google ML Kit paired with OpenFoodFacts API for packaged groceries.
@@ -70,9 +75,10 @@ Traditional calorie and macro tracking applications (such as MyFitnessPal or Los
 - **High-Resolution Off-Screen Rendering**: Leverages Jetpack Compose `rememberGraphicsLayer()` and Android `FileProvider` for crisp PNG captures.
 - **1-Click Social Sharing**: Direct sharing to Instagram Stories, WhatsApp, Twitter/X, and other apps.
 
-### 7. 💧 Hydration & Physical Activity Tracking
+### 7. 💧 Hydration, Physical Activity & Health Connect
 - **Interactive Hydration Tracker**: Visual bottle fill progress with quick-log increments (+250ml, +500ml) and dynamic daily target monitoring.
 - **Workout & Active Burn Logging**: Log physical activities (Walking, Running, Cycling, Strength Training, Swimming, etc.) with active calorie burn calculations dynamically adjusting net daily energy balance.
+- **Android Health Connect Integration**: Native synchronization with Android Health Connect to automatically import daily step counts, smartwatch activities, and active calories burned directly into the daily journal and Home dashboard energy ring.
 
 ### 8. 📈 Progress Analytics, Trends & Body Weight Forecasting
 - **Science-Backed Weight Forecasting**: Mathematical projection of body weight changes based on cumulative caloric deficits or surpluses over time.
@@ -85,7 +91,7 @@ Traditional calorie and macro tracking applications (such as MyFitnessPal or Los
 - **Customizable Goals**: Adjust calorie and macronutrient targets at any time via Goal Settings in the Profile screen.
 
 ### 10. 🔒 Local-First Architecture & Privacy by Design
-- **Local SQLite / Room Database**: All meal logs, water entries, biometrics, and activity records are stored locally on-device using Room Database v14.
+- **Local SQLite / Room Database**: All meal logs, water entries, biometrics, and activity records are stored locally on-device using Room Database v15.
 - **Full Offline Usability**: The app remains fully functional for browsing past logs, tracking water, and viewing trends without an active internet connection.
 - **Privacy-Conscious**: No user personal data or meal history is ever monetized or sold.
 
@@ -140,17 +146,22 @@ sequenceDiagram
 | **Computer Vision** | CameraX, ML Kit Barcode Scanning, Base64 JPEG Image Compressor |
 | **Background Processing** | Android WorkManager (Smart Reminders & Intelligent Skip) |
 | **Architecture** | Clean Architecture (Presentation, Domain, Data), MVI / MVVM |
-| **Persistence** | Room Database v14 with auto schema migration, DataStore Preferences |
+| **Persistence** | Room Database v15 with auto schema migration, DataStore Preferences |
 | **Dependency Injection**| Dagger Hilt |
 | **Asynchronous** | Kotlin Coroutines, StateFlow, SharedFlow |
 | **Networking** | OkHttp 4, Retrofit 2, Kotlinx Serialization, Bearer Auth Redaction |
+| **Health & Fitness** | Android Health Connect API (Steps, Active Calories, Smartwatch sync) |
 | **Sharing Engine** | Compose `rememberGraphicsLayer()`, Android `FileProvider` |
 
 ---
 
 ## 🛠️ Getting Started & Installation
 
-### Prerequisites
+### ⚡ Quick Try (Pre-built APK)
+For judges and users who want to try NutriMind AI immediately without building from source:
+👉 **[Download NutriMind AI v1.0.1 APK](https://github.com/FebrianDev/Nutrimind-AI/releases/tag/v1.0.1)** and install directly on any Android device (Android 8.0+ / SDK 26+).
+
+### Prerequisites (For Building from Source)
 - Android Studio Ladybug (2024.2+) or newer.
 - Android SDK 35 / 37 (Minimum SDK 26, Target SDK 37).
 - A valid Meta AI / Meta Model API Key.
@@ -189,14 +200,32 @@ META_AI_TEXT_MODEL=muse-spark-1.3
 
 ---
 
+## 💡 Challenges We Overcame
+
+1. **Complex Multi-Component Plate Estimation**: Food often comes mixed together on a single plate rather than as isolated ingredients. We refined prompts with structured JSON schemas and portion bounds to help the vision model identify distinct meal components and generate realistic nutritional estimates without crashing on ambiguous inputs.
+2. **Safe Autonomous Tool Execution**: Connecting conversational LLM outputs to local database mutations requires strict reliability. We engineered `CoachActionParser` and `CoachActionExecutor` to extract validated structured directives (`LogFood`, `LogWater`, `LogExercise`, `LogWeight`) and safely commit them to Room DB, ensuring immediate UI responsiveness through reactive StateFlows without hallucinations or UI freezes.
+3. **Preventing Reminder Fatigue**: Users often disable notifications if they trigger redundantly. We implemented intelligent checks in our WorkManager periodic workers to verify recent intake before scheduling alerts, maintaining a non-intrusive user experience.
+
+---
+
+## 🔮 What We Learned & What's Next
+
+Building NutriMind AI demonstrated how Meta's vision and reasoning models can bridge the gap between passive food tracking and an active, empathetic lifestyle companion.
+
+Moving forward, our roadmap includes:
+- **On-Device Inference via ExecuTorch**: Bringing lightweight Llama 3.2 models directly onto Android devices using ExecuTorch for zero-latency, privacy-centric offline nutrition logging.
+- **Wear OS Companion Extension**: Developing dedicated Wear OS tiles and complications for glanceable calorie rings and 1-tap wrist hydration logging.
+
+---
+
 ## 🏆 Hackathon Compliance & Criteria
 
 - **Track**: Meta Global AI Developer Hackathon 2026 — *Indie Developer Track*.
 - **Impact (30%)**: Solves real-world daily nutrition adherence, eliminates tedious manual logging, and democratizes expert dietary coaching.
 - **Use of Meta AI Tooling (25%)**: Deeply integrated with **Meta Model API**, leveraging **Meta Llama 3.2 Vision** for complex plate decomposition and **Meta Llama 3.3 70B / Muse** for autonomous agentic tool calling and contextual reasoning.
-- **Demo & UX (25%)**: Smooth Material 3 interface, progressive typewriter rendering, off-screen milestone sharing card, and zero user friction.
+- **Demo & UX (25%)**: Smooth Material 3 interface, progressive typewriter rendering, off-screen milestone sharing card, and zero user friction. Watch the **[YouTube Video Walkthrough](https://youtu.be/3KouHsuXZmA)**.
 - **Technical Depth (20%)**: Clean Architecture, autonomous database action execution, Room persistence, reactive StateFlow updates, WorkManager smart reminders, and comprehensive unit test coverage.
-- **Judge-Friendly Access**: 100% free and frictionless judge testing with zero paywalls or subscription barriers.
+- **Judge-Friendly Access**: 100% free and frictionless judge testing with zero paywalls or subscription barriers. Pre-built binary available via **[GitHub Release v1.0.1](https://github.com/FebrianDev/Nutrimind-AI/releases/tag/v1.0.1)**.
 
 ---
 
