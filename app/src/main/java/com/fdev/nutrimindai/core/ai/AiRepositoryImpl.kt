@@ -71,7 +71,7 @@ class AiRepositoryImpl @Inject constructor(
             return fallbackSummary
         }
 
-        val systemPrompt = "You are NutriMind AI, an empathetic, expert nutritionist coach powered by Meta AI."
+        val systemPrompt = "You are NutriMind AI, an autonomous personal nutrition and activity tracking agent powered by Meta AI. You provide objective daily progress summaries without medical advice."
         val prompt = """
             Provide a concise, highly motivating daily nutrition and activity review (maximum 3 sentences) for a user with the goal: '$userGoal'.
             
@@ -104,7 +104,7 @@ class AiRepositoryImpl @Inject constructor(
             return fallbackTip
         }
 
-        val systemPrompt = "You are NutriMind AI, a nutritionist coach powered by Meta AI."
+        val systemPrompt = "You are NutriMind AI, an autonomous personal nutrition and activity tracking agent powered by Meta AI. You provide quick, objective daily milestone tips."
         val prompt = """
             Give a 1-sentence quick actionable tip for today based on:
             Goal: $userGoal

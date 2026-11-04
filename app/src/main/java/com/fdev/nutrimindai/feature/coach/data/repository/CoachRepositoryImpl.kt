@@ -78,7 +78,7 @@ class CoachRepositoryImpl @Inject constructor(
         val systemPrompt = try {
             contextBuilder.buildSystemPrompt(aiProviderName = provider.displayName)
         } catch (e: Exception) {
-            "You are NutriCoach AI, a nutritionist and fitness coach powered by ${provider.displayName}."
+            "You are NutriMind AI, an autonomous personal nutrition and activity tracking agent powered by ${provider.displayName}."
         }
 
         // 3. Retrieve recent history for multi-turn conversational context

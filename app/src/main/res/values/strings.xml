@@ -46,7 +46,7 @@
 
     <!-- Step 3: Goal -->
     <string name="step3_title">What\'s your goal?</string>
-    <string name="step3_subtitle">Your goal helps AI personalize your coaching.</string>
+    <string name="step3_subtitle">Your goal helps AI personalize your tracking targets.</string>
     <string name="goal_lose_title">Lose Weight</string>
     <string name="goal_lose_desc">Focus on fat loss while preserving muscle mass through guided nutrition.</string>
     <string name="goal_maintain_title">Maintain Weight</string>
@@ -88,7 +88,7 @@
     <string name="unit_liters">L</string>
 
     <string name="ai_badge_title">NUTRIMIND AI</string>
-    <string name="ai_recommendation_text">This plan is your starting point. As NutriMind learns your habits, your daily coaching will become increasingly personalized.</string>
+    <string name="ai_recommendation_text">This plan is your starting point. As NutriMind learns your habits, your daily tracking insights will become increasingly personalized.</string>
 
     <!-- Progress Screen -->
     <string name="progress_title">Progress</string>
@@ -254,7 +254,7 @@
     <string name="notif_action_snap_meal">📸 Snap Meal</string>
     <string name="notif_action_log_meal">🍽️ Log Food</string>
     <string name="notif_action_view_meal">👀 View Meal</string>
-    <string name="notif_action_ask_coach">🤖 NutriCoach</string>
+    <string name="notif_action_ask_coach">🤖 NutriAgent</string>
     <string name="notif_action_open_tracker">💧 Hydration</string>
     <string name="notif_action_view_score">📊 View Score</string>
 
@@ -455,9 +455,9 @@
     <string name="meal_detail_delete_food_desc">Delete food item</string>
     <string name="meal_detail_delete_confirm_title">Delete Food</string>
     <string name="meal_detail_delete_confirm_msg">Are you sure you want to delete \"%1$s\" from this meal?</string>
-    <string name="meal_detail_coach_dialog_title">Ask NutriCoach for Ideas?</string>
+    <string name="meal_detail_coach_dialog_title">Ask NutriMind for Ideas?</string>
     <string name="meal_detail_coach_dialog_desc">Get 3 healthy, balanced %1$s meal recommendations tailored to your daily nutrition targets.</string>
-    <string name="meal_detail_coach_dialog_confirm">Ask Coach</string>
+    <string name="meal_detail_coach_dialog_confirm">Ask Agent</string>
     <string name="exercise_delete_confirm_title">Delete Exercise</string>
     <string name="exercise_delete_confirm_msg">Are you sure you want to delete \"%1$s\"?</string>
     <string name="water_delete_confirm_title">Delete Water Record</string>
@@ -465,7 +465,7 @@
 
     <!-- Authentication -->
     <string name="auth_logo_desc">NutriMind AI Logo</string>
-    <string name="auth_tagline">Smart Nutrition &amp; Health Coach</string>
+    <string name="auth_tagline">Multimodal Personal Nutrition &amp; Activity Tracking Agent</string>
     <string name="auth_register_subtitle">Start your personalized health &amp; AI nutrition journey</string>
     <string name="auth_personal_details_title">Personal Details</string>
     <string name="auth_sign_in_title">Sign In</string>
@@ -545,14 +545,14 @@
     <string name="profile_logout_confirm_msg">Are you sure you want to log out of your account?</string>
     <string name="profile_logging_out_title">Logging Out...</string>
     <string name="profile_logging_out_desc">Safely clearing session and local data...</string>
-    <string name="profile_about_desc">NutriMind AI is an intelligent nutrition &amp; wellness companion built for the Meta AI Hackathon, combining advanced multimodal AI with personalized coaching to transform healthy eating habits.</string>
+    <string name="profile_about_desc">NutriMind AI is an autonomous multimodal dietary &amp; activity tracking agent built for the Meta AI Hackathon, combining advanced multimodal AI with on-device action execution.</string>
     <string name="profile_about_version">Version %1$s</string>
     <string name="profile_about_powered_by">Meta AI Hackathon</string>
     <string name="profile_about_features_header">KEY CAPABILITIES</string>
     <string name="about_feature_logging_title">Multimodal Food Logging</string>
     <string name="about_feature_logging_desc">Instant meal analysis via Camera photo, Gallery image upload, and fast Barcode scanning with detailed nutrition breakdowns.</string>
-    <string name="about_feature_coach_title">Meta AI Health Coach</string>
-    <string name="about_feature_coach_desc">Personalized nutrition guidance, smart food alternatives, and tailored recipe suggestions powered by Meta AI Llama 3.2.</string>
+    <string name="about_feature_coach_title">Meta AI Tracking Agent</string>
+    <string name="about_feature_coach_desc">Autonomous dietary journaling, multimodal plate decomposition, and activity logging powered by Meta AI Llama 3.2.</string>
     <string name="about_feature_missions_title">Daily Missions &amp; Gamification</string>
     <string name="about_feature_missions_desc">Gamified daily macro and hydration targets, adherence streaks, and wellness badges to keep you engaged.</string>
     <string name="about_feature_analytics_title">Trends &amp; Body Weight Forecasting</string>
@@ -593,7 +593,7 @@
     <string name="profile_reset_data_title">Reset Activity Logs</string>
     <string name="profile_reset_data_sub">Clear food, water, exercise logs &amp; AI chat history</string>
     <string name="profile_reset_data_dialog_title">Clear Activity Logs?</string>
-    <string name="profile_reset_data_dialog_msg">Are you sure you want to clear all recorded food logs, water intake, exercise records, and AI Coach chat history? Your profile info and weight history will remain intact.</string>
+    <string name="profile_reset_data_dialog_msg">Are you sure you want to clear all recorded food logs, water intake, exercise records, and AI Agent chat history? Your profile info and weight history will remain intact.</string>
     <string name="profile_reset_data_confirm_btn">Clear Activity Logs</string>
 
     <!-- Theme Settings -->
@@ -607,24 +607,24 @@
     <string name="profile_theme_desc_dark">Always use dark theme</string>
 
     <!-- NutriCoach AI Screen -->
-    <string name="coach_title">NutriCoach AI</string>
-    <string name="coach_name">NutriCoach</string>
+    <string name="coach_title">NutriMind Agent</string>
+    <string name="coach_name">NutriMind Agent</string>
     <string name="coach_engine_format">Engine: %1$s ▾</string>
     <string name="coach_model_format">Model: %1$s (%2$s) ▾</string>
     <string name="coach_cd_select_ai_model">Select AI Model</string>
     <string name="coach_cd_clear_history">Clear History</string>
     <string name="coach_cd_send">Send</string>
     <string name="coach_cd_stop">Stop generating</string>
-    <string name="coach_cd_avatar">Coach Avatar</string>
+    <string name="coach_cd_avatar">Agent Avatar</string>
     <string name="coach_dialog_clear_title">Clear Chat History?</string>
-    <string name="coach_dialog_clear_desc">All conversation history with NutriCoach will be deleted from this device.</string>
+    <string name="coach_dialog_clear_desc">All conversation history with NutriMind will be deleted from this device.</string>
     <string name="coach_btn_clear">Clear</string>
     <string name="coach_dialog_select_engine_title">Select AI Engine</string>
     <string name="coach_btn_dismiss">Dismiss</string>
-    <string name="coach_input_placeholder">Ask NutriCoach</string>
-    <string name="coach_welcome_desc">Your intelligent personal nutrition &amp; wellness coach connected directly to today\'s food diary, hydration, and workouts. Ask anything!</string>
+    <string name="coach_input_placeholder">Ask or log with NutriMind...</string>
+    <string name="coach_welcome_desc">Your autonomous personal dietary &amp; activity tracking agent connected directly to today\'s food diary, hydration, and workouts. Ask or log anything!</string>
     <string name="coach_quick_questions_header">Get started with quick questions:</string>
-    <string name="coach_thinking_status">NutriCoach is thinking</string>
+    <string name="coach_thinking_status">NutriMind is thinking</string>
     <string name="coach_error_default">Failed to connect to AI. Please try again.</string>
     <string name="coach_prompt_dinner">🥗 Healthy dinner recommendation</string>
     <string name="coach_prompt_macros">📊 Analyze today\'s macro intake</string>
@@ -637,10 +637,10 @@
     <string name="home_greeting_afternoon">Good Afternoon</string>
     <string name="home_greeting_evening">Good Evening</string>
 
-    <string name="home_coach_insight_title">Daily Coach Insight</string>
+    <string name="home_coach_insight_title">Daily AI Insight</string>
     <string name="home_coach_insight_powered_by">Powered by %1$s</string>
-    <string name="home_coach_insight_analyzing">Analyzing your nutrition goals and today\'s intake...</string>
-    <string name="home_coach_insight_cd_sparkle">Coach AI Sparkle</string>
+    <string name="home_coach_insight_analyzing">Analyzing your tracking targets and today\'s intake...</string>
+    <string name="home_coach_insight_cd_sparkle">Agent AI Sparkle</string>
     <string name="home_coach_insight_cd_refresh">Refresh Insight</string>
 
     <string name="home_mission_fat_loss_protocol">🎯 Fat Loss Protocol</string>
@@ -724,7 +724,7 @@
     <!-- Navigation & Bottom Bar -->
     <string name="nav_home">Home</string>
     <string name="nav_progress">Progress</string>
-    <string name="nav_coach">Coach</string>
+    <string name="nav_coach">Agent</string>
     <string name="nav_activity">Activity</string>
     <string name="nav_profile">Profile</string>
 
@@ -782,7 +782,7 @@
     <string name="goal_settings_activity_level">Activity Level</string>
     <string name="goal_settings_adjust_targets">Adjust Targets &amp; Body Metrics</string>
     <string name="goal_settings_adjust_desc">Update goal, age, height, weight, and activity level</string>
-    <string name="goal_settings_ai_coach">AI Personalized Coach</string>
+    <string name="goal_settings_ai_coach">AI Personalized Targets</string>
     <string name="goal_settings_saving">Saving Changes...</string>
     <string name="goal_settings_configure_title">Configure Goal &amp; Targets</string>
     <string name="goal_settings_primary_goal">PRIMARY GOAL</string>
@@ -885,7 +885,7 @@
     <string name="share_image_error">Unable to generate summary card image</string>
     <string name="share_caption_template">My Daily Health Review on NutriMind AI! Health Score: %1$d/100 🌿 #NutriMindAI</string>
     <string name="share_badge_daily_snapshot">Daily Health Snapshot</string>
-    <string name="share_ai_evaluation_title">Meta AI Coach Evaluation</string>
+    <string name="share_ai_evaluation_title">Meta AI Daily Evaluation</string>
     <string name="share_powered_by">Powered by Meta AI (Muse Spark &amp; Llama 3)</string>
 
     <!-- Health Status & Review Common Strings -->

@@ -1,6 +1,6 @@
-# NutriMind AI 🥗🧠
-> **Smart Multimodal Nutrition & Wellness Coach Powered by Meta AI**  
-> *Submitted to the [Meta Global AI Developer Hackathon 2026](https://meta.ai) — Indie Developer Track ($400,000 Prize Pool)*
+# NutriMind AI 🥗📊
+> **Multimodal Personal Nutrition & Activity Tracking Agent Powered by Meta AI**  
+> *Submitted to the [Meta Global AI Developer Hackathon 2026](https://meta.ai) — Indie Developer Track*
 
 [![Platform](https://img.shields.io/badge/Platform-Android-3DDC84.svg?style=flat&logo=android)](https://developer.android.com)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.0-7F52FF.svg?style=flat&logo=kotlin)](https://kotlinlang.org)
@@ -10,161 +10,167 @@
 [![YouTube](https://img.shields.io/badge/YouTube-Demo%20Video-red.svg?logo=youtube)](https://youtu.be/3KouHsuXZmA)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-> 🎥 **[Watch Demo Video on YouTube](https://youtu.be/3KouHsuXZmA)** &nbsp;|&nbsp; 📥 **[Download & Test APK (v1.0.1)](https://github.com/FebrianDev/Nutrimind-AI/releases/tag/v1.0.1)**
+> 🎥 **[Watch Demo Video on YouTube](https://youtu.be/3KouHsuXZmA)** &nbsp;|&nbsp; 📥 **[Download APK v1.0.1](https://github.com/FebrianDev/Nutrimind-AI/releases/tag/v1.0.1)**
+
+> [!NOTE]
+> **Scope & Non-Medical Utility Notice**: NutriMind AI is a personal nutrition and activity tracking application. It helps users record, organize, and review daily lifestyle data. It does **not** provide medical diagnosis, clinical treatment, eating-disorder intervention, or professional medical advice. Nutritional and energy values are mathematical approximations intended solely for personal tracking and informational purposes.
 
 ---
 
-## 🌟 Overview & Problem Statement
+## 🌟 Overview
 
-Maintaining consistent nutritional mindfulness is one of the most effective ways to improve long-term wellness, yet conventional dietary tracking approaches present significant friction:
-1. **Manual logging friction**: Manually searching, weighing, and typing every individual food item creates high daily friction and tracking fatigue.
-2. **Cold, static data**: Presenting raw calorie numbers without contextual guidance leaves users guessing how to balance their meals sustainably.
-3. **Limited personalized guidance**: Timely, personalized dietary coaching is often inaccessible for everyday users.
-4. **Cultural diet mismatch**: Conventional nutrition tools cater predominantly to Western diets, frequently struggling to accurately recognize regional, Asian, and multicultural meals.
+Keeping a consistent record of meals, hydration, and physical activity can be time-consuming. Traditional tracking workflows often require users to search food databases, estimate portions, and enter each item manually. This friction frequently leads to tracking fatigue and abandonment.
 
-**NutriMind AI** transforms nutrition tracking into an effortless, culturally inclusive, and proactive experience by leveraging **Meta's state-of-the-art multimodal AI models** (`Llama 3.2 Vision`, `Llama 3.3 70B`, and `Meta MMS / Voice`). With a photo of your meal, a natural chat message, or a quick voice note, NutriMind AI acts as a dedicated 24/7 personal dietitian in your pocket.
+**NutriMind AI** reduces that friction with an autonomous multimodal personal tracking agent. Users can describe an entry in natural language, speak via voice input, or submit a meal photo. The configured Meta AI models process the input and help convert it into structured nutrition and activity records that users can review and save to their local diary.
 
----
+The application is specifically designed with regional and multicultural food logging in mind, including Indonesian and Southeast Asian dishes such as Nasi Goreng, Gado-Gado, Satay, Rendang, Soto, Tempeh, and Pecel.
 
-## 🚀 Comprehensive Feature Breakdown
-
-### 1. 🤖 Agentic AI NutriCoach (Autonomous Tool Calling & Local DB Logging)
-*Transforming conversational AI into an autonomous, proactive nutrition agent.*
-- **Natural Language Intent Recognition**: Users can log meals and drinks conversationally in English or Indonesian (e.g., *"I just ate 2 boiled eggs and drank 500ml of water"* or *"Tadi siang makan gado-gado dan minum 400ml air"*).
-- **Structured Tool / Action Execution**: Meta's reasoning model identifies user intent, calculates nutritional macros, and outputs a structured `json:action` directive.
-- **Autonomous Room Database Mutation**: `CoachActionExecutor` intercepts action directives and automatically writes them to local Room database entities (`IntakeDao`, `WaterDao`).
-- **Real-Time Cross-App Synchronization**: Reactive Kotlin `StateFlow` updates propagate instantly across the entire application—the Home calorie ring, macro bars, and hydration levels reflect the new meal immediately.
-- **Interactive Action Badges**: Chat bubbles display confirmation pills (e.g., `✅ Logged to Diary: 2 Boiled Eggs (156 kcal) & +500 ml Water`).
-- **Full Multimodal Input (Text + Voice + Vision)**: In addition to text and Meta MMS voice recording, NutriCoach natively supports photo attachments directly from the camera or device gallery. Users can snap their fridge ingredients, a physical restaurant menu, or a food plate, and ask the coach for instant dietary advice, healthier alternatives, or autonomous diary logging.
-- **Contextual Follow-Up Memory**: NutriCoach maintains conversational multi-turn context. When users follow up on previous advice (e.g., *"Catat makanan tadi ke makan siang"* or *"Log that to my diary"*), the coach remembers the previously discussed nutrition estimates and triggers local database logging seamlessly.
-- **Typewriter Streaming & Responsive Chat**: Natural, word-by-word streaming rendering with animated typing indicators and quick suggestion chips.
-
-### 2. 📸 Multimodal Vision Scanner ("Build for Your World")
-- **Snap & Recognize**: Capture meal photos directly using CameraX or pick from the device gallery.
-- **Multi-Component Plate Decomposition**: Powered by **Meta Llama 3.2 Vision**, the engine itemizes complex plates with multiple ingredients (e.g., proteins, carbohydrates, side dishes, sauces) and provides cumulative calories, macros, and itemized component portion estimates.
-- **Interactive Verification & 1-Tap Save**: Analyzed meals are presented in an interactive verification card (`RecognizedFoodScreen`) where users can easily review, adjust portions, and confirm the log to their diary with one tap.
-- **Multicultural Cuisine Expertise**: Trained to recognize global cuisines as well as regional Indonesian & Southeast Asian dishes (such as Nasi Goreng, Gado-Gado, Satay, Rendang, Soto, Tempeh, Tofu, and Pecel).
-- **Non-Food Defensive Guardrails**: Gracefully handles non-food items (electronics, pets, objects) without crashing or hallucinating calories.
-- **Integrated Barcode Scanner**: Fast barcode scanning via Google ML Kit paired with OpenFoodFacts API for packaged groceries.
-- **Flexible Manual & Search Entry**: Search database or quickly input custom calories and macros manually.
-
-### 3. 🎯 Daily Missions & Gamified Habit Building
-- **Interactive Daily Missions**: Daily wellness checklists (e.g., Log Breakfast, Reach Daily Protein Target, Hit Hydration Goal, Complete Workout, Daily Review) that turn healthy habits into rewarding daily wins.
-- **Streak & Consistency Tracking**: Tracks continuous adherence streaks to boost intrinsic motivation and prevent tracking abandonment.
-- **Comprehensive Mission History**: Dedicated historical dashboard displaying 7, 30, and 90-day completion rates, strictly and accurately constrained to the user's account creation date.
-
-### 4. ⏰ Context-Aware Smart Reminders & Intelligent Skip
-- **Automated Background Scheduling**: Powered by Android `WorkManager` with full support for Android 13+ runtime notification permissions.
-- **Customizable Hydration Schedule**: Configurable interval reminders (1h, 1.5h, 2h, 3h) with an active daytime window (e.g., 08:00 – 21:00) so users are never disturbed during sleep.
-- **Meal & Evening Review Reminders**: Timely alerts for Breakfast, Lunch, Dinner, and End-of-Day Review with native Compose time pickers.
-- **Intelligent Smart Skip**: Automatically suppresses reminders if the user has already logged their intake for that period, eliminating repetitive and annoying notification fatigue.
-- **In-App Notification Test Suite**: Built-in debug controls to test water and meal notifications instantly.
-
-### 5. 📊 Daily AI Evaluation & Proactive Coaching Tips
-- **End-of-Day Trajectory Scoring**: Calculates a holistic Health Score (0–100) based on calorie adherence, macro balance, hydration, and physical activity.
-- **Meta AI Review Summary**: Generates a motivating 3-sentence evaluation highlighting daily achievements and actionable improvements for tomorrow.
-- **Dynamic Home Coaching Banner**: Real-time micro-tips generated by Meta AI displayed right on the home dashboard based on current intake and goal progress.
-
-### 6. 🎨 Shareable Luxury Health Milestone Card
-- **Social Media Ready**: Generates an aesthetic dark-emerald visual score card displaying:
-  - Daily Health Trajectory Score (0–100)
-  - Calorie Budget Progress (Consumed vs. Target)
-  - Macronutrient Breakdown (Protein, Carbs, Fat)
-  - Hydration level & Workouts completed
-  - Personalized Meta AI Coach feedback highlight & official watermark
-- **High-Resolution Off-Screen Rendering**: Leverages Jetpack Compose `rememberGraphicsLayer()` and Android `FileProvider` for crisp PNG captures.
-- **1-Click Social Sharing**: Direct sharing to Instagram Stories, WhatsApp, Twitter/X, and other apps.
-
-### 7. 💧 Hydration, Physical Activity & Health Connect
-- **Interactive Hydration Tracker**: Visual bottle fill progress with quick-log increments (+250ml, +500ml) and dynamic daily target monitoring.
-- **Workout & Active Burn Logging**: Log physical activities (Walking, Running, Cycling, Strength Training, Swimming, etc.) with active calorie burn calculations dynamically adjusting net daily energy balance.
-- **Android Health Connect Integration**: Native synchronization with Android Health Connect to automatically import daily step counts, smartwatch activities, and active calories burned directly into the daily journal and Home dashboard energy ring.
-
-### 8. 📈 Progress Analytics, Trends & Body Weight Forecasting
-- **Science-Backed Weight Forecasting**: Mathematical projection of body weight changes based on cumulative caloric deficits or surpluses over time.
-- **Interactive Multi-Metric Trends**: Comprehensive 7, 30, and 90-day progress charts for Calories, Protein, Carbs, Fat, Water, Weight, and Exercise.
-- **Historical Activity Journal**: Chronological log of past daily entries with individual meal breakdowns and nutritional summaries.
-
-### 9. 🎯 Science-Backed Onboarding & Goal Customization
-- **5-Step Onboarding Flow**: Captures user metrics (Age, Gender, Height, Weight, Activity Level, Target Goal).
-- **Mifflin-St Jeor BMR & TDEE Calculation**: Calculates scientifically validated baseline metabolic rate and recommended macro distributions (Weight Loss, Muscle Gain, Maintenance).
-- **Customizable Goals**: Adjust calorie and macronutrient targets at any time via Goal Settings in the Profile screen.
-
-### 10. 🔒 Local-First Architecture & Privacy by Design
-- **Local SQLite / Room Database**: All meal logs, water entries, biometrics, and activity records are stored locally on-device using Room Database v15.
-- **Full Offline Usability**: The app remains fully functional for browsing past logs, tracking water, and viewing trends without an active internet connection.
-- **Privacy-Conscious**: No user personal data or meal history is ever monetized or sold.
+Rather than functioning as a general-purpose conversational chatbot, NutriMind AI connects AI-generated structured actions to an on-device data layer. Supported actions can create records for food, water, exercise, and body weight, with updates reflected immediately through reactive data flows.
 
 ---
 
-## 🏗️ System & Agentic Architecture
+## 🚀 Key Features
 
-NutriMind AI follows **Clean Architecture** and **Modern Android Development (MAD)** standards with unidirectional data flow (MVI/MVVM).
+### 1. Multimodal Personal Tracking Agent
+Interact with the tracking agent using natural language and supported multimodal inputs:
+- **Natural Language Logging**: Record meals, drinks, workouts, and body weight in English or Indonesian. For example: *"I just ate two boiled eggs and drank 500 ml of water"* or *"Tadi sore lari 30 menit dan minum 400 ml air."*
+- **Structured Action Output**: The AI interprets user intent and outputs structured `json:action` directives for supported logging operations.
+- **Local Database Execution**: `CoachActionExecutor` processes validated actions and writes supported records directly through the Room data layer, including food intake, water, and exercise entries.
+- **Reactive UI Updates**: Kotlin `StateFlow` propagates database changes to relevant parts of the application, such as calorie, macronutrient, and hydration summaries.
+- **Action Confirmations**: The conversation UI displays interactive confirmation badges summarizing successfully processed diary actions.
+- **Contextual Conversations**: The agent utilizes relevant conversation history and diary context to interpret follow-up requests, such as assigning a previously discussed meal to lunch.
+- **Voice Input**: Users can provide spoken entries instead of typing, transcribed via Meta voice endpoints.
+- **Image Input**: Users can attach a meal or ingredient photo for supported vision-based analysis and logging workflows.
+
+### 2. Multimodal Food Recognition
+- **Camera & Gallery Input**: Capture a meal using CameraX or select an existing image from the device gallery.
+- **Food Identification**: The vision workflow identifies visible food items and estimates portions and nutritional values.
+- **Meal Component Breakdown**: For mixed dishes, the analysis itemizes visible components such as proteins, carbohydrates, side dishes, and sauces where identifiable.
+- **Review Before Saving**: Results are presented in `RecognizedFoodScreen`, where users can review and adjust portions or values before saving them to the diary.
+- **Regional Cuisine Support**: Recognition prompts include Indonesian and Southeast Asian dishes such as Nasi Goreng, Gado-Gado, Satay, Rendang, Soto, Tempeh, Tofu, and Pecel.
+- **Barcode Scanning**: Google ML Kit barcode scanning integrates with the OpenFoodFacts API for packaged food lookup.
+- **Manual & Search Entry**: Users can search for foods or enter custom calorie and macronutrient values directly.
+
+> *Note on Estimation*: Food recognition and portion estimation are approximate. Results may vary with image quality, lighting, ingredients, preparation methods, and serving size. Users should always review and adjust the result before saving it.
+
+### 3. Daily Consistency & Activity History
+- **Daily Checklists**: Track daily activities such as logging meals, reaching hydration targets, completing physical activity, and performing daily reviews.
+- **Streak Tracking**: View consistency streaks to help maintain a regular tracking habit.
+- **Historical Completion**: Review 7-, 30-, and 90-day completion rates, strictly constrained by the account creation date.
+- **Activity Journal**: Browse historical food, drink, and exercise entries in a chronological journal.
+
+### 4. Context-Aware Reminders
+- **Background Scheduling**: Android `WorkManager` schedules periodic reminders in the background.
+- **Hydration Schedule**: Configure reminder intervals (1, 1.5, 2, or 3 hours) within an active daytime window to prevent sleep disturbance.
+- **Meal & Daily Review Reminders**: Configure reminder times for breakfast, lunch, dinner, and end-of-day reviews.
+- **Intelligent Skip**: Reminder workers check recent logging activity in the local database and suppress reminders when the corresponding entry has already been recorded.
+- **Notification Testing**: Built-in debug controls support testing water and meal notifications instantly.
+
+### 5. Daily Intake & Activity Summary
+- **Daily Balance Score**: Calculates a daily completion score (0–100) from tracking consistency, macronutrient balance, hydration, and physical activity.
+- **AI-Generated Daily Summary**: Generates a concise summary highlighting recorded activity milestones and nutritional balance observations.
+- **Home Summary Cards**: Displays contextual summary cards based on current intake and progress toward configured targets.
+
+### 6. Shareable Daily Summary Card
+- **Daily Overview**: Creates a visual summary containing the daily score, calorie progress, macronutrients, hydration, workouts, and an AI-generated summary highlight.
+- **Off-Screen Rendering**: Uses Jetpack Compose `rememberGraphicsLayer()` and Android `FileProvider` to render and export a clean PNG image.
+- **Social Sharing**: Shares the generated card with compatible apps, including messaging and social media platforms.
+
+### 7. Hydration, Physical Activity & Health Connect
+- **Hydration Tracking**: Record water with quick increments (+250 ml, +500 ml) and monitor progress toward a daily target.
+- **Workout Logging**: Record activities such as walking, running, cycling, strength training, and swimming.
+- **Active Energy Estimates**: Track estimated active calories associated with recorded activities using standard MET calculations.
+- **Health Connect**: Integrates with Android Health Connect to read supported data such as steps, activities, and active calories, subject to user-granted permissions and device availability.
+
+### 8. Progress Analytics & Weight Journal
+- **Progress Trends**: View 7-, 30-, and 90-day charts for calories, protein, carbohydrates, fat, water, weight, and exercise.
+- **Weight Journal**: Record and review body weight changes over time.
+- **Estimated Weight Trend**: Displays a mathematical weight trend projection based on cumulative recorded energy-balance data. This is an informational estimation based on user logs, not a clinical prediction.
+- **Historical Records**: Review past daily entries and meal-level nutrition details.
+
+### 9. Energy Expenditure & Goal Customization
+- **Onboarding Flow**: Collects baseline metrics including age, gender, height, weight, activity level, and personal tracking goal.
+- **BMR & TDEE Estimates**: Uses the scientifically validated Mifflin-St Jeor equation and activity factors to estimate baseline and daily energy expenditure.
+- **Configurable Targets**: Set or adjust calorie and macronutrient targets at any time from the Profile screen.
+
+### 10. Local-First Data & Privacy
+- **Room Database**: Stores diary records, activities, and supported profile data locally using Room Database v15.
+- **Offline Access**: Stored records and manual tracking features remain fully accessible without an internet connection.
+- **AI Network Requests**: When AI features are invoked, relevant user inputs and contextual diary records are transmitted to the configured AI API endpoint for processing. Data does not remain exclusively on-device during AI inference.
+- **User Control**: Users maintain full control to review, edit, or delete AI-generated estimates and diary actions.
+
+---
+
+## 🏗️ System Architecture
+
+NutriMind AI follows **Clean Architecture** principles and modern Android development practices, utilizing a presentation layer, domain logic, and a local Room data layer with reactive state updates.
+
+The following sequence illustrates the agent logging workflow:
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor User
-    participant UI as CoachScreen & Bubbles
-    participant VM as CoachViewModel
-    participant Builder as NutriCoachContextBuilder
-    participant Repo as CoachRepositoryImpl
-    participant Meta as Meta Model API (Llama 3.3 / Muse)
-    participant Parser as CoachActionParser
-    participant Exec as CoachActionExecutor
-    participant Room as Room DB (IntakeDao, WaterDao)
-    participant Home as HomeScreen & Live Flows
+    participant UI as Agent UI
+    participant VM as AgentViewModel
+    participant Repo as AgentRepositoryImpl
+    participant Builder as AgentContextBuilder
+    participant API as Configured Meta Model API
+    participant Parser as ActionParser
+    participant Executor as Action Executor
+    participant DB as Room Database
+    participant Home as Home UI
 
-    User->>UI: "I just had 2 boiled eggs and 500ml water"
-    UI->>VM: sendMessage(text)
-    VM->>Repo: sendMessage(text)
-    Repo->>Builder: buildSystemPrompt(userProfile, liveDiary)
-    Builder-->>Repo: Contextual System Prompt
-    Repo->>Meta: POST /v1/chat/completions (Conversation + System Prompt)
-    Meta-->>Repo: AI Response with ```json:action``` block
-    Repo->>Parser: parse(rawResponse)
-    Parser-->>Repo: (cleanConversationalText, List<CoachAction>)
-    Repo->>Exec: executeActions(actions)
-    Exec->>Room: insertIntake() & insertWater()
-    Room-->>Home: Reactive StateFlow Update (Calories, Macros, Water)
-    Exec-->>Repo: actionSummary ("Logged: 2 Boiled Eggs & 500ml Water")
-    Repo->>Room: insertMessage(assistantEntity + actionSummary)
-    Room-->>VM: Flow<List<ChatMessage>>
-    VM-->>UI: Progressive Typewriter Render + Action Badge
+    User->>UI: Submit text, voice, or supported image input
+    UI->>VM: Send user input
+    VM->>Repo: Process request
+    Repo->>Builder: Build prompt with relevant profile and diary context
+    Builder-->>Repo: Contextual prompt
+    Repo->>API: Send request
+    API-->>Repo: AI response with structured action, if applicable
+    Repo->>Parser: Parse response
+    Parser-->>Repo: Text response and validated actions
+    Repo->>Executor: Execute supported actions
+    Executor->>DB: Insert or update diary records
+    DB-->>Home: Reactive Flow / StateFlow updates
+    Executor-->>Repo: Action execution result
+    Repo-->>VM: Updated conversation state
+    VM-->>UI: Render response and action status
 ```
+
+> *Implementation Note*: The diagram describes the application flow. In the codebase, the execution and parsing components currently use the class identifiers `CoachActionParser` and `CoachActionExecutor`. These identifiers remain in the codebase as internal architecture components; their role in the product architecture is that of an autonomous personal tracking agent.
 
 ---
 
-## 💻 Tech Stack & Engineering Highlights
+## 💻 Tech Stack
 
 | Category | Technologies |
 | :--- | :--- |
-| **Language & Platform** | Kotlin 2.0, Android SDK 37 (Min SDK 26, Target SDK 37) |
+| **Language & Platform** | Kotlin 2.0, Android SDK (Min SDK 26, Target SDK 37) |
 | **UI Framework** | Jetpack Compose, Material 3, Compose Navigation |
-| **Design & Typography** | Bundled Plus Jakarta Sans, Custom Luxury Emerald Theme |
-| **AI Engine** | Meta Model API (`muse-spark-1.3`, `Llama 3.2 11B/90B Vision`, `Llama 3.3 70B`) |
-| **Computer Vision** | CameraX, ML Kit Barcode Scanning, Base64 JPEG Image Compressor |
-| **Background Processing** | Android WorkManager (Smart Reminders & Intelligent Skip) |
-| **Architecture** | Clean Architecture (Presentation, Domain, Data), MVI / MVVM |
-| **Persistence** | Room Database v15 with auto schema migration, DataStore Preferences |
-| **Dependency Injection**| Dagger Hilt |
-| **Asynchronous** | Kotlin Coroutines, StateFlow, SharedFlow |
-| **Networking** | OkHttp 4, Retrofit 2, Kotlinx Serialization, Bearer Auth Redaction |
-| **Health & Fitness** | Android Health Connect API (Steps, Active Calories, Smartwatch sync) |
-| **Sharing Engine** | Compose `rememberGraphicsLayer()`, Android `FileProvider` |
+| **Typography & Theme** | Bundled Plus Jakarta Sans, Custom Emerald Theme |
+| **AI Integration** | Meta Model API (`muse-spark-1.3`, `muse-voice-transcribe-1.0`, or configured endpoints) |
+| **Camera & Vision** | CameraX, ML Kit Barcode Scanning, Image Processing |
+| **Background Work** | Android WorkManager (Context-Aware Reminders & Intelligent Skip) |
+| **Architecture** | Clean Architecture, MVI / MVVM |
+| **Local Persistence** | Room Database v15, DataStore Preferences |
+| **Dependency Injection** | Dagger Hilt |
+| **Asynchronous Processing** | Kotlin Coroutines, Flow, StateFlow, SharedFlow |
+| **Networking** | OkHttp 4, Retrofit 2, Kotlinx Serialization |
+| **Health & Fitness** | Android Health Connect API |
+| **Image Sharing** | Compose `rememberGraphicsLayer()`, Android `FileProvider` |
 
 ---
 
-## 🛠️ Getting Started & Installation
+## 🛠️ Getting Started
 
-### ⚡ Quick Try (Pre-built APK)
-For judges and users who want to try NutriMind AI immediately without building from source:
-👉 **[Download NutriMind AI v1.0.1 APK](https://github.com/FebrianDev/Nutrimind-AI/releases/tag/v1.0.1)** and install directly on any Android device (Android 8.0+ / SDK 26+).
+### ⚡ Try the Pre-built APK
+Download **[NutriMind AI v1.0.1 APK](https://github.com/FebrianDev/Nutrimind-AI/releases/tag/v1.0.1)** from GitHub Releases and install it directly on any compatible Android device (Android 8.0+ / SDK 26+).
 
-### Prerequisites (For Building from Source)
+### Prerequisites
 - Android Studio Ladybug (2024.2+) or newer.
-- Android SDK 35 / 37 (Minimum SDK 26, Target SDK 37).
-- A valid Meta AI / Meta Model API Key.
+- Android SDK (API 26+).
+- A valid API key for the configured Meta AI provider.
 
 ### 1. Clone the Repository
 ```bash
@@ -172,13 +178,13 @@ git clone https://github.com/FebrianDev/Nutrimind-AI.git
 cd Nutrimind-AI
 ```
 
-### 2. Configure Meta AI API Key
-Copy the example properties template:
+### 2. Configure Local Properties
+Copy the example properties file:
 ```bash
 cp local.properties.example local.properties
 ```
 
-Edit `local.properties` and add your Meta AI credentials:
+Add the credentials and model configuration expected by the application:
 ```properties
 sdk.dir=C\:\\Users\\YourUsername\\AppData\\Local\\Android\\Sdk
 META_AI_API_KEY=YOUR_META_AI_API_KEY
@@ -186,46 +192,48 @@ META_AI_BASE_URL=https://api.meta.ai/v1/
 META_AI_VISION_MODEL=muse-spark-1.3
 META_AI_TEXT_MODEL=muse-spark-1.3
 ```
-*(Note: Fireworks AI or official Meta inference endpoints can be used interchangeably).*
+*(Do not commit `local.properties` or API credentials to version control).*
 
 ### 3. Run Unit Tests
 ```bash
 ./gradlew testDebugUnitTest
 ```
 
-### 4. Build & Install Debug APK
+### 4. Build & Install the Debug App
 ```bash
 ./gradlew installDebug
 ```
 
 ---
 
-## 💡 Challenges We Overcame
+## 💡 Engineering Challenges
 
-1. **Complex Multi-Component Plate Estimation**: Food often comes mixed together on a single plate rather than as isolated ingredients. We refined prompts with structured JSON schemas and portion bounds to help the vision model identify distinct meal components and generate realistic nutritional estimates without crashing on ambiguous inputs.
-2. **Safe Autonomous Tool Execution**: Connecting conversational LLM outputs to local database mutations requires strict reliability. We engineered `CoachActionParser` and `CoachActionExecutor` to extract validated structured directives (`LogFood`, `LogWater`, `LogExercise`, `LogWeight`) and safely commit them to Room DB, ensuring immediate UI responsiveness through reactive StateFlows without hallucinations or UI freezes.
-3. **Preventing Reminder Fatigue**: Users often disable notifications if they trigger redundantly. We implemented intelligent checks in our WorkManager periodic workers to verify recent intake before scheduling alerts, maintaining a non-intrusive user experience.
+1. **Multi-Component Food Recognition**: Real-world meals often contain several ingredients on a single plate. The vision workflow is designed to identify visible components and estimate their portions and nutritional values. Because image-based estimates involve inherent uncertainty, the app provides an interactive review step (`RecognizedFoodScreen`) before records are committed to the diary.
+2. **Validating AI-Generated Actions**: Connecting model outputs to local database operations requires a strict validation boundary. NutriMind AI uses an action parsing and execution flow to interpret supported directives such as `LogFood`, `LogWater`, `LogExercise`, and `LogWeight`. The executor handles supported actions through the local Room data layer, while reactive flows update the UI.  
+   *(Note: The codebase uses the class names `CoachActionParser` and `CoachActionExecutor`. These identifiers reflect the internal implementation names, while product positioning and documentation reflect their role as part of the personal tracking agent).*
+3. **Reducing Reminder Fatigue**: Frequent or redundant notifications often cause users to disable reminders. WorkManager periodic workers check relevant database activity before posting alerts, suppressing notifications when corresponding entries have already been logged for that time window.
 
 ---
 
 ## 🔮 What We Learned & What's Next
 
-Building NutriMind AI demonstrated how Meta's vision and reasoning models can bridge the gap between passive food tracking and an active, empathetic lifestyle companion.
+NutriMind AI explores how multimodal AI and structured action execution can make personal nutrition and activity tracking more convenient. Connecting natural-language and vision inputs directly to an on-device mobile database eliminates the need for users to manually transcribe chat outputs into a separate tracker.
 
-Moving forward, our roadmap includes:
-- **On-Device Inference via ExecuTorch**: Bringing lightweight Llama 3.2 models directly onto Android devices using ExecuTorch for zero-latency, privacy-centric offline nutrition logging.
-- **Wear OS Companion Extension**: Developing dedicated Wear OS tiles and complications for glanceable calorie rings and 1-tap wrist hydration logging.
+Planned improvements include:
+- **On-Device Inference with ExecuTorch**: Exploring lightweight models running directly on-device via ExecuTorch to reduce network latency and support offline inference for selected workflows.
+- **Wear OS Companion**: Exploring Wear OS tiles and complications for quick hydration logging and glanceable daily tracking summaries.
 
 ---
 
-## 🏆 Hackathon Compliance & Criteria
+## 🏆 Hackathon Information
 
-- **Track**: Meta Global AI Developer Hackathon 2026 — *Indie Developer Track*.
-- **Impact (30%)**: Solves real-world daily nutrition adherence, eliminates tedious manual logging, and democratizes expert dietary coaching.
-- **Use of Meta AI Tooling (25%)**: Deeply integrated with **Meta Model API**, leveraging **Meta Llama 3.2 Vision** for complex plate decomposition and **Meta Llama 3.3 70B / Muse** for autonomous agentic tool calling and contextual reasoning.
-- **Demo & UX (25%)**: Smooth Material 3 interface, progressive typewriter rendering, off-screen milestone sharing card, and zero user friction. Watch the **[YouTube Video Walkthrough](https://youtu.be/3KouHsuXZmA)**.
-- **Technical Depth (20%)**: Clean Architecture, autonomous database action execution, Room persistence, reactive StateFlow updates, WorkManager smart reminders, and comprehensive unit test coverage.
-- **Judge-Friendly Access**: 100% free and frictionless judge testing with zero paywalls or subscription barriers. Pre-built binary available via **[GitHub Release v1.0.1](https://github.com/FebrianDev/Nutrimind-AI/releases/tag/v1.0.1)**.
+- **Event**: Meta Global AI Developer Hackathon 2026.
+- **Track**: Indie Developer Track.
+- **Project**: NutriMind AI — *Multimodal Personal Nutrition & Activity Tracking Agent*.
+- **Demo Walkthrough**: **[Watch on YouTube](https://youtu.be/3KouHsuXZmA)**.
+- **Binary Release**: **[Download APK v1.0.1](https://github.com/FebrianDev/Nutrimind-AI/releases/tag/v1.0.1)**.
+
+> *Scope Clarification*: NutriMind AI uses AI for multimodal input processing and structured personal tracking workflows. Its scope is personal record-keeping and informational summaries, not medical diagnosis or clinical recommendations. The project description is an honest technical overview of the software built; judges and organizers determine eligibility under official event rules.
 
 ---
 
