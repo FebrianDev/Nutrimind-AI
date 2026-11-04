@@ -7,10 +7,10 @@
 [![Compose](https://img.shields.io/badge/UI-Jetpack%20Compose-4285F4.svg?style=flat&logo=jetpackcompose)](https://developer.android.com/jetpack/compose)
 [![Meta AI](https://img.shields.io/badge/AI%20Engine-Meta%20Model%20API-0081FB.svg?style=flat&logo=meta)](https://api.meta.ai)
 [![Release](https://img.shields.io/badge/Release-APK%20v1.0.1-brightgreen.svg?logo=android)](https://github.com/FebrianDev/Nutrimind-AI/releases/tag/v1.0.1)
-[![YouTube](https://img.shields.io/badge/YouTube-Demo%20Video-red.svg?logo=youtube)](https://youtu.be/3KouHsuXZmA)
+[![YouTube](https://img.shields.io/badge/YouTube-Demo%20Video-red.svg?logo=youtube)](https://youtu.be/iHLcYscWxts)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-> 🎥 **[Watch Demo Video on YouTube](https://youtu.be/3KouHsuXZmA)** &nbsp;|&nbsp; 📥 **[Download APK v1.0.1](https://github.com/FebrianDev/Nutrimind-AI/releases/tag/v1.0.1)**
+> 🎥 **[Watch Demo Video on YouTube](https://youtu.be/iHLcYscWxts)** &nbsp;|&nbsp; 📥 **[Download APK v1.0.1](https://github.com/FebrianDev/Nutrimind-AI/releases/tag/v1.0.1)**
 
 > [!NOTE]
 > **Scope & Non-Medical Utility Notice**: NutriMind AI is a personal nutrition and activity tracking application. It helps users record, organize, and review daily lifestyle data. It does **not** provide medical diagnosis, clinical treatment, eating-disorder intervention, or professional medical advice. Nutritional and energy values are mathematical approximations intended solely for personal tracking and informational purposes.
@@ -19,13 +19,11 @@
 
 ## 🌟 Overview
 
-Keeping a consistent record of meals, hydration, and physical activity can be time-consuming. Traditional tracking workflows often require users to search food databases, estimate portions, and enter each item manually. This friction frequently leads to tracking fatigue and abandonment.
+Unlike generic hackathon chatbots that attempt to give risky, unqualified health advice, **NutriMind AI is engineered strictly as an autonomous tracking agent and cultural data-logging utility**.
 
-**NutriMind AI** reduces that friction with an autonomous multimodal personal tracking agent. Users can describe an entry in natural language, speak via voice input, or submit a meal photo. The configured Meta AI models process the input and help convert it into structured nutrition and activity records that users can review and save to their local diary.
+It eliminates daily journaling friction by turning multimodal inputs (spoken voice notes, food photos, and natural text) into **direct on-device Room DB mutations via structured tool calling (`json:action`)**. It also directly addresses global AI bias by accurately decomposing regional Southeast Asian dishes (such as Nasi Goreng, Rendang, Gado-Gado, Satay, Soto, and Tempeh) that Western models overlook, backed by an offline-first architecture and secure cloud synchronization.
 
-The application is specifically designed with regional and multicultural food logging in mind, including Indonesian and Southeast Asian dishes such as Nasi Goreng, Gado-Gado, Satay, Rendang, Soto, Tempeh, and Pecel.
-
-Rather than functioning as a general-purpose conversational chatbot, NutriMind AI connects AI-generated structured actions to an on-device data layer. Supported actions can create records for food, water, exercise, and body weight, with updates reflected immediately through reactive data flows.
+Traditional tracking workflows often require users to search static databases, estimate portions, and enter each item manually. This cognitive friction frequently leads to tracking fatigue and abandonment. Rather than functioning as a general-purpose conversational chatbot, NutriMind AI connects AI-generated structured actions to an on-device data layer. Supported actions create verified records for food, water, exercise, and body weight, with updates reflected immediately through reactive data flows.
 
 ---
 
@@ -64,7 +62,6 @@ Interact with the tracking agent using natural language and supported multimodal
 - **Hydration Schedule**: Configure reminder intervals (1, 1.5, 2, or 3 hours) within an active daytime window to prevent sleep disturbance.
 - **Meal & Daily Review Reminders**: Configure reminder times for breakfast, lunch, dinner, and end-of-day reviews.
 - **Intelligent Skip**: Reminder workers check recent logging activity in the local database and suppress reminders when the corresponding entry has already been recorded.
-- **Notification Testing**: Built-in debug controls support testing water and meal notifications instantly.
 
 ### 5. Daily Intake & Activity Summary
 - **Daily Balance Score**: Calculates a daily completion score (0–100) from tracking consistency, macronutrient balance, hydration, and physical activity.
@@ -93,11 +90,13 @@ Interact with the tracking agent using natural language and supported multimodal
 - **BMR & TDEE Estimates**: Uses the scientifically validated Mifflin-St Jeor equation and activity factors to estimate baseline and daily energy expenditure.
 - **Configurable Targets**: Set or adjust calorie and macronutrient targets at any time from the Profile screen.
 
-### 10. Local-First Data & Privacy
-- **Room Database**: Stores diary records, activities, and supported profile data locally using Room Database v15.
-- **Offline Access**: Stored records and manual tracking features remain fully accessible without an internet connection.
-- **AI Network Requests**: When AI features are invoked, relevant user inputs and contextual diary records are transmitted to the configured AI API endpoint for processing. Data does not remain exclusively on-device during AI inference.
-- **User Control**: Users maintain full control to review, edit, or delete AI-generated estimates and diary actions.
+### 10. Offline-First Architecture & Cloud Synchronization
+- **On-Device Single Source of Truth**: Uses local Room Database to deliver instant, zero-latency interactions and full offline tracking capability.
+- **Secure Cloud Authentication**: Powered by **Firebase Authentication**, supporting Email/Password sign-in, Google Authentication, and seamless guest-to-permanent account linking.
+- **Two-Way Cloud Firestore Synchronization**: `FirestoreSyncRepository` and background `DataSyncWorker` automatically back up and restore 7 collections (daily logs, food intake, water, exercises, weight, chat history, and missions), ensuring multi-device continuity and dependable data restoration.
+- **Cloud Storage**: Firebase Storage securely handles photo uploads in the background.
+- **AI Network Processing Transparency**: When AI features are invoked, relevant user inputs and contextual diary records are transmitted to the configured Meta Model API endpoints for processing.
+- **User Control**: Users maintain full control to review, edit, or delete AI-generated estimates and diary actions both locally and in the cloud.
 
 ---
 
@@ -142,6 +141,38 @@ sequenceDiagram
 
 ---
 
+## 🤖 Meta AI Model Ecosystem & Implementation Details
+
+NutriMind AI leverages Meta's multimodal model lineup via the Meta Model API with an automatic cascade fallback mechanism to ensure maximum reliability and latency optimization:
+
+### Model Deployment & Responsibility Matrix
+
+| Model Identifier | Modality | Primary Task & Responsibility | Fallback Cascade | Source Implementation |
+| :--- | :--- | :--- | :--- | :--- |
+| **`muse-spark-1.3`** | Multimodal (Vision & Text) | Primary endpoint for fast multimodal plate decomposition, regional cuisine identification, and initial nutritional approximation. | `llama-v3p2-11b-vision-instruct`, `llama-v3p2-90b-vision-instruct` | [`MetaAiService.kt`](app/src/main/java/com/fdev/nutrimindai/core/ai/MetaAiService.kt#L49-L56) |
+| **`Llama 3.3 70B Instruct`**<br>([`meta/llama-3.3-70b-instruct`](https://huggingface.co/meta-llama/Llama-3.3-70B-Instruct)) | Text & Reasoning | Multi-turn conversational reasoning, intent interpretation, and generating structured `json:action` database directives. | `llama-v3p2-3b-instruct`, `muse-spark-1.3` | [`MetaAiService.kt`](app/src/main/java/com/fdev/nutrimindai/core/ai/MetaAiService.kt#L58-L65) |
+| **`Llama 3.2 11B / 90B Vision`**<br>([`meta/llama-3.2-11b-vision-instruct`](https://huggingface.co/meta-llama/Llama-3.2-11B-Vision-Instruct)) | Vision & Multimodal | High-precision multi-item plate decomposition for complex Indonesian dishes (Rendang, Gado-Gado, Soto, Tempeh). | `accounts/fireworks/models/llama-v3p2-11b-vision-instruct` | [`MetaAiService.kt`](app/src/main/java/com/fdev/nutrimindai/core/ai/MetaAiService.kt#L283-L335) |
+| **`muse-voice-transcribe-1.0`**<br>(Meta MMS / Voice) | Audio / Speech-to-Text | Hands-free spoken logging in English & Indonesian, transcribing audio notes into text for agent parsing. | Dedicated multipart ASR endpoint | [`MetaAiService.kt`](app/src/main/java/com/fdev/nutrimindai/core/ai/MetaAiService.kt#L539-L638) |
+
+### Direct Links to Meta AI Implementation in Codebase
+
+Judges can inspect the exact implementation of Meta AI models directly through the following source files:
+
+1. **Core Meta AI Client & Fallback Cascade**: [`MetaAiService.kt`](app/src/main/java/com/fdev/nutrimindai/core/ai/MetaAiService.kt)  
+   *Manages HTTP communication with Meta Model API endpoints, candidate model cascades, image Base64 serialization, and multipart audio transcription.*
+2. **AI Repository & High-Level Contracts**: [`AiRepositoryImpl.kt`](app/src/main/java/com/fdev/nutrimindai/core/ai/AiRepositoryImpl.kt)  
+   *Coordinates food image analysis, daily review generation, smart recipe ideas, and multi-turn chat handling between ViewModels and the Meta AI engine.*
+3. **Dynamic Prompt & Context Builder**: [`NutriCoachContextBuilder.kt`](app/src/main/java/com/fdev/nutrimindai/feature/coach/domain/NutriCoachContextBuilder.kt)  
+   *Constructs the contextual system prompt injected with the user's real-time Room database records, daily targets, and the structured `json:action` schema.*
+4. **Autonomous Action Parser**: [`CoachActionParser.kt`](app/src/main/java/com/fdev/nutrimindai/feature/coach/domain/CoachActionParser.kt)  
+   *Safely intercepts model outputs, extracts structured JSON action directives, and returns clean conversational text for the UI.*
+5. **Database Action Executor**: [`CoachActionExecutor.kt`](app/src/main/java/com/fdev/nutrimindai/feature/coach/domain/CoachActionExecutor.kt)  
+   *Executes validated action directives (`LOG_FOOD`, `LOG_WATER`, `LOG_EXERCISE`, `LOG_WEIGHT`) directly into on-device Room DAOs.*
+6. **Payload & Response Data Models**: [`MetaAiModels.kt`](app/src/main/java/com/fdev/nutrimindai/core/ai/model/MetaAiModels.kt)  
+   *Kotlinx Serialization data classes representing OpenAI-compatible Meta chat completion requests, message payloads, choices, and usage metrics.*
+
+---
+
 ## 💻 Tech Stack
 
 | Category | Technologies |
@@ -153,7 +184,8 @@ sequenceDiagram
 | **Camera & Vision** | CameraX, ML Kit Barcode Scanning, Image Processing |
 | **Background Work** | Android WorkManager (Context-Aware Reminders & Intelligent Skip) |
 | **Architecture** | Clean Architecture, MVI / MVVM |
-| **Local Persistence** | Room Database v15, DataStore Preferences |
+| **Local Persistence** | Room Database, DataStore Preferences |
+| **Cloud Backend & Sync** | Firebase Authentication, Cloud Firestore, Firebase Storage |
 | **Dependency Injection** | Dagger Hilt |
 | **Asynchronous Processing** | Kotlin Coroutines, Flow, StateFlow, SharedFlow |
 | **Networking** | OkHttp 4, Retrofit 2, Kotlinx Serialization |
@@ -166,6 +198,12 @@ sequenceDiagram
 
 ### ⚡ Try the Pre-built APK
 Download **[NutriMind AI v1.0.1 APK](https://github.com/FebrianDev/Nutrimind-AI/releases/tag/v1.0.1)** from GitHub Releases and install it directly on any compatible Android device (Android 8.0+ / SDK 26+).
+
+#### 👤 Instant Evaluation via Demo Accounts
+To make evaluation fast and frictionless for judges without requiring initial data input, the login screen provides ready-to-use **Demo Accounts** (pre-loaded with 14 days of realistic meal logs, hydration records, and exercise history):
+- **Pre-populated for Instant Testing**: Allows judges to immediately evaluate the Home dashboard, interactive calorie and macro rings, trend charts, and the autonomous tracking agent without manual setup.
+- **Evaluation-Only (Non-Persistent for Personal Use)**: Please note that demo accounts are designed specifically for demonstration and feature evaluation. Data recorded under a demo account is ephemeral and cannot be transferred or saved as a permanent personal account.
+- **Testing Real / Personal Tracking**: If you want to use NutriMind AI for authentic daily journaling and personalized biometric targets, tap **Register** on the welcome screen to create a dedicated personal account.
 
 ### Prerequisites
 - Android Studio Ladybug (2024.2+) or newer.
@@ -220,6 +258,7 @@ META_AI_TEXT_MODEL=muse-spark-1.3
 NutriMind AI explores how multimodal AI and structured action execution can make personal nutrition and activity tracking more convenient. Connecting natural-language and vision inputs directly to an on-device mobile database eliminates the need for users to manually transcribe chat outputs into a separate tracker.
 
 Planned improvements include:
+- **In-App Purchases & NutriMind Pro (Google Play Billing)**: Integrating Google Play Billing for premium subscriber tiers, including unlimited multi-device cloud backups, extended historical trend forecasting, and custom data export capabilities.
 - **On-Device Inference with ExecuTorch**: Exploring lightweight models running directly on-device via ExecuTorch to reduce network latency and support offline inference for selected workflows.
 - **Wear OS Companion**: Exploring Wear OS tiles and complications for quick hydration logging and glanceable daily tracking summaries.
 
@@ -230,7 +269,7 @@ Planned improvements include:
 - **Event**: Meta Global AI Developer Hackathon 2026.
 - **Track**: Indie Developer Track.
 - **Project**: NutriMind AI — *Multimodal Personal Nutrition & Activity Tracking Agent*.
-- **Demo Walkthrough**: **[Watch on YouTube](https://youtu.be/3KouHsuXZmA)**.
+- **Demo Walkthrough**: **[Watch on YouTube](https://youtu.be/iHLcYscWxts)**.
 - **Binary Release**: **[Download APK v1.0.1](https://github.com/FebrianDev/Nutrimind-AI/releases/tag/v1.0.1)**.
 
 > *Scope Clarification*: NutriMind AI uses AI for multimodal input processing and structured personal tracking workflows. Its scope is personal record-keeping and informational summaries, not medical diagnosis or clinical recommendations. The project description is an honest technical overview of the software built; judges and organizers determine eligibility under official event rules.
